@@ -21,7 +21,7 @@
 <meta name="ledger-admin-email" content="9380178ernie@gmail.com" />
 <meta name="ledger-advanced-allowlist" content="6130881121t@gmail.com,9380178ernie@gmail.com,tjurdt.md09@nycu.edu.tw" />
 <title>記帳本</title>
-<!-- v6.1: 捷運票價可靠載入、淡藍捷運面板、連鎖店選單與統計 -->
+<!-- v7.0: UX 重構－四區塊快速記帳、單列篩選、底部選擇器；資料模型與既有服務不變 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -220,6 +220,30 @@
   .bulk-help{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:9px}.bulk-help code{display:block;white-space:pre-wrap;background:var(--surface-2);border-radius:9px;padding:9px;margin-top:7px;color:var(--ink)}.bulk-preview{font-size:12px;color:var(--muted);padding:9px 10px;border-radius:9px;background:var(--surface-2);margin-top:8px}.bulk-preview.ok{background:#eaf6ef;color:var(--income)}.bulk-preview.warn{background:#fbefe9;color:var(--debt)}
   @media(max-width:390px){.itemrow .line1{grid-template-columns:minmax(0,1fr) 72px 48px 26px}.itemrow .i-qty-toggle{font-size:10px;padding:0 3px}.monthbar .period-btn{min-width:138px}}
 
+
+  /* ===== v7.0 UX：降低垂直負擔、四區塊快速記帳 ===== */
+  .listtools-v19{display:grid;grid-template-columns:minmax(0,1fr) 82px 54px;gap:7px;align-items:center}
+  .list-type-select{height:43px;width:82px;border:1px solid var(--line);border-radius:13px;background:var(--surface);padding:0 8px;color:var(--ink);font-size:13px;outline:none}
+  .list-filter-legacy{display:none!important}.listtools-v19 .filterbtn{padding:0 8px;width:54px}
+  .entry-form-v19{padding:11px 12px 28px}.entry-form-v19>.kindseg{margin-left:2px;margin-right:2px}
+  .entry-block{border:1px solid rgba(218,226,222,.88);border-radius:17px;padding:12px;margin-bottom:10px;background:var(--surface);box-shadow:0 1px 4px rgba(20,45,38,.025)}
+  .entry-block-main{background:#edf8f4;border-color:#d3e9e1}.entry-block-classify{background:#edf4fc;border-color:#d6e4f2}.entry-block-items{background:#fbf3e6;border-color:#eadfc9}.entry-block-payment{background:#eff5f1;border-color:#d8e5dd}.entry-block-invest{background:#f2eef9;border-color:#ded5ef}
+  .entry-block-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;color:var(--ink);font-size:13px}.entry-block-head>div:first-child{display:flex;align-items:center;gap:7px}.entry-block-head b{font-size:13px;font-weight:700}.entry-step{display:inline-grid;place-items:center;min-width:25px;height:20px;border-radius:7px;background:rgba(17,111,98,.09);color:var(--teal);font-family:var(--num);font-size:10px;font-weight:700}.entry-block-classify .entry-step{background:#e8eff7;color:#416789}.entry-block-items .entry-step{background:#f3ead9;color:#8a6a35}.entry-block-payment .entry-step{background:#ecefed;color:#61706a}.entry-block-invest .entry-step{background:#eee9f7;color:#6f56bd}
+  .entry-head-action.repeatbtn{display:none;width:auto!important;margin:0!important;padding:5px 9px!important;min-height:30px;border-style:solid;background:rgba(255,255,255,.65);font-size:11px}.entry-head-action.repeatbtn.show{display:inline-flex;align-items:center}
+  .entry-head-tools{display:flex;align-items:center;gap:6px}.entry-head-tools .tiny-btn{min-height:31px;padding:5px 9px;background:rgba(255,255,255,.72)}
+  .entry-block .field{margin-bottom:9px}.entry-block .field:last-child{margin-bottom:0}
+  .entry-block .amount-hero{margin:-1px 0 10px}.entry-block .amount-hero input{font-size:28px!important;padding:12px 10px!important;box-shadow:none;border:1px solid rgba(218,226,222,.82)!important}.entry-block .amount-hero label{margin-bottom:4px}
+  .entry-date-row{height:43px;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:12px;border-top:1px solid rgba(218,226,222,.7);padding-top:9px;margin-top:3px}.entry-row-label{font-size:12px;color:var(--muted);font-weight:600}.entry-date-field{margin:0!important}.entry-date-field label{display:none!important}.entry-date-field input{height:34px!important;min-height:34px!important;padding:3px 7px!important;border:0!important;background:transparent!important;text-align:right}
+  .compact-scope{margin:0 0 7px!important;padding:9px 10px!important;background:rgba(255,255,255,.62)!important;border-color:rgba(215,224,231,.95)!important}.compact-scope>div:first-child{min-width:0}.choice-kicker{display:block;font-size:10px;color:var(--faint);margin-bottom:1px}.compact-scope .cur{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .compact-choice-field{margin:0 0 7px!important}.choice-row{width:100%;min-height:45px;display:grid;grid-template-columns:auto minmax(0,1fr) 14px;align-items:center;gap:10px;padding:9px 10px;border:1px solid rgba(215,224,231,.95);border-radius:11px;background:rgba(255,255,255,.72);text-align:left}.choice-label{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap}.choice-value{display:flex;justify-content:flex-end;align-items:center;gap:7px;min-width:0}.choice-value strong{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.choice-chevron{font-size:22px;color:var(--faint);line-height:1}.choice-dot{display:none;width:9px;height:9px;border-radius:50%;flex:none}.choice-dot.show{display:inline-block}.legacy-choice-source{display:none!important}
+  .entry-block-items .detail-toggle{margin:0;background:rgba(255,255,255,.68);border-color:#e7e0d4;padding:10px 11px}.entry-block-items .detail-toggle small{font-size:11px;color:var(--faint);font-weight:400}.entry-block-items #fld-items{margin:9px 0 0}.catmode-compact{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:10px;margin:9px 0 0!important}.catmode-compact.hidden{display:none!important}.catmode-label{font-size:11px;color:var(--muted);font-weight:600}.catmode-compact .miniseg{margin:0}.catmode-compact .miniseg button{min-height:34px;padding:6px 8px;font-size:12px}.entry-block-items .itemmode-row{margin:2px 1px 7px}.entry-block-items .additem{background:rgba(255,255,255,.55)}
+  .entry-total-row{display:flex;align-items:center;justify-content:space-between;padding:3px 2px 10px;margin-bottom:7px;border-bottom:1px solid rgba(218,226,222,.8);font-size:12px;color:var(--muted)}.entry-total-row strong{font-family:var(--num);font-size:22px;color:var(--ink);font-weight:750}
+  .entry-block-payment #fld-split{margin-top:7px}.entry-block-payment #fld-split>label.checkline{background:rgba(255,255,255,.65);border-color:rgba(218,226,222,.9)}
+  .entry-note{border-top:1px solid rgba(218,226,222,.78);margin-top:8px;padding-top:2px}.entry-note summary{list-style:none;cursor:pointer;padding:9px 2px 5px;font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center}.entry-note summary::-webkit-details-marker{display:none}.entry-note summary::after{content:'＋';margin-left:auto;color:var(--faint);font-size:16px}.entry-note[open] summary::after{content:'−'}.entry-note summary span{font-size:10px;color:var(--faint)}.entry-note .field{margin:4px 0 0!important}.entry-note textarea{min-height:58px!important;background:rgba(255,255,255,.7)!important}
+  .choice-sheet{max-height:72vh;z-index:49;background:#eef7f4}.choice-sheet .sheet-hdr{background:#e4f1ed;border-bottom:1px solid #d1e5df}.choice-sheet .grab{background:#b7d4cb}.choice-sheet+.x{display:none}#choiceBackdrop{z-index:48}.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-bottom:22px}.choice-option{min-height:48px;display:flex;align-items:center;gap:9px;padding:10px 12px;border:1px solid #d6e6e1;border-radius:12px;background:rgba(255,255,255,.72);font-size:14px;text-align:left}.choice-option.on{border-color:var(--teal);background:#e1f2ec;box-shadow:0 0 0 1px var(--teal);font-weight:650}.choice-option .dot{width:10px;height:10px;border-radius:50%;flex:none}.choice-option.full{grid-column:1/-1}.choice-option.add{border-style:dashed;color:var(--teal);background:rgba(255,255,255,.48)}.choice-sheet.choice-mode-cat,.choice-sheet.choice-mode-sub{background:#edf5fc}.choice-sheet.choice-mode-cat .sheet-hdr,.choice-sheet.choice-mode-sub .sheet-hdr{background:#e3eef8;border-bottom-color:#d2e1ef}.choice-sheet.choice-mode-cat .grab,.choice-sheet.choice-mode-sub .grab{background:#b8cfe3}.choice-sheet.choice-mode-cat .choice-option,.choice-sheet.choice-mode-sub .choice-option{border-color:#d4e2ef;background:rgba(255,255,255,.73)}.choice-sheet.choice-mode-cat .choice-option.on,.choice-sheet.choice-mode-sub .choice-option.on{background:#e1edf9}.choice-sheet.choice-mode-pay{background:#eef7f2}.choice-sheet.choice-mode-pay .sheet-hdr{background:#e3f0e9;border-bottom-color:#d1e3d8}.choice-sheet.choice-mode-pay .grab{background:#b8d2c3}.choice-sheet.choice-mode-pay .choice-option{border-color:#d4e4da;background:rgba(255,255,255,.73)}.choice-sheet.choice-mode-pay .choice-option.on{background:#e1f0e7}
+  #entryBlockInvest.hidden,#entryBlockClassify.hidden,#entryBlockItems.hidden{display:none!important}
+  @media(max-width:390px){.listtools-v19{grid-template-columns:minmax(0,1fr) 76px 50px;gap:6px}.list-type-select{width:76px;padding:0 6px}.listtools-v19 .filterbtn{width:50px;padding:0 5px}.entry-form-v19{padding-left:9px;padding-right:9px}.entry-block{padding:10px;border-radius:15px}.choice-grid{grid-template-columns:1fr 1fr}.entry-head-tools .tiny-btn{padding:5px 7px;font-size:11px}}
+
 </style>
 </head>
 <body>
@@ -236,13 +260,14 @@
 
 <section class="view active" id="view-list">
   <div id="firstRunBanner"></div>
-  <div class="listtools">
-    <div class="searchbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg><input id="listSearch" type="search" placeholder="搜尋所有時間的店家、品項、備註…" /><button id="clearSearch" aria-label="清除搜尋" style="display:none">×</button></div>
+  <div class="listtools listtools-v19">
+    <div class="searchbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg><input id="listSearch" type="search" placeholder="搜尋過往店家、品項、備註…" /><button id="clearSearch" aria-label="清除搜尋" style="display:none">×</button></div>
+    <select class="list-type-select" id="listTypeSelect" aria-label="帳目類型"><option value="all">全部</option><option value="expense">支出</option><option value="income">收入</option><option value="split">分帳</option><option value="settlement">還款</option></select>
     <button class="filterbtn" id="listFilterBtn">篩選</button>
   </div>
-  <div class="search-scope-note" id="searchScopeNote">搜尋時會跨全部時間與情境，不需要先記得哪個月份。</div>
+  <div class="search-scope-note" id="searchScopeNote">搜尋會跨全部時間與情境。</div>
   <div class="filterpanel" id="listFilterPanel"><div class="filterrow"><select id="listCatFilter"><option value="">所有分類</option></select><select id="listPayFilter"><option value="">所有付款方式</option></select></div></div>
-  <div class="chips" id="filterChips"></div><div id="recordList"></div>
+  <div class="chips list-filter-legacy" id="filterChips"></div><div id="recordList"></div>
 </section>
 
 <section class="view" id="view-chart">
@@ -321,58 +346,77 @@
 <div class="sheet" id="sheet">
   <div class="grab"></div>
   <div class="sheet-hdr"><button id="cancelBtn">取消</button><h2 id="sheetTitle">新增一筆</h2><button id="saveBtn">儲存</button></div>
-  <div class="form">
+  <div class="form entry-form-v19">
     <div class="kindseg">
       <span class="k-expense"><input type="radio" name="kind" id="k-expense" value="expense" checked><label for="k-expense">支出</label></span>
       <span class="k-income"><input type="radio" name="kind" id="k-income" value="income"><label for="k-income">收入</label></span>
       <span class="k-invest"><input type="radio" name="kind" id="k-invest" value="investment"><label for="k-invest">投資</label></span>
       <span class="k-repay"><button type="button" class="kind-action" id="openRepayFromEntry">還款</button></span>
     </div>
-    <div class="quick-actions"><button type="button" class="receiptbtn" id="scanReceiptBtn">📷 掃描紙本發票</button><button type="button" class="repeatbtn" id="repeatLastBtn">↻ 套用上一筆支出</button></div><input type="file" id="receiptFile" accept="image/*" capture="environment" hidden />
-    <div class="field amount-hero" id="fld-amount"><label id="amountLabel">支出金額 (NT$)</label><input type="number" id="f-total" inputmode="decimal" placeholder="0" /></div>
-    <div class="quickmeta"><div class="scoperow" id="scopeRow"><div class="cur" id="formScopeText">🏠 日常</div><button class="change" id="formScopeChange">切換</button></div><div class="field" id="fld-date"><label>日期</label><input type="date" id="f-date" /></div></div>
-    <div class="field" id="fld-store"><div class="field-head"><label id="storeLabel">店家名稱 <small>選填</small></label><button type="button" class="tiny-btn" id="storeModeBtn">連鎖店</button></div><div class="store-single-wrap" id="storeSingleWrap"><input type="text" id="f-store" list="storeList" placeholder="例如：全家、鼎泰豐" /></div><div class="store-chain-wrap" id="storeChainWrap"><div class="chain-picker"><select id="f-chain" aria-label="連鎖店"><option value="">選擇連鎖店</option></select><button type="button" class="tiny-btn" id="addChainQuick" aria-label="新增連鎖店">＋</button></div><input type="text" id="f-branch" list="branchList" placeholder="分店，例如：北投明德店"></div><div class="short-suggest" id="storeSuggest"></div><button class="nearbtn" id="nearBtn">📍 找附近店家</button><div class="selectchips nearchips" id="nearChips" style="margin-top:8px"></div></div>
 
-    <div class="field hidden" id="fld-catmode"><div class="miniseg" id="catModeSeg"><button data-m="whole" class="on">整筆同分類</button><button data-m="perItem">逐項分類</button></div></div>
-    <div class="field" id="fld-cat"><label id="catLabel">分類</label><div class="selectchips" id="catChips"></div></div>
-    <div class="field" id="fld-sub"><label>子分類 <small>選填</small></label><div class="selectchips" id="subChips"></div></div>
-    <div class="field hidden" id="mrtQuickWrap"><button type="button" class="btn-outline" id="mrtFareBtn" style="width:100%">🚇 臺北捷運票價快捷</button></div>
+    <section class="entry-block entry-block-main" id="entryBlockMain">
+      <div class="entry-block-head"><div><span class="entry-step">01</span><b id="entryBlock1Title">消費</b></div><button type="button" class="entry-head-action repeatbtn" id="repeatLastBtn">↻ 上一筆</button></div>
+      <div class="field amount-hero" id="fld-amount"><label id="amountLabel">支出金額 (NT$)</label><input type="number" id="f-total" inputmode="decimal" placeholder="0" /></div>
+      <div class="field" id="fld-store"><div class="field-head"><label id="storeLabel">店家名稱 <small>選填</small></label><button type="button" class="tiny-btn" id="storeModeBtn">連鎖店</button></div><div class="store-single-wrap" id="storeSingleWrap"><input type="text" id="f-store" list="storeList" placeholder="例如：全家、鼎泰豐" /></div><div class="store-chain-wrap" id="storeChainWrap"><div class="chain-picker"><select id="f-chain" aria-label="連鎖店"><option value="">選擇連鎖店</option></select><button type="button" class="tiny-btn" id="addChainQuick" aria-label="新增連鎖店">＋</button></div><input type="text" id="f-branch" list="branchList" placeholder="分店，例如：北投明德店"></div><div class="short-suggest" id="storeSuggest"></div><button class="nearbtn" id="nearBtn">📍 找附近店家</button><div class="selectchips nearchips" id="nearChips" style="margin-top:8px"></div></div>
+      <div class="entry-date-row"><span class="entry-row-label">日期</span><div class="field entry-date-field" id="fld-date"><label>日期</label><input type="date" id="f-date" /></div></div>
+    </section>
 
-    <button type="button" class="detail-toggle" id="detailToggle"><span><b>品項明細</b>（需要時再填）</span><span class="chev">⌄</span></button>
-    <div class="field hidden" id="fld-items"><div class="itemmode-row"><div class="hint">品項明細 · 每項可獨立開啟數量</div><div class="itemmode-actions"><button type="button" class="tiny-btn" id="bulkItemBtn">批次輸入</button></div></div><div id="itemRows"></div><button class="additem" id="addItemBtn">＋ 新增品項</button>
-      <div id="storeFavWrap"><div class="favtitle" id="favTitle" style="display:none">此店常買（點選帶入）</div><div class="selectchips" id="storeFav"></div></div>
-      <div class="itemtotal"><span style="font-size:13px;color:var(--muted)">總計</span><b id="itemTotal">$0</b></div>
-    </div>
+    <section class="entry-block entry-block-classify" id="entryBlockClassify">
+      <div class="entry-block-head"><div><span class="entry-step">02</span><b>歸類</b></div></div>
+      <div class="scoperow compact-scope" id="scopeRow"><div><span class="choice-kicker">情境</span><div class="cur" id="formScopeText">🏠 日常</div></div><button class="change" id="formScopeChange">切換</button></div>
+      <div class="field compact-choice-field" id="fld-cat"><button type="button" class="choice-row" id="catSelectBtn"><span class="choice-label" id="catLabel">分類</span><span class="choice-value"><i class="choice-dot" id="catChoiceDot"></i><strong id="catSelectValue">未選擇</strong></span><span class="choice-chevron">›</span></button><div class="selectchips legacy-choice-source" id="catChips"></div></div>
+      <div class="field compact-choice-field" id="fld-sub"><button type="button" class="choice-row" id="subSelectBtn"><span class="choice-label">子分類</span><span class="choice-value"><strong id="subSelectValue">未選擇</strong></span><span class="choice-chevron">›</span></button><div class="selectchips legacy-choice-source" id="subChips"></div></div>
+    </section>
 
-    <div class="field" id="fld-pay"><label id="payLabel">付款方式</label><div class="selectchips" id="payChips"></div></div>
-
-    <div class="field" id="fld-split"><label class="checkline"><input type="checkbox" id="splitToggle"> 與他人分帳</label>
-      <div class="conditional" id="splitBody" style="margin-top:8px">
-        <input type="text" id="f-partner" list="partnerList" placeholder="對象（例如：女友、小明）" />
-        <div class="miniseg" id="payerSeg" style="margin-top:10px"><button data-p="me" class="on">我先付款</button><button data-p="other">對方先付款</button></div>
-        <div class="miniseg" id="shareSeg" style="margin-top:8px"><button data-s="even" class="on">均分</button><button data-s="own">自訂</button><button data-s="mine">我請客</button><button data-s="theirs">對方請客</button></div>
-        <input type="number" id="f-myshare" inputmode="decimal" placeholder="我實際應負擔多少" style="display:none;margin-top:8px" />
-        <div class="invpreview" id="splitPreview"></div>
-        <label class="checkline" style="margin-top:8px"><input type="checkbox" id="f-settled"> 這筆已當場結清（不列入欠款）</label>
+    <section class="entry-block entry-block-items" id="entryBlockItems">
+      <div class="entry-block-head"><div><span class="entry-step">03</span><b>品項</b></div><div class="entry-head-tools"><button type="button" class="tiny-btn" id="scanReceiptBtn">📷 掃發票</button><button type="button" class="tiny-btn" id="bulkItemBtn">批次輸入</button></div></div><input type="file" id="receiptFile" accept="image/*" capture="environment" hidden />
+      <div class="field hidden" id="mrtQuickWrap"><button type="button" class="btn-outline" id="mrtFareBtn" style="width:100%;background:rgba(255,255,255,.62);border-color:#d5e4ea">🚇 臺北捷運票價快捷</button></div>
+      <button type="button" class="detail-toggle" id="detailToggle"><span><b>手動輸入品項</b><small>　需要時再展開</small></span><span class="chev">⌄</span></button>
+      <div class="field hidden catmode-compact" id="fld-catmode"><div class="catmode-label">分類方式</div><div class="miniseg" id="catModeSeg"><button data-m="whole" class="on">整筆分類</button><button data-m="perItem">逐項分類</button></div></div>
+      <div class="field hidden" id="fld-items"><div class="itemmode-row"><div class="hint">每個品項可個別開啟數量或逐項分類</div></div><div id="itemRows"></div><button class="additem" id="addItemBtn">＋ 新增品項</button>
+        <div id="storeFavWrap"><div class="favtitle" id="favTitle" style="display:none">此店常買（點選帶入）</div><div class="selectchips" id="storeFav"></div></div>
+        <div class="itemtotal"><span style="font-size:13px;color:var(--muted)">品項加總</span><b id="itemTotal">$0</b></div>
       </div>
-    </div>
+    </section>
 
-    <div class="field hidden" id="fld-invest">
-      <div class="row2"><div><label>標的名稱</label><input type="text" id="f-symbol" placeholder="台積電" /></div><div><label>代號<small> 選填</small></label><input type="text" id="f-ticker" placeholder="2330" /></div></div>
-      <button class="btn-outline" id="lookupBtn" style="margin-top:8px;width:100%">用代號自動帶入名稱與現價</button>
-      <div class="field" style="margin-top:12px"><label>動作</label><div class="miniseg"><button type="button" class="ia on" data-a="buy">買進</button><button type="button" class="ia" data-a="sell">賣出</button><button type="button" class="ia" data-a="dividend">股利</button></div></div>
-      <div id="invTradeFields">
-        <div class="row2"><div><label>股數</label><input type="number" id="f-shares" inputmode="decimal" placeholder="1000" /></div><div><label>成交價</label><input type="number" id="f-uprice" inputmode="decimal" placeholder="每股" /></div></div>
-        <div class="field" style="margin-top:12px"><label>手續費＋交易稅<small> 選填</small></label><input type="number" id="f-fee" inputmode="decimal" placeholder="0" /><div class="invpreview" id="invPreview"></div></div>
+    <section class="entry-block entry-block-invest hidden" id="entryBlockInvest">
+      <div class="entry-block-head"><div><span class="entry-step">03</span><b>投資交易</b></div></div>
+      <div class="field hidden" id="fld-invest">
+        <div class="row2"><div><label>標的名稱</label><input type="text" id="f-symbol" placeholder="台積電" /></div><div><label>代號<small> 選填</small></label><input type="text" id="f-ticker" placeholder="2330" /></div></div>
+        <button class="btn-outline" id="lookupBtn" style="margin-top:8px;width:100%">用代號自動帶入名稱與現價</button>
+        <div class="field" style="margin-top:12px"><label>動作</label><div class="miniseg"><button type="button" class="ia on" data-a="buy">買進</button><button type="button" class="ia" data-a="sell">賣出</button><button type="button" class="ia" data-a="dividend">股利</button></div></div>
+        <div id="invTradeFields">
+          <div class="row2"><div><label>股數</label><input type="number" id="f-shares" inputmode="decimal" placeholder="1000" /></div><div><label>成交價</label><input type="number" id="f-uprice" inputmode="decimal" placeholder="每股" /></div></div>
+          <div class="field" style="margin-top:12px"><label>手續費＋交易稅<small> 選填</small></label><input type="number" id="f-fee" inputmode="decimal" placeholder="0" /><div class="invpreview" id="invPreview"></div></div>
+        </div>
+        <div class="field hidden" id="invDivField" style="margin-top:12px"><label>股利金額 (NT$)</label><input type="number" id="f-divamt" inputmode="decimal" placeholder="0" /></div>
       </div>
-      <div class="field hidden" id="invDivField" style="margin-top:12px"><label>股利金額 (NT$)</label><input type="number" id="f-divamt" inputmode="decimal" placeholder="0" /></div>
-    </div>
+    </section>
 
-    <div class="field"><label>備註<small> 選填</small></label><textarea id="f-note" placeholder="其他說明"></textarea></div>
+    <section class="entry-block entry-block-payment" id="entryBlockPayment">
+      <div class="entry-block-head"><div><span class="entry-step">04</span><b id="entryBlock4Title">付款</b></div></div>
+      <div class="entry-total-row" id="entryTotalRow"><span>總計</span><strong id="entryTotalMirror">$0</strong></div>
+      <div class="field compact-choice-field" id="fld-pay"><button type="button" class="choice-row" id="paySelectBtn"><span class="choice-label" id="payLabel">付款方式</span><span class="choice-value"><strong id="paySelectValue">未選擇</strong></span><span class="choice-chevron">›</span></button><div class="selectchips legacy-choice-source" id="payChips"></div></div>
+      <div class="field" id="fld-split"><label class="checkline"><input type="checkbox" id="splitToggle"> 與他人分帳</label>
+        <div class="conditional" id="splitBody" style="margin-top:8px">
+          <input type="text" id="f-partner" list="partnerList" placeholder="對象（例如：女友、小明）" />
+          <div class="miniseg" id="payerSeg" style="margin-top:10px"><button data-p="me" class="on">我先付款</button><button data-p="other">對方先付款</button></div>
+          <div class="miniseg" id="shareSeg" style="margin-top:8px"><button data-s="even" class="on">均分</button><button data-s="own">自訂</button><button data-s="mine">我請客</button><button data-s="theirs">對方請客</button></div>
+          <input type="number" id="f-myshare" inputmode="decimal" placeholder="我實際應負擔多少" style="display:none;margin-top:8px" />
+          <div class="invpreview" id="splitPreview"></div>
+          <label class="checkline" style="margin-top:8px"><input type="checkbox" id="f-settled"> 這筆已當場結清（不列入欠款）</label>
+        </div>
+      </div>
+      <details class="entry-note" id="noteDetails"><summary>備註 <span>選填</span></summary><div class="field"><textarea id="f-note" placeholder="其他說明"></textarea></div></details>
+    </section>
+
     <button class="save-btn" id="saveBtnBottom">儲存</button>
     <button class="del-btn" id="deleteBtn" style="display:none">刪除這筆</button>
   </div>
 </div>
+
+<div class="backdrop" id="choiceBackdrop"></div>
+<div class="sheet choice-sheet" id="choiceSheet"><div class="grab"></div><div class="sheet-hdr"><button id="choiceCancel">關閉</button><h2 id="choiceTitle">選擇</h2><span style="width:52px"></span></div><div class="form"><div class="choice-grid" id="choiceSheetBody"></div></div></div>
 
 <div class="backdrop" id="scopeBackdrop"></div>
 <div class="sheet" id="scopeSheet"><div class="grab"></div><div class="sheet-hdr"><button id="scopeCancel">關閉</button><h2>選擇情境</h2><span style="width:36px"></span></div><div class="scopelist" id="scopeListBody"></div></div>
@@ -655,11 +699,12 @@ function renderChipSelectors(){const catList=getKind()==='income'?catsIncome:cat
   $('#payChips').innerHTML=(payments.length?payments.map(p=>`<button data-v="${esc(p)}" class="${selPay===p?'on':''}">${esc(p)}</button>`).join(''):`<span class="none">尚無付款方式 →</span>`)+`<button class="add" data-add="pay">＋ 新增</button>`;
   $('#catChips').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.add)return addOption('cat');selCat=selCat===b.dataset.v?null:b.dataset.v;selSub=null;renderChipSelectors();renderSubChips();});
   $('#payChips').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.add)return addOption('pay');selPay=selPay===b.dataset.v?null:b.dataset.v;renderChipSelectors();});
+  if(typeof syncCompactChoiceLabels==='function')syncCompactChoiceLabels();
 }
 function renderSubChips(){const show=getKind()==='expense'&&catMode==='whole'&&selCat&&(subcats[selCat]&&subcats[selCat].length);
   $('#fld-sub').classList.toggle('hidden',!show);if(!show){updateMrtQuick();return;}
   $('#subChips').innerHTML=subcats[selCat].map(s=>`<button data-v="${esc(s)}" class="${selSub===s?'on':''}" style="${selSub===s?`background:${catColor(selCat)};border-color:${catColor(selCat)};color:#fff`:''}">${esc(s)}</button>`).join('')+`<button class="add" data-add="sub">＋ 新增</button>`;
-  $('#subChips').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.add){const v=(prompt('新增子分類到「'+selCat+'」')||'').trim();if(v){(subcats[selCat]=subcats[selCat]||[]).push(v);save(K.sub,subcats);selSub=v;renderSubChips();}return;}selSub=selSub===b.dataset.v?null:b.dataset.v;renderSubChips();});updateMrtQuick();
+  $('#subChips').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.add){const v=(prompt('新增子分類到「'+selCat+'」')||'').trim();if(v){(subcats[selCat]=subcats[selCat]||[]).push(v);save(K.sub,subcats);selSub=v;renderSubChips();}return;}selSub=selSub===b.dataset.v?null:b.dataset.v;renderSubChips();});updateMrtQuick();if(typeof syncCompactChoiceLabels==='function')syncCompactChoiceLabels();
 }
 function addOption(type){const v=(prompt(type==='cat'?'新增分類名稱':'新增付款方式')||'').trim();if(!v)return;
   if(type==='cat'){const list=getKind()==='income'?catsIncome:catsExpense;if(!list.includes(v)){list.push(v);if(!catColors[v])catColors[v]=CAT_COLORS[Object.keys(catColors).length%CAT_COLORS.length];save(getKind()==='income'?K.ci:K.ce,list);save(K.cc,catColors);}selCat=v;refreshItemCatSelects();renderSubChips();}
@@ -695,7 +740,7 @@ function addItemRow(name='',price='',cat='',sub='',qty=1,unitPrice=null){
   del.onclick=()=>{row.remove();recomputeTotal();};$('#itemRows').appendChild(row);if(useQty)syncItemRowTotal(row);
 }
 function syncItemRowTotal(row){if(!row||!row.classList.contains('qty'))return;const q=Math.max(0,+row.querySelector('.i-qty').value||0),u=Math.max(0,+row.querySelector('.i-unit').value||0),t=q*u;row.querySelector('.i-price').value=(q&&u)?String(Math.round((t+Number.EPSILON)*100)/100):'';row.querySelector('.i-subtotal').textContent=(q&&u)?nf(t):'—';}
-function recomputeTotal(){let t=0;$('#itemRows').querySelectorAll('.itemrow').forEach(row=>{if(row.classList.contains('qty'))syncItemRowTotal(row);t+=parseFloat(row.querySelector('.i-price').value)||0;});$('#itemTotal').textContent=nf(t);if(itemDetailOpen&&getKind()==='expense'&&t>0)$('#f-total').value=t;updateSplitPreview();return t;}
+function recomputeTotal(){let t=0;$('#itemRows').querySelectorAll('.itemrow').forEach(row=>{if(row.classList.contains('qty'))syncItemRowTotal(row);t+=parseFloat(row.querySelector('.i-price').value)||0;});$('#itemTotal').textContent=nf(t);if(itemDetailOpen&&getKind()==='expense'&&t>0)$('#f-total').value=t;if(typeof updateEntryTotalMirror==='function')updateEntryTotalMirror();updateSplitPreview();return t;}
 function collectItems(){const arr=[];$('#itemRows').querySelectorAll('.itemrow').forEach(r=>{const name=r.querySelector('.i-name').value.trim(),price=parseFloat(r.querySelector('.i-price').value)||0,cat=r.querySelector('.i-cat').value,sub=r.querySelector('.i-sub').value,isQty=r.classList.contains('qty'),qty=isQty?Math.max(0,+r.querySelector('.i-qty').value||1):1,unitPrice=isQty?Math.max(0,+r.querySelector('.i-unit').value||0):0;if((name||price)&&cat!=='__add__')arr.push({name,price,qty:qty||1,unitPrice:isQty?(unitPrice||price/(qty||1)):null,category:cat||null,sub:sub&&sub!=='__add__'?sub:null});});return arr;}
 $('#addItemBtn').onclick=()=>addItemRow();
 
@@ -740,7 +785,7 @@ function activeTripToday(){const d=todayISO();return sortedTrips().find(t=>t.sta
 function defaultFormScope(){if(currentScope.type!=='all')return {...currentScope};const t=activeTripToday();return t?{type:t.kind,trip:t.id}:{type:'daily',trip:null};}
 function lastExpense(){return records.filter(r=>r.kind==='expense').sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt-a.createdAt)[0]||null;}
 function updateRepeatButton(){const show=!editingId&&getKind()==='expense'&&!!lastExpense();$('#repeatLastBtn').classList.toggle('show',show);}
-function applyRecordTemplate(r){if(!r)return;storeMode=r.storeChain?'chain':'single';$('#f-store').value=r.store||'';refreshChainSelect(r.storeChain||'');$('#f-chain').value=r.storeChain||'';$('#f-branch').value=r.storeBranch||'';setStoreMode(storeMode,false);$('#f-total').value=r.total||'';selCat=r.category||null;selSub=r.sub||null;selPay=r.payment||null;catMode=r.catMode||'whole';const hasDetails=!!(r.items||[]).some(i=>i.name)||catMode==='perItem';$('#itemRows').innerHTML='';if(hasDetails)(r.items||[]).forEach(i=>addItemRow(i.name||'',i.price??'',i.category||'',i.sub||'',i.qty||1,i.unitPrice));setItemDetailOpen(hasDetails);renderChipSelectors();renderSubChips();refreshStoreItems();updateSplitPreview();toast('已套用上一筆；日期與情境維持本次設定');}
+function applyRecordTemplate(r){if(!r)return;storeMode=r.storeChain?'chain':'single';$('#f-store').value=r.store||'';refreshChainSelect(r.storeChain||'');$('#f-chain').value=r.storeChain||'';$('#f-branch').value=r.storeBranch||'';setStoreMode(storeMode,false);$('#f-total').value=r.total||'';selCat=r.category||null;selSub=r.sub||null;selPay=r.payment||null;catMode=r.catMode||'whole';const hasDetails=!!(r.items||[]).some(i=>i.name)||catMode==='perItem';$('#itemRows').innerHTML='';if(hasDetails)(r.items||[]).forEach(i=>addItemRow(i.name||'',i.price??'',i.category||'',i.sub||'',i.qty||1,i.unitPrice));setItemDetailOpen(hasDetails);renderChipSelectors();renderSubChips();refreshStoreItems();if(typeof updateEntryTotalMirror==='function')updateEntryTotalMirror();updateSplitPreview();toast('已套用上一筆；日期與情境維持本次設定');}
 $('#repeatLastBtn').onclick=()=>applyRecordTemplate(lastExpense());
 function smartFillFromStore(){if(getKind()!=='expense')return;const store=composedStore();if(!store)return;const hist=records.filter(r=>r.kind==='expense'&&r.store===store);if(!hist.length)return;const count=(arr)=>Object.entries(arr.reduce((m,x)=>(x&&(m[x]=(m[x]||0)+1),m),{})).sort((a,b)=>b[1]-a[1])[0]?.[0];if(!selCat){const c=count(hist.flatMap(r=>recordCategories(r)));if(c){selCat=c;selSub=null;}}if(!selPay){const p=count(hist.map(r=>r.payment));if(p)selPay=p;}renderChipSelectors();renderSubChips();}
 $('#f-store').addEventListener('blur',smartFillFromStore);$('#f-chain').addEventListener('blur',smartFillFromStore);$('#f-branch').addEventListener('blur',smartFillFromStore);
@@ -919,7 +964,7 @@ async function openMrtFare(){mrtCurrentFare=null;renderMrtRecent();renderMrtStat
 async function retryMrtFare(){const b=$('#mrtRetry');b.disabled=true;b.textContent='載入中…';mrtFareData=null;try{await ensureMrtFareData(true);renderMrtStations();mrtLoadError='';$('#mrtRetry').style.display='none';}catch(e){mrtLoadError=String(e?.message||e);}finally{b.disabled=false;b.textContent='重新載入票價';updateMrtFareResult();}}
 function closeMrtFare(){$('#mrtBackdrop').classList.remove('show');$('#mrtSheet').classList.remove('show');}
 $('#mrtFareBtn').onclick=openMrtFare;$('#mrtCancel').onclick=closeMrtFare;$('#mrtBackdrop').onclick=closeMrtFare;$('#mrtRetry').onclick=retryMrtFare;$('#mrtFrom').addEventListener('input',updateMrtFareResult);$('#mrtTo').addEventListener('input',updateMrtFareResult);$('#mrtFareType').querySelectorAll('button').forEach(b=>b.onclick=()=>{mrtFareType=b.dataset.t;$('#mrtFareType').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));updateMrtFareResult();});
-$('#mrtApply').onclick=()=>{if(!mrtCurrentFare)return;$('#f-total').value=mrtCurrentFare.price;storeMode='single';setStoreMode('single',false);$('#f-store').value='臺北捷運';selCat=catsExpense.find(c=>c.includes('交通'))||selCat;if(selCat&&subcats[selCat]?.some(x=>x.includes('大眾運輸')))selSub=subcats[selCat].find(x=>x.includes('大眾運輸'));const route=`捷運 ${mrtCurrentFare.from} → ${mrtCurrentFare.to}`,$n=$('#f-note');if(!$n.value.includes(route))$n.value=($n.value?($n.value+'；'):'')+route;settings.mrtRecentPairs=[{from:mrtCurrentFare.from,to:mrtCurrentFare.to},...(settings.mrtRecentPairs||[]).filter(x=>!(x.from===mrtCurrentFare.from&&x.to===mrtCurrentFare.to))].slice(0,6);save(K.set,settings);renderMrtRecent();renderChipSelectors();renderSubChips();refreshStoreItems();closeMrtFare();toast(`已帶入捷運票價 ${nf(mrtCurrentFare.price)}`);};
+$('#mrtApply').onclick=()=>{if(!mrtCurrentFare)return;$('#f-total').value=mrtCurrentFare.price;if(typeof updateEntryTotalMirror==='function')updateEntryTotalMirror();storeMode='single';setStoreMode('single',false);$('#f-store').value='臺北捷運';selCat=catsExpense.find(c=>c.includes('交通'))||selCat;if(selCat&&subcats[selCat]?.some(x=>x.includes('大眾運輸')))selSub=subcats[selCat].find(x=>x.includes('大眾運輸'));const route=`捷運 ${mrtCurrentFare.from} → ${mrtCurrentFare.to}`,$n=$('#f-note');if(!$n.value.includes(route))$n.value=($n.value?($n.value+'；'):'')+route;settings.mrtRecentPairs=[{from:mrtCurrentFare.from,to:mrtCurrentFare.to},...(settings.mrtRecentPairs||[]).filter(x=>!(x.from===mrtCurrentFare.from&&x.to===mrtCurrentFare.to))].slice(0,6);save(K.set,settings);renderMrtRecent();renderChipSelectors();renderSubChips();refreshStoreItems();closeMrtFare();toast(`已帶入捷運票價 ${nf(mrtCurrentFare.price)}`);};
 
 
 /* ===== 圖表 ===== */
@@ -1181,7 +1226,7 @@ function addOcrReviewRow(name='',price='',adjusted=false){const box=$('#ocrRevie
 function renderOcrReview(parsed,source){ocrParsed=parsed;$('#ocrTitle').textContent='確認發票品項';$('#ocrStatus').textContent=`${source} 已完成。新版依「同一水平列＋右側價格欄」重建品項，不再猜店家。`;$('#ocrDate').value=parsed.date||todayISO();$('#ocrTotal').value=parsed.total||'';$('#ocrReviewItems').innerHTML='';parsed.items.forEach(i=>addOcrReviewRow(i.name,i.price,!!i.autoAdjusted));if(!parsed.items.length)addOcrReviewRow();$('#ocrReview').classList.add('show');$('#ocrCancel').style.display='none';updateOcrCheck();}
 async function localTesseractReceipt(file){if(!window.Tesseract)throw new Error('本機 OCR 元件尚未載入');const canvas=await prepareReceiptCanvas(file,true);ocrWorker=await Tesseract.createWorker(['chi_tra','eng'],1,{logger:m=>{if(ocrCancelled)return;const p=Math.round((m.progress||0)*100);$('#ocrProgress').style.width=Math.max(5,p)+'%';$('#ocrStatus').textContent=({loading_tesseract_core:'載入 OCR 核心',initializing_tesseract:'初始化 OCR',loading_language_traineddata:'載入繁體中文模型',initializing_api:'準備辨識',recognizing_text:'辨識文字與版面中'}[String(m.status||'').replace(/ /g,'_')]||m.status||'辨識中')+(m.progress!=null?` ${p}%`:'');}});try{await ocrWorker.setParameters({preserve_interword_spaces:'1'});}catch(e){}const ret=await ocrWorker.recognize(canvas,{}, {blocks:true,tsv:true}),data=ret.data||{},words=blockWords(data.blocks);return{text:data.text||'',words:words.length?words:parseTsvWords(data.tsv),width:canvas.width,height:canvas.height,engine:'tesseract'};}
 async function runReceiptOCR(file){ocrCancelled=false;ocrParsed=null;$('#ocrOverlay').classList.add('show');$('#ocrReview').classList.remove('show');$('#ocrCancel').style.display='block';$('#ocrTitle').textContent='正在辨識發票';$('#ocrProgress').style.width='3%';$('#ocrStatus').textContent='正在準備照片…';const old=$('#ocrPreview').src;if(old?.startsWith('blob:'))URL.revokeObjectURL(old);$('#ocrPreview').src=URL.createObjectURL(file);try{let ocr=null,source='';if(effectiveVisionKey()){try{$('#ocrStatus').textContent='Google Vision 文件 OCR 與版面辨識中…';$('#ocrProgress').style.width='22%';ocr=await cloudVisionReceipt(file);source='Google Cloud Vision';}catch(e){console.warn('Vision OCR failed',e);$('#ocrStatus').textContent='Google Vision 失敗，正在改用本機 OCR…';ocr=await localTesseractReceipt(file);source='本機 OCR（Vision 失敗）';}}else{ocr=await localTesseractReceipt(file);source='本機 OCR';}if(ocrCancelled)return;const parsed=parseReceiptLayout(ocr);$('#ocrProgress').style.width='100%';renderOcrReview(parsed,source);}catch(e){console.error(e);$('#ocrStatus').textContent='辨識失敗：'+(e.message||'請換一張更清楚的照片');$('#ocrProgress').style.width='0%';}finally{if(ocrWorker){try{await ocrWorker.terminate();}catch(e){}ocrWorker=null;}}}
-function applyOcrToForm(){const items=ocrReviewItems().filter(x=>x.name&&x.price>0),sum=items.reduce((s,x)=>s+x.price,0),total=+$('#ocrTotal').value||sum;document.querySelector('#k-expense').checked=true;updateKindUI();$('#f-date').value=$('#ocrDate').value||todayISO();$('#f-total').value=total||'';$('#itemRows').innerHTML='';if(items.length){items.forEach(i=>{const g=guessItemCat(i.name);addItemRow(i.name,i.price,g.cat,g.sub);});catMode='perItem';setCatMode('perItem');setItemDetailOpen(true);}else setItemDetailOpen(false);refreshStoreItems();renderChipSelectors();renderSubChips();closeOcr();toast(`已套用 ${items.length} 個品項；店家可選填，請最後確認分類與金額`);}
+function applyOcrToForm(){const items=ocrReviewItems().filter(x=>x.name&&x.price>0),sum=items.reduce((s,x)=>s+x.price,0),total=+$('#ocrTotal').value||sum;document.querySelector('#k-expense').checked=true;updateKindUI();$('#f-date').value=$('#ocrDate').value||todayISO();$('#f-total').value=total||'';if(typeof updateEntryTotalMirror==='function')updateEntryTotalMirror();$('#itemRows').innerHTML='';if(items.length){items.forEach(i=>{const g=guessItemCat(i.name);addItemRow(i.name,i.price,g.cat,g.sub);});catMode='perItem';setCatMode('perItem');setItemDetailOpen(true);}else setItemDetailOpen(false);refreshStoreItems();renderChipSelectors();renderSubChips();closeOcr();toast(`已套用 ${items.length} 個品項；店家可選填，請最後確認分類與金額`);}
 function closeOcr(){ocrCancelled=true;$('#ocrOverlay').classList.remove('show');$('#ocrReview').classList.remove('show');ocrParsed=null;const src=$('#ocrPreview').src;if(src?.startsWith('blob:'))URL.revokeObjectURL(src);$('#ocrPreview').removeAttribute('src');}
 $('#scanReceiptBtn').onclick=()=>$('#receiptFile').click();$('#receiptFile').onchange=e=>{const f=e.target.files?.[0];if(f)runReceiptOCR(f);e.target.value='';};$('#ocrCancel').onclick=closeOcr;$('#ocrDiscard').onclick=closeOcr;$('#ocrApply').onclick=applyOcrToForm;$('#ocrAddItem').onclick=()=>{addOcrReviewRow();updateOcrCheck();};$('#ocrTotal').oninput=updateOcrCheck;
 
@@ -1250,6 +1295,72 @@ setTimeout(()=>{if(navigator.onLine!==false)fetchTWSE().catch(()=>{});},1200);se
 
 // 安裝到手機桌面時提供 PWA 圖示與獨立視窗；失敗不影響網頁本身。
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){window.addEventListener('load',()=>navigator.serviceWorker.register('./ledger-sw.js').catch(()=>{}));}
+
+/* ===== v7.0 UX glue：只改呈現，不改資料模型 ===== */
+let choiceMode='';
+function syncCompactChoiceLabels(){
+  const cv=$('#catSelectValue'),sv=$('#subSelectValue'),pv=$('#paySelectValue'),dot=$('#catChoiceDot');
+  if(cv)cv.textContent=selCat||'未選擇';
+  if(sv)sv.textContent=selSub||'未選擇';
+  if(pv)pv.textContent=selPay||'未選擇';
+  if(dot){if(selCat){dot.style.background=catColor(selCat);dot.classList.add('show');}else dot.classList.remove('show');}
+}
+function closeChoiceSheet(){$('#choiceBackdrop').classList.remove('show');const sh=$('#choiceSheet');sh.classList.remove('show','choice-mode-cat','choice-mode-sub','choice-mode-pay');choiceMode='';}
+function chooseAndClose(mode,value){
+  if(mode==='cat'){selCat=value||null;selSub=null;renderChipSelectors();renderSubChips();}
+  else if(mode==='sub'){selSub=value||null;renderSubChips();}
+  else if(mode==='pay'){selPay=value||null;renderChipSelectors();}
+  syncCompactChoiceLabels();closeChoiceSheet();
+}
+function openChoiceSheet(mode){
+  choiceMode=mode;const body=$('#choiceSheetBody'),title=$('#choiceTitle'),sheet=$('#choiceSheet');let list=[],current='',allowAdd=true;sheet.classList.remove('choice-mode-cat','choice-mode-sub','choice-mode-pay');sheet.classList.add('choice-mode-'+mode);
+  if(mode==='cat'){title.textContent=getKind()==='income'?'選擇收入分類':'選擇分類';list=getKind()==='income'?catsIncome:catsExpense;current=selCat||'';}
+  else if(mode==='sub'){title.textContent='選擇子分類';list=selCat?(subcats[selCat]||[]):[];current=selSub||'';}
+  else{title.textContent=getKind()==='income'?'選擇收款方式':'選擇付款方式';list=payments;current=selPay||'';}
+  const dot=v=>mode==='cat'?`<span class="dot" style="background:${catColor(v)}"></span>`:'';
+  body.innerHTML=`<button type="button" class="choice-option full ${!current?'on':''}" data-choice="">未指定</button>`+list.map(v=>`<button type="button" class="choice-option ${current===v?'on':''}" data-choice="${esc(v)}">${dot(v)}<span>${esc(v)}</span></button>`).join('')+(allowAdd?`<button type="button" class="choice-option add full" data-choice-add="1">＋ 新增${mode==='pay'?'付款方式':mode==='sub'?'子分類':'分類'}</button>`:'');
+  body.querySelectorAll('[data-choice]').forEach(b=>b.onclick=()=>chooseAndClose(mode,b.dataset.choice));
+  body.querySelector('[data-choice-add]')?.addEventListener('click',()=>{
+    if(mode==='cat'){addOption('cat');syncCompactChoiceLabels();closeChoiceSheet();}
+    else if(mode==='pay'){addOption('pay');syncCompactChoiceLabels();closeChoiceSheet();}
+    else if(selCat){const v=(prompt('新增子分類到「'+selCat+'」')||'').trim();if(v){subcats[selCat]=unionUnique(subcats[selCat],[v]);save(K.sub,subcats);selSub=v;renderSubChips();syncCompactChoiceLabels();closeChoiceSheet();}}
+  });
+  $('#choiceBackdrop').classList.add('show');$('#choiceSheet').classList.add('show');
+}
+$('#catSelectBtn')?.addEventListener('click',()=>openChoiceSheet('cat'));
+$('#subSelectBtn')?.addEventListener('click',()=>openChoiceSheet('sub'));
+$('#paySelectBtn')?.addEventListener('click',()=>openChoiceSheet('pay'));
+$('#choiceCancel')?.addEventListener('click',closeChoiceSheet);$('#choiceBackdrop')?.addEventListener('click',closeChoiceSheet);
+
+function updateEntryTotalMirror(){const el=$('#entryTotalMirror');if(el)el.textContent=nf(parseFloat($('#f-total')?.value)||0);}
+$('#f-total')?.addEventListener('input',updateEntryTotalMirror);
+
+function syncEntryBlocks(){
+  const k=getKind();
+  $('#entryBlockClassify')?.classList.toggle('hidden',k==='investment');
+  $('#entryBlockItems')?.classList.toggle('hidden',k!=='expense');
+  $('#entryBlockInvest')?.classList.toggle('hidden',k!=='investment');
+  $('#entryTotalRow')?.classList.toggle('hidden',k==='investment');
+  const t1=$('#entryBlock1Title'),t4=$('#entryBlock4Title');
+  if(t1)t1.textContent=k==='income'?'收入':k==='investment'?'交易日期':'消費';
+  if(t4)t4.textContent=k==='investment'?'備註':k==='income'?'收款':'付款';
+  updateEntryTotalMirror();syncCompactChoiceLabels();
+}
+// 既有 onchange 綁的是舊函式參照，因此在這裡重新綁一次，功能內容仍沿用原 updateKindUI。
+const _updateKindUI_v19=updateKindUI;
+updateKindUI=function(){_updateKindUI_v19();syncEntryBlocks();};
+$$('input[name=kind]').forEach(r=>r.onchange=updateKindUI);
+const _openSheet_v19=openSheet;
+openSheet=function(id){_openSheet_v19(id);syncEntryBlocks();const nd=$('#noteDetails');if(nd)nd.open=!!$('#f-note')?.value.trim();};
+
+// 清單：類型改成與搜尋同列的單一選單；舊 chips 保留在 DOM 供原邏輯相容。
+$('#listTypeSelect')?.addEventListener('change',e=>{activeFilter=e.target.value;renderFilterChips();renderList();});
+const _renderFilterChips_v19=renderFilterChips;
+renderFilterChips=function(){_renderFilterChips_v19();const s=$('#listTypeSelect');if(s)s.value=activeFilter;};
+
+// 初始同步一次。
+syncCompactChoiceLabels();syncEntryBlocks();renderFilterChips();
+
 </script>
 </body>
 </html>
