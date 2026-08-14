@@ -45,12 +45,12 @@
   .appbar h1{font-size:17px;font-weight:600;letter-spacing:.04em}
   .scopepill{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:500;max-width:60%}
   .scopepill span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .monthbar{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:15px}
-  .monthbar button{color:#fff;font-size:20px;width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.12)}
+  .monthbar{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:15px;min-width:0}
+  .monthbar button{color:#fff;font-size:18px;width:30px;height:30px;flex:0 0 30px;border-radius:9px;background:rgba(255,255,255,.12)}
   .monthbar button.hide{visibility:hidden}
-  .monthbar .m{font-size:15px;font-weight:600;min-width:150px;text-align:center;font-family:var(--num)}
+  .monthbar .m{font-size:15px;font-weight:600;min-width:0;max-width:160px;flex:0 1 160px;text-align:center;font-family:var(--num);white-space:nowrap;line-height:1.15;overflow:hidden;text-overflow:ellipsis}
   .monthbar .m.trip{font-family:var(--font)}
-  .monthbar .m .sub{display:block;font-size:11px;opacity:.8;font-weight:400;margin-top:1px}
+  .monthbar .m .sub{display:block;font-size:11px;opacity:.8;font-weight:400;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .summary{display:grid;grid-template-columns:1fr 1fr 1fr;margin-top:15px;text-align:center}
   .summary .c{padding:0 6px;border-right:1px solid rgba(255,255,255,.16)}.summary .c:last-child{border-right:none}
   .summary .lbl{font-size:11px;opacity:.82;margin-bottom:2px}.summary .val{font-size:16px;font-weight:600;font-family:var(--num);letter-spacing:-.02em}
@@ -268,13 +268,46 @@
   .inv-auto-fee{margin-top:8px;padding:9px 10px;border:1px solid #dfd7ee;border-radius:10px;background:rgba(255,255,255,.62)}.inv-auto-fee .fee-line{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.inv-auto-fee .fee-note{font-size:11px;color:var(--muted);line-height:1.45;margin-top:5px}.inv-auto-fee #invDayTradeWrap{display:none}.inv-auto-fee.sell #invDayTradeWrap{display:flex}.inv-derived{border-left-color:var(--invest)!important}.inv-derived .tag.invtag{background:#eee9f8;color:#6b54aa}.inv-derived .secondary{color:var(--muted)}
   @media(max-width:370px){.classify-choice-pair,.payment-choice-pair{grid-template-columns:1fr}.payment-choice-pair #splitBody{grid-column:1}}
 
+
+  /* ===== v23：搜尋、附近店家、分類色彩、日曆、固定支出 ===== */
+  .appbar{padding:calc(env(safe-area-inset-top) + 10px) 15px 10px}.appbar .top{margin-bottom:0}.top-summary-row{display:grid;grid-template-columns:minmax(132px,1.35fr) repeat(3,minmax(54px,.72fr));gap:6px;margin-top:9px;align-items:stretch}.top-summary-row .monthbar{margin:0;gap:2px;background:rgba(255,255,255,.11);border-radius:11px;padding:2px}.top-summary-row .monthbar button{width:27px;height:32px;border-radius:8px}.top-summary-row .monthbar .m{min-width:0;font-size:13px;line-height:1.15;padding:0 2px}.top-summary-row .monthbar .m .sub{font-size:9px;margin-top:1px}.top-summary-row .summary{display:contents}.top-summary-row .summary .c{min-width:0;padding:5px 3px;border-radius:10px;background:rgba(255,255,255,.09);text-align:center;border-right:none}.top-summary-row .summary .lbl{font-size:9px;opacity:.78}.top-summary-row .summary .val{font-size:12px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.scope-choice-field{margin-bottom:10px}.scope-choice-field .choice-row{background:rgba(255,255,255,.68)}
+  #scopeSheet{background:#e7f2fb!important}#scopeSheet .sheet-hdr{background:#d9eafa!important}#scopeSheet .scopeitem{background:rgba(255,255,255,.83)!important;border-color:#c9ddea!important}#scopeSheet .scopeitem.on{background:#d6e9f8!important}
+  .itemrow{border:1px solid rgba(110,137,128,.24)!important;border-radius:14px!important;background:rgba(255,255,255,.52)!important;padding:9px!important;box-shadow:0 1px 2px rgba(30,60,52,.035)}.itemrow input,.itemrow select{border-color:rgba(110,137,128,.25)!important;border-radius:10px!important;box-shadow:none!important}.itemrow .line2{padding-top:1px}.itemrow .i-cat,.itemrow .i-sub{transition:background-color .15s,border-color .15s}
+  .choice-row.cat-tinted{transition:background-color .16s,border-color .16s}.chart-chain-merge{display:none;align-items:center;gap:7px;font-size:12px;color:var(--muted);padding:8px 10px;margin-top:7px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}.chart-chain-merge.show{display:flex}.chart-chain-merge input{width:17px;height:17px}
+  .calendar-card{padding:13px}.calendar-head{display:grid;grid-template-columns:34px 1fr 34px;align-items:center;text-align:center;margin-bottom:9px}.calendar-head button{height:32px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font-size:19px;color:var(--teal)}.calendar-head h2{margin:0;font-size:15px}.calendar-head .sub{margin-top:1px}.calendar-week,.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}.calendar-week span{text-align:center;font-size:10px;color:var(--faint);padding:3px 0}.cal-day{min-height:69px;padding:5px 4px;border:1px solid #e4ebe8;border-radius:9px;background:#fbfcfb;text-align:left;overflow:hidden}.cal-day.empty{visibility:hidden}.cal-day.has{background:#f6faf8;cursor:pointer}.cal-day.today{border-color:#7db7a9;box-shadow:inset 0 0 0 1px #7db7a9}.cal-day .dn{font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px}.cal-day .cv{font-family:var(--num);font-size:9px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cal-day .ce{color:#a05240}.cal-day .ci{color:#2e8a5f}.cal-day .cn{color:#52645e;font-weight:700}.calendar-help{font-size:10px;color:var(--faint);margin-top:8px;text-align:center}
+  .recurring-sheet{background:#f4f8f6}.recurring-note{font-size:12px;line-height:1.55;color:var(--muted);padding:10px 11px;border:1px solid #d8e6df;border-radius:11px;background:#eaf4ef;margin-bottom:12px}.recurring-active{padding:9px 0}.recurring-rule{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:center;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:7px}.recurring-rule .rr-name{font-weight:650;font-size:14px}.recurring-rule .rr-sub{font-size:11px;color:var(--muted);margin-top:3px}.recurring-rule .rr-state{font-size:11px;padding:4px 7px;border-radius:999px;background:#e7f3ed;color:#34755d}.recurring-rule .rr-state.off{background:#f0f1f0;color:#8b9490}.recurring-rule button{grid-column:1/-1;text-align:left;color:var(--teal);font-size:12px;padding-top:2px}
+  @media(max-width:390px){.top-summary-row{grid-template-columns:minmax(118px,1.25fr) repeat(3,minmax(48px,.65fr));gap:4px}.top-summary-row .summary .val{font-size:11px}.top-summary-row .monthbar button{width:24px}.cal-day{min-height:63px;padding:4px 3px}.cal-day .cv{font-size:8.5px}}
+
+
+  @media (max-width:420px){.appbar{padding:calc(env(safe-area-inset-top) + 12px) 14px 12px}.monthbar{gap:6px;margin-top:12px}.monthbar button{width:28px;height:28px;flex-basis:28px;font-size:16px}.monthbar .m{font-size:14px;flex-basis:134px;max-width:134px}.monthbar .m .sub{font-size:10px}.summary{margin-top:12px}.summary .lbl{font-size:10px}.summary .val{font-size:16px}}
+
+  /* v23b header layout fix: move month selector into the top row */
+  .appbar .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .appbar h1{flex:0 0 auto;margin-right:4px}
+  .top-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;flex:1 1 auto}
+  .top-actions .monthbar.monthbar-inline{margin-top:0;gap:8px;flex:1 1 210px;min-width:150px;max-width:250px}
+  .top-actions .monthbar.monthbar-inline button{width:30px;height:30px;flex:0 0 30px}
+  .top-actions .monthbar.monthbar-inline .m{flex:1 1 auto;min-width:0;max-width:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .summary{margin-top:10px}
+  @media (max-width:420px){
+    .appbar{padding:calc(env(safe-area-inset-top) + 12px) 14px 12px}
+    .appbar .top{gap:8px}
+    .appbar h1{font-size:16px}
+    .top-actions{gap:6px}
+    .top-actions .monthbar.monthbar-inline{flex:1 1 176px;min-width:140px;max-width:190px;gap:6px}
+    .top-actions .monthbar.monthbar-inline button{width:28px;height:28px;flex-basis:28px;font-size:16px}
+    .top-actions .monthbar.monthbar-inline .m{font-size:14px}
+    .scopepill{padding:7px 10px;font-size:12px}
+    .cloudpill{width:34px;height:34px}
+    .summary{margin-top:8px}
+  }
+
 </style>
 </head>
 <body>
 
 <div class="appbar">
-  <div class="top"><h1>記帳本</h1><div class="top-actions"><button class="cloudpill" id="cloudPill" title="資料同步"><span class="sync-dot"></span><span class="label" id="cloudPillText">單機</span></button><button class="scopepill" id="scopePill"><span id="scopePillText">日常</span>▾</button></div></div>
-  <div class="monthbar"><button id="prevMonth" aria-label="上一個月">‹</button><button type="button" class="m period-btn" id="monthLabel" aria-label="選擇時間範圍">2026 / 08</button><button id="nextMonth" aria-label="下一個月">›</button></div>
+  <div class="top"><h1>記帳本</h1><div class="top-actions"><button class="cloudpill" id="cloudPill" title="資料同步"><span class="sync-dot"></span><span class="label" id="cloudPillText">單機</span></button><div class="monthbar monthbar-inline"><button id="prevMonth" aria-label="上一個月">‹</button><button type="button" class="m period-btn" id="monthLabel" aria-label="選擇時間範圍">2026 / 08</button><button id="nextMonth" aria-label="下一個月">›</button></div><button class="scopepill" id="scopePill"><span id="scopePillText">日常</span>▾</button></div></div>
   <div class="summary">
     <div class="c"><div class="lbl">支出</div><div class="val" id="sumExpense">$0</div></div>
     <div class="c"><div class="lbl">收入</div><div class="val" id="sumIncome">$0</div></div>
@@ -285,11 +318,11 @@
 <section class="view active" id="view-list">
   <div id="firstRunBanner"></div>
   <div class="listtools listtools-v19">
-    <div class="searchbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg><input id="listSearch" type="search" placeholder="搜尋過往店家、品項、備註…" /><button id="clearSearch" aria-label="清除搜尋" style="display:none">×</button></div>
+    <div class="searchbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg><input id="listSearch" type="search" placeholder="搜尋店家或品項…" /><button id="clearSearch" aria-label="清除搜尋" style="display:none">×</button></div>
     <select class="list-type-select" id="listTypeSelect" aria-label="帳目類型"><option value="all">全部</option><option value="expense">支出</option><option value="income">收入</option><option value="split">分帳</option><option value="settlement">還款</option><option value="investpnl">投資損益</option></select>
     <button class="filterbtn" id="listFilterBtn">篩選</button>
   </div>
-  <div class="search-scope-note" id="searchScopeNote">搜尋會跨全部時間與情境。</div>
+  <div class="search-scope-note" id="searchScopeNote">搜尋會跨全部時間與情境，只比對店家與品項名稱。</div>
   <div class="filterpanel" id="listFilterPanel"><div class="filterrow"><select id="listCatFilter"><option value="">所有分類</option></select><select id="listPayFilter"><option value="">所有付款方式</option></select></div></div>
   <div class="chips list-filter-legacy" id="filterChips"></div><div id="recordList"></div>
 </section>
@@ -297,12 +330,18 @@
 <section class="view" id="view-chart">
   <div class="seg" id="rangeSeg"><button data-r="month" class="on">本月</button><button data-r="3m">近3月</button><button data-r="year">今年</button><button data-r="all">全部</button><button data-r="custom">自訂</button></div>
   <div class="custom-range" id="customRange"><input type="date" id="chartFrom"><span>–</span><input type="date" id="chartTo"></div>
-  <div class="chart-filterbox"><details class="chartfilters" id="chartScopeDetails"><summary id="chartScopeSummary">情境：全部</summary><div class="inside"><div class="chips" id="chartScopeChips"></div></div></details></div>
+  <div class="chart-filterbox"><details class="chartfilters" id="chartScopeDetails"><summary id="chartScopeSummary">情境：全部</summary><div class="inside"><div class="chips" id="chartScopeChips"></div></div></details><label class="chart-chain-merge" id="chartChainMergeWrap"><input type="checkbox" id="chartMergeChains"> 店家統計合併連鎖分店</label></div>
   <div class="stat-kpis">
     <div class="stat-kpi"><div class="k">我的實際支出</div><div class="v" id="statSpend">$0</div><div class="hint">分帳後由你負擔</div></div>
     <div class="stat-kpi"><div class="k">我實際付款</div><div class="v" id="statPaid">$0</div><div class="hint">含替別人先墊</div></div>
     <div class="stat-kpi"><div class="k">收入</div><div class="v" id="statIncome">$0</div></div>
     <div class="stat-kpi"><div class="k">支出筆數</div><div class="v" id="statCount">0</div><div class="hint" id="statTopCat">—</div></div>
+  </div>
+  <div class="card calendar-card" id="monthlyCalendarCard">
+    <div class="calendar-head"><button type="button" id="calendarPrev" aria-label="上個月">‹</button><div><h2>每日收支</h2><div class="sub" id="calendarMonthLabel">—</div></div><button type="button" id="calendarNext" aria-label="下個月">›</button></div>
+    <div class="calendar-week"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+    <div class="calendar-grid" id="calendarGrid"></div>
+    <div class="calendar-help">點一天可直接跳到清單查看當日帳目；金額依目前情境篩選。</div>
   </div>
   <div class="card">
     <div class="chart-card-head"><h2>支出分布</h2><select class="compact-select" id="pieModeSelect"><option value="category">分類</option><option value="sub">子分類</option><option value="scope">情境</option><option value="payment">付款方式</option><option value="store">店家</option><option value="chain">連鎖店</option><option value="partner">分帳對象</option><option value="invest">投資損益</option></select></div>
@@ -342,12 +381,13 @@
     <div class="setrow"><h3>常用連鎖店</h3><p>系統已內建常見品牌；你使用過或手動釘選的店家會自動排到選單上方。這裡只管理你額外釘選的項目。</p><div class="withbtn"><input type="text" id="chainManageInput" placeholder="例如：7-ELEVEN、全聯"><button type="button" id="addChainManage">新增</button></div><div class="selectchips" id="chainManage" style="margin-top:9px"></div></div>
   </div></details>
   <details class="setgroup"><summary>旅行與情境</summary><div class="setbody"><div class="setrow"><h3>旅遊行程</h3><p>正在進行、近期將出發的行程會優先顯示。</p><div id="tripManage"></div><button class="addtrip" id="addTripSettings" style="margin-top:8px">＋ 新增行程</button></div></div></details>
+  <details class="setgroup"><summary>每月固定支出</summary><div class="setbody"><div class="setrow"><h3>每月自動記帳</h3><p>例如 AI 訂閱、房租、網路費。到期後會在你下次開啟 App 時自動補入，不需要 App 在背景常駐。</p><div id="recurringManage"></div><button class="addtrip" id="addRecurringRule" style="margin-top:8px">＋ 新增每月固定支出</button></div></div></details>
   <details class="setgroup"><summary>備份與資料</summary><div class="setbody">
     <div class="setrow"><h3>備份 / 匯入</h3><p>JSON 可完整備份；CSV 可匯入其他記帳 App 的一般支出／收入資料，匯入前可對應欄位。</p><div class="acts"><button class="btn-outline" id="exportBtn">匯出 JSON</button><button class="btn-outline" id="importBtn">匯入 JSON</button><button class="btn-outline" id="importCsvBtn">匯入 CSV</button><button class="btn-outline" id="exportCsv">匯出 CSV</button><input type="file" id="importFile" accept="application/json" hidden /><input type="file" id="csvFile" accept=".csv,text/csv" hidden /></div></div>
     <div class="setrow"><h3>清除資料</h3><p>刪除全部帳目，無法復原。</p><div class="acts"><button class="btn-danger" id="clearBtn">清除全部帳目</button></div></div>
   </div></details>
   <details class="setgroup"><summary>進階設定</summary><div class="setbody">
-    <div class="setrow"><h3>地點建議</h3><p>一般使用者不需要 API 金鑰。網站已設定 Google Places 時會優先使用；未設定或暫時失敗就自動改用 OpenStreetMap。搜尋半徑 400 公尺。</p><div class="invpreview" id="mapOriginDiag" style="margin:0 0 9px"></div><div class="acts" style="margin-bottom:10px"><button class="btn-outline" id="testPlacesBtn">測試地點服務</button></div><div class="toggle"><span style="font-size:13px;color:var(--muted)">永遠優先使用 OpenStreetMap</span><label class="switch"><input type="checkbox" id="osmToggle"><span class="sl"></span></label></div><div class="invpreview" id="placesDiag" style="margin-top:9px"></div></div>
+    <div class="setrow"><h3>地點建議</h3><p>一般使用者不需要 API 金鑰。網站已設定 Google Places 時會優先使用；未設定或暫時失敗就自動改用 OpenStreetMap。優先顯示約 220 公尺內、較可能實際消費的餐飲／零售／生活服務。</p><div class="invpreview" id="mapOriginDiag" style="margin:0 0 9px"></div><div class="acts" style="margin-bottom:10px"><button class="btn-outline" id="testPlacesBtn">測試地點服務</button></div><div class="toggle"><span style="font-size:13px;color:var(--muted)">永遠優先使用 OpenStreetMap</span><label class="switch"><input type="checkbox" id="osmToggle"><span class="sl"></span></label></div><div class="invpreview" id="placesDiag" style="margin-top:9px"></div></div>
     <div class="setrow"><h3>紙本發票辨識</h3><p>一般使用者不需要 API 金鑰。若站長已設定 Google Cloud Vision，會優先使用文件 OCR；否則自動使用免費的本機 Tesseract。兩者都會先進確認頁。</p><div class="invpreview" id="ocrServiceDiag"></div></div>
     <div class="setrow"><h3>股票名稱與行情</h3><p>股票名稱直接使用台股代號資料，不依賴 Google Sheets。Google Finance 價格由網站的 Google Cloud 專案統一提供；若暫時不可用，就退回 TWSE／TPEx／手動現價。</p><div class="invpreview" id="financeDiag">尚未測試</div><div class="acts" style="margin-top:9px"><button class="btn-outline" id="testFinanceBtn">測試 2330 / 3017</button><button class="btn-outline" id="refreshTickerCatalogBtn">更新股票代號表</button></div></div>
     <div class="setrow"><h3>關於</h3><p>少量多人使用版。每位使用者登入自己的 Google 帳號後，帳本存入自己的 Google Drive App Data；共用的 Maps／OCR API 設定不會寫入個人帳本。目前共 <b id="countInfo">0</b> 筆。</p></div>
@@ -388,7 +428,7 @@
 
     <section class="entry-block entry-block-classify" id="entryBlockClassify">
       <div class="entry-block-head"><div><span class="entry-step">02</span><b>歸類</b></div></div>
-      <div class="scoperow compact-scope" id="scopeRow"><div><span class="choice-kicker">情境</span><div class="cur" id="formScopeText">🏠 日常</div></div><button class="change" id="formScopeChange">切換</button></div>
+      <div class="field compact-choice-field scope-choice-field" id="scopeRow"><button type="button" class="choice-row" id="formScopeChange"><span class="choice-label">情境</span><span class="choice-value"><strong id="formScopeText">🏠 日常</strong></span><span class="choice-chevron">›</span></button></div>
       <div class="classify-choice-pair">
         <div class="field compact-choice-field" id="fld-cat"><button type="button" class="choice-row" id="catSelectBtn"><span class="choice-label" id="catLabel">分類</span><span class="choice-value"><i class="choice-dot" id="catChoiceDot"></i><strong id="catSelectValue">未選擇</strong></span><span class="choice-chevron">›</span></button><div class="selectchips legacy-choice-source" id="catChips"></div></div>
         <div class="field compact-choice-field" id="fld-sub"><button type="button" class="choice-row" id="subSelectBtn"><span class="choice-label">子分類</span><span class="choice-value"><strong id="subSelectValue">未選擇</strong></span><span class="choice-chevron">›</span></button><div class="selectchips legacy-choice-source" id="subChips"></div></div>
@@ -451,6 +491,19 @@
 <div class="backdrop" id="scopeBackdrop"></div>
 <div class="sheet scope-sheet" id="scopeSheet"><div class="grab"></div><div class="sheet-hdr"><button id="scopeCancel">關閉</button><h2>選擇情境</h2><span style="width:36px"></span></div><div class="scopelist" id="scopeListBody"></div></div>
 
+
+<div class="backdrop" id="recurringBackdrop"></div>
+<div class="sheet recurring-sheet" id="recurringSheet"><div class="grab"></div><div class="sheet-hdr"><button id="recurringCancel">取消</button><h2 id="recurringTitle">每月固定支出</h2><button id="recurringSave">儲存</button></div><div class="form">
+  <div class="recurring-note">每月到指定日期後，App 會在下一次開啟時補入一筆一般支出；若設定 29–31 日而該月較短，會記在當月最後一天。已產生的舊帳不會因修改規則而回頭改寫。</div>
+  <div class="field"><label>店家 / 項目名稱</label><input type="text" id="rc-store" placeholder="例如：ChatGPT Plus"></div>
+  <div class="row2"><div class="field"><label>每月金額</label><input type="number" id="rc-amount" inputmode="decimal" placeholder="0"></div><div class="field"><label>每月幾號</label><input type="number" id="rc-day" inputmode="numeric" min="1" max="31" value="1"></div></div>
+  <div class="row2"><div class="field"><label>分類</label><select id="rc-category"></select></div><div class="field"><label>子分類</label><select id="rc-sub"></select></div></div>
+  <div class="field"><label>付款方式</label><select id="rc-payment"></select></div>
+  <div class="row2"><div class="field"><label>開始月份</label><input type="month" id="rc-start"></div><div class="field"><label>結束月份 <small>選填</small></label><input type="month" id="rc-end"></div></div>
+  <div class="field"><label>備註 <small>選填</small></label><input type="text" id="rc-note" placeholder="例如：每月訂閱"></div>
+  <label class="checkline recurring-active"><input type="checkbox" id="rc-active" checked> 啟用自動記帳</label>
+  <button class="del-btn" type="button" id="recurringDelete" style="display:none">刪除這個固定支出</button>
+</div></div>
 
 <div class="backdrop" id="periodBackdrop"></div>
 <div class="sheet" id="periodSheet"><div class="grab"></div><div class="sheet-hdr"><button id="periodCancel">關閉</button><h2>時間範圍</h2><span style="width:36px"></span></div><div class="form">
@@ -544,7 +597,7 @@ function embeddedKey(name){const raw=(document.querySelector(`meta[name="${name}
 const APP_CONFIG=Object.freeze({
   mapsApiKey:embeddedKey('ledger-shared-maps-api-key'),
   visionApiKey:embeddedKey('ledger-shared-vision-api-key'),
-  mapsRadiusMeters:400,
+  mapsRadiusMeters:220,
   adminEmail:(document.querySelector('meta[name="ledger-admin-email"]')?.content||'').trim().toLowerCase(),
   advancedAllowlist:(document.querySelector('meta[name="ledger-advanced-allowlist"]')?.content||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean)
 });
@@ -659,7 +712,7 @@ function renderFilterChips(){
 }
 function passFilter(r){const f=activeFilter;if(f==='expense'&&r.kind!=='expense')return false;if(f==='income'&&r.kind!=='income')return false;if(f==='investpnl'&&!r.investmentDerived)return false;if(f==='split'&&!r.split)return false;if(f==='settlement'&&r.kind!=='settlement')return false;
   if(listCatFilter&&!recordCategories(r).includes(listCatFilter))return false;if(listPayFilter&&r.payment!==listPayFilter)return false;
-  if(listQuery){const q=listQuery.toLowerCase(),hay=[r.date,r.store,r.storeChain,r.storeBranch,r.note,r.category,r.sub,r.payment,scopeLabel(r.scope||{type:'daily'}),r.split?.partner,r.settlement?.partner,...(r.items||[]).flatMap(i=>[i.name,i.category,i.sub])].filter(Boolean).join(' ').toLowerCase();if(!hay.includes(q))return false;}return true;}
+  if(listQuery){const q=listQuery.toLowerCase(),hay=[r.store,r.storeChain,r.storeBranch,...(r.items||[]).map(i=>i.name)].filter(Boolean).join(' ').toLowerCase();if(!hay.includes(q))return false;}return true;}
 $('#listSearch').addEventListener('input',e=>{listQuery=e.target.value.trim();$('#clearSearch').style.display=listQuery?'block':'none';$('#searchScopeNote').classList.toggle('show',!!listQuery);renderList();});
 $('#clearSearch').onclick=()=>{$('#listSearch').value='';listQuery='';$('#clearSearch').style.display='none';$('#searchScopeNote').classList.remove('show');renderList();};
 $('#listFilterBtn').onclick=()=>{const p=$('#listFilterPanel'),on=!p.classList.contains('show');p.classList.toggle('show',on);$('#listFilterBtn').classList.toggle('on',on||!!listCatFilter||!!listPayFilter);};
@@ -701,7 +754,7 @@ function renderList(){
         <div class="top"><span class="store">${esc(r.store||(r.kind==='income'?'（收入）':'（未填店家）'))}</span><span class="amt ${pos?'pos':''}">${pos?'+':''}${nf(shownAmt)}</span></div>
         ${r.kind==='expense'&&r.split&&Math.abs(r.total-shownAmt)>.5?`<div class="secondary">本筆總額 ${nf(r.total)} · ${r.split.payer==='me'?'我先付款':'對方先付款'}</div>`:''}
         ${sub?`<div class="item">${esc(sub)}</div>`:''}
-        <div class="meta">${r.investmentDerived?`<span class="tag invtag">${r.invEvent?.type==='dividend'?'投資股利':'投資損益'} · 不列生活收支</span>`:''}${catTag}${r.payment?`<span class="tag">${esc(r.payment)}</span>`:''}${r.kind==='expense'&&(+r.discountTotal||0)>0?`<span class="tag">優惠 −${nf(r.discountTotal)}</span>`:''}${splitTags}${scopeTag}</div>
+        <div class="meta">${r.investmentDerived?`<span class="tag invtag">${r.invEvent?.type==='dividend'?'投資股利':'投資損益'} · 不列生活收支</span>`:''}${r.recurring?`<span class="tag scope">↻ 每月固定</span>`:''}${catTag}${r.payment?`<span class="tag">${esc(r.payment)}</span>`:''}${r.kind==='expense'&&(+r.discountTotal||0)>0?`<span class="tag">優惠 −${nf(r.discountTotal)}</span>`:''}${splitTags}${scopeTag}</div>
       </div></div>`;
     });
     html+='</div>';
@@ -728,7 +781,7 @@ function renderScopeList(){const cur=activeScope(),st=sortedTrips(),dom=st.filte
   h+=`<div class="sec">✈️ 出國旅遊</div>`+(ovs.length?ovs.map(t=>item({type:'overseas',trip:t.id},'✈️ '+t.name,tripDates(t))).join(''):'<div class="empty" style="padding:8px;font-size:13px">尚無</div>')+`<button class="addtrip" data-add="overseas">＋ 新增出國旅遊</button>`;
   const box=$('#scopeListBody');box.innerHTML=h;
   box.querySelectorAll('.scopeitem').forEach(el=>el.onclick=()=>selectScope({type:el.dataset.type,trip:el.dataset.trip||null}));
-  box.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>openTripSheet(null,b.dataset.add));
+  box.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{closeScopePicker();openTripSheet(null,b.dataset.add);});
 }
 function selectScope(sc){if(scopePickerTarget==='current'){currentScope=sc;save(K.scope,currentScope);renderScopePill();renderMonthBar();renderAll();}else{formScope=sc;$('#formScopeText').textContent=scopeLabel(sc);}closeScopePicker();}
 
@@ -962,7 +1015,7 @@ function saveRecord(){const k=getKind();let total,inv=null,items=null,split=null
   if(editingId)records=records.map(x=>x.id===editingId?rec:x);else records.push(rec);
   save(K.rec,records);if(k==='expense'&&storeMode==='chain'&&$('#f-chain').value.trim()){settings.storeChains=unionUnique(settings.storeChains,[$('#f-chain').value.trim()]);}if(k!=='investment'&&selPay)settings.lastPayment=selPay;save(K.set,settings);closeSheet();renderAll();if(k==='investment')renderInvest();toast(editingId?'已更新':'已儲存');
 }
-function deleteRecord(){if(!editingId)return;if(!confirm('確定刪除這筆？'))return;records=records.filter(x=>x.id!==editingId);save(K.rec,records);closeSheet();renderAll();renderInvest();toast('已刪除');}
+function deleteRecord(){if(!editingId)return;if(!confirm('確定刪除這筆？'))return;const old=records.find(x=>x.id===editingId);if(old?.recurring?.ruleId){settings.recurringSkipped=unionUnique(settings.recurringSkipped,[old.recurring.ruleId+'|'+(old.recurring.occurrenceDate||old.date)]);save(K.set,settings);}records=records.filter(x=>x.id!==editingId);save(K.rec,records);closeSheet();renderAll();renderInvest();toast('已刪除');}
 $('#fab').onclick=()=>openSheet(null);$('#cancelBtn').onclick=closeSheet;$('#backdrop').onclick=closeSheet;$('#saveBtn').onclick=saveRecord;$('#saveBtnBottom').onclick=saveRecord;$('#deleteBtn').onclick=deleteRecord;
 
 /* ===== 地點 ===== */
@@ -1001,7 +1054,8 @@ function inferChainBranch(name){const raw=String(name||'').replace(/\s+/g,' ').t
   for(const c of chainCatalog().sort((a,b)=>b.length-a.length)){const i=raw.toLowerCase().indexOf(c.toLowerCase());if(i>=0)return{chain:c,branch:cleanBranchName(raw.slice(i+c.length)),recognized:true};}
   return{chain:'',branch:raw,recognized:false};
 }
-function shortPlaceName(name){const raw=String(name||'').replace(/\s+/g,' ').trim(),x=inferChainBranch(raw);if(x.recognized)return x.chain+(x.branch?' '+x.branch:'');return raw;}
+function stripTaiwanAddressPrefix(name){let x=String(name||'').replace(/\s+/g,' ').trim();const re=/^(?:(?:臺|台)北市|新北市|桃園市|(?:(?:臺|台)中市)|(?:(?:臺|台)南市)|高雄市|基隆市|新竹市|嘉義市|.{1,3}縣)(?:.{1,7}[區鄉鎮市])?(?:.{1,7}[里村])?[^\s]{1,16}?(?:路|街|大道)(?:[一二三四五六七八九十0-9]+段)?(?:\d+巷)?(?:\d+弄)?(?:\d+號)?\s*/;const y=x.replace(re,'').trim();return y.length>=2?y:x;}
+function shortPlaceName(name){const raw=String(name||'').replace(/\s+/g,' ').trim(),stripped=stripTaiwanAddressPrefix(raw),x=inferChainBranch(stripped);if(x.recognized)return x.chain+(x.branch?' '+x.branch:'');return stripped;}
 function chainNameOfRecord(r){if(r?.storeChain)return r.storeChain;const x=inferChainBranch(r?.store||'');return x.recognized?x.chain:'';}
 function applyPlaceNameToStore(name){const n=shortPlaceName(name),x=inferChainBranch(n);if(storeMode==='chain'){if(x.recognized){setChainValue(x.chain);$('#f-chain').value=x.chain;$('#f-branch').value=x.branch;}else{$('#f-chain').value='';$('#f-branch').value=n;}refreshBranchList();}else $('#f-store').value=n;refreshStoreItems();smartFillFromStore();}
 let storeSuggestTimer=null,storeSuggestSeq=0;
@@ -1009,14 +1063,14 @@ function renderStoreSuggestions(names){const box=$('#storeSuggest');if(!box)retu
 async function fetchShortStoreSuggestions(q){if(!hasAdvancedAccess()||storeMode!=='single'||q.trim().length<2){renderStoreSuggestions([]);return;}const seq=++storeSuggestSeq;try{const lib=await ensureGoogle();if(seq!==storeSuggestSeq)return;const A=lib.AutocompleteSuggestion||google.maps.places.AutocompleteSuggestion;if(!A?.fetchAutocompleteSuggestions)return;const {suggestions}=await A.fetchAutocompleteSuggestions({input:q.trim(),language:'zh-TW',region:'tw'});if(seq!==storeSuggestSeq)return;const names=(suggestions||[]).map(s=>{const p=s.placePrediction||{};return p.structuredFormat?.mainText?.text||p.structuredFormat?.mainText?.toString?.()||p.structuredFormatting?.main_text||p.text?.text||p.text?.toString?.()||'';}).filter(Boolean);renderStoreSuggestions(names);}catch(e){console.warn('short autocomplete failed',e);}}
 function attachAC(){if(storeAC)return;storeAC={mode:'short-custom'};$('#f-store').addEventListener('input',()=>{clearTimeout(storeSuggestTimer);const q=$('#f-store').value;storeSuggestTimer=setTimeout(()=>fetchShortStoreSuggestions(q),450);});}
 function currentCoords(){return new Promise((resolve,reject)=>{if(!navigator.geolocation)return reject(new Error('此裝置不支援定位'));navigator.geolocation.getCurrentPosition(p=>resolve({lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy}),e=>reject(new Error(e.code===1?'定位權限未允許':'無法取得目前位置')),{enableHighAccuracy:true,timeout:15000,maximumAge:20000});});}
-async function searchGooglePlacesAt(lat,lng){const placesLib=await ensureGoogle();const req={fields:['displayName','location','formattedAddress','googleMapsURI'],locationRestriction:{center:{lat,lng},radius:APP_CONFIG.mapsRadiusMeters},maxResultCount:15,rankPreference:placesLib.SearchNearbyRankPreference?.POPULARITY};const {places}=await placesLib.Place.searchNearby(req);return (places||[]).map(p=>({name:typeof p.displayName==='string'?p.displayName:(p.displayName?.text||''),address:p.formattedAddress||''})).filter(x=>x.name);}
+async function searchGooglePlacesAt(lat,lng){const placesLib=await ensureGoogle();const spendingTypes=['restaurant','cafe','coffee_shop','bakery','meal_takeaway','fast_food_restaurant','convenience_store','supermarket','grocery_store','food_store','department_store','discount_store','shopping_mall','store','pharmacy','drugstore','gas_station','book_store','clothing_store','electronics_store','home_goods_store','beauty_salon','hair_salon','laundry','movie_theater'];const req={fields:['displayName','location','primaryType'],includedPrimaryTypes:spendingTypes,locationRestriction:{center:{lat,lng},radius:APP_CONFIG.mapsRadiusMeters},maxResultCount:12,rankPreference:placesLib.SearchNearbyRankPreference?.DISTANCE||placesLib.SearchNearbyRankPreference?.POPULARITY};const {places}=await placesLib.Place.searchNearby(req);return (places||[]).map(p=>({name:typeof p.displayName==='string'?p.displayName:(p.displayName?.text||''),address:'',type:p.primaryType||''})).filter(x=>x.name);}
 async function googleNearby(){const btn=$('#nearBtn');if(placesSessionUnavailable)return osmNearby();btn.textContent='📍 定位中…';btn.disabled=true;try{const c=await currentCoords();btn.textContent='📍 搜尋附近…';const items=await searchGooglePlacesAt(c.lat,c.lng);if(!items.length)throw new Error(`Google Places 在 ${APP_CONFIG.mapsRadiusMeters} 公尺內沒有回傳地點`);showNearChips(items);const d=$('#placesDiag');if(d)d.textContent=`Google Places 正常 · ${APP_CONFIG.mapsRadiusMeters} 公尺內找到 ${items.length} 個地點 · 定位誤差約 ${Math.round(c.accuracy||0)} m`;}catch(e){console.warn('Google nearby failed',e);const msg=placesErrorText(e),d=$('#placesDiag');if(d)d.textContent='Google Places：'+msg;toast('Google 地點服務目前不可用，已改用 OpenStreetMap');try{const c=await currentCoords();await osmNearbyAt(c.lat,c.lng,true);}catch(_){} }finally{btn.textContent='📍 找附近店家';btn.disabled=false;}}
 async function testGooglePlaces(){const b=$('#testPlacesBtn'),d=$('#placesDiag');if(!b||!d)return;b.disabled=true;b.textContent='測試中…';placesSessionUnavailable=false;if(!hasAdvancedAccess()){d.textContent='目前未登入白名單 Google 帳號；附近店家會使用 OpenStreetMap。';b.disabled=false;b.textContent='測試地點服務';return;}if(!APP_CONFIG.mapsApiKey){d.textContent='網站尚未設定 Google Places；附近店家會使用 OpenStreetMap。';b.disabled=false;b.textContent='測試地點服務';return;}d.textContent='正在檢查 Google Places 與定位…';try{const c=await currentCoords(),items=await searchGooglePlacesAt(c.lat,c.lng);d.textContent=items.length?`✓ Google Places 可用，${APP_CONFIG.mapsRadiusMeters} 公尺內找到 ${items.length} 個地點`:'Google Places 已連線，但目前範圍沒有結果';}catch(e){d.textContent='△ '+placesErrorText(e)+'；實際找店時會自動改用 OpenStreetMap。';}finally{b.disabled=false;b.textContent='測試地點服務';}}
 function openPlacesApiConsole(){const proj=lastPlacesProject||'919564958801';window.open(`https://console.cloud.google.com/apis/library/places.googleapis.com?project=${encodeURIComponent(proj)}`,'_blank','noopener');}
 async function fetchOverpass(q){const urls=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];let last=null;for(const base of urls){try{const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),16000);const r=await fetch(base+'?data='+encodeURIComponent(q),{cache:'no-store',signal:ctl.signal});clearTimeout(to);if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}catch(e){last=e;}}throw last||new Error('Overpass unavailable');}
 async function osmNearby(){const btn=$('#nearBtn');btn.textContent='📍 定位中…';btn.disabled=true;try{const c=await currentCoords();await osmNearbyAt(c.lat,c.lng,false);}catch(e){toast(e.message);}finally{btn.textContent='📍 找附近店家';btn.disabled=false;}}
-async function osmNearbyAt(la,lo,fromFallback=false){const btn=$('#nearBtn');btn.textContent='📍 搜尋附近…';btn.disabled=true;const q=`[out:json][timeout:15];(nwr(around:500,${la},${lo})["name"]["amenity"];nwr(around:500,${la},${lo})["name"]["shop"];nwr(around:500,${la},${lo})["name"]["leisure"];nwr(around:500,${la},${lo})["name"]["tourism"];nwr(around:500,${la},${lo})["name"]["office"];);out center tags 120;`;
-  try{const d=await fetchOverpass(q),seen=new Set(),items=[];(d.elements||[]).forEach(e=>{const n=e.tags&&(e.tags['name:zh-Hant']||e.tags['name:zh']||e.tags.name);const ela=e.lat??e.center?.lat,elo=e.lon??e.center?.lon;if(!n||!Number.isFinite(ela)||!Number.isFinite(elo))return;const dx=(elo-lo)*111000*Math.cos(la*Math.PI/180),dy=(ela-la)*111000,dist=Math.hypot(dx,dy),key=n+'|'+Math.round(dist/30);if(seen.has(key))return;seen.add(key);items.push({name:n,address:'',dist});});items.sort((a,b)=>a.dist-b.dist);const top=items.slice(0,18);if(!top.length)toast('500 公尺內查無 OpenStreetMap 已標註店家');else{showNearChips(top);if(fromFallback)toast(`已改用 OpenStreetMap，找到 ${top.length} 個地點`);}}
+async function osmNearbyAt(la,lo,fromFallback=false){const btn=$('#nearBtn');btn.textContent='📍 搜尋附近…';btn.disabled=true;const q=`[out:json][timeout:15];(nwr(around:250,${la},${lo})["name"]["shop"];nwr(around:250,${la},${lo})["name"]["amenity"~"restaurant|cafe|fast_food|food_court|bar|pub|pharmacy|fuel|marketplace|cinema|ice_cream"];nwr(around:250,${la},${lo})["name"]["leisure"~"fitness_centre|sports_centre"];);out center tags 100;`;
+  try{const d=await fetchOverpass(q),seen=new Set(),items=[];(d.elements||[]).forEach(e=>{const n=e.tags&&(e.tags['name:zh-Hant']||e.tags['name:zh']||e.tags.name);const ela=e.lat??e.center?.lat,elo=e.lon??e.center?.lon;if(!n||!Number.isFinite(ela)||!Number.isFinite(elo))return;const dx=(elo-lo)*111000*Math.cos(la*Math.PI/180),dy=(ela-la)*111000,dist=Math.hypot(dx,dy),key=n+'|'+Math.round(dist/30);if(seen.has(key))return;seen.add(key);items.push({name:n,address:'',dist});});items.sort((a,b)=>a.dist-b.dist);const top=items.slice(0,18);if(!top.length)toast('250 公尺內查無適合消費的 OpenStreetMap 店家');else{showNearChips(top);if(fromFallback)toast(`已改用 OpenStreetMap，找到 ${top.length} 個地點`);}}
   catch(e){console.warn('OSM nearby failed',e);toast('附近地點服務暫時無法連線');}
   finally{btn.textContent='📍 找附近店家';btn.disabled=false;}
 }
@@ -1073,7 +1127,7 @@ function renderRangeSeg(){$('#rangeSeg').querySelectorAll('button').forEach(b=>b
 function renderChartScopeChips(){const opts=[['all','全部'],['daily','日常'],['travel','旅遊']].concat(sortedTrips().map(t=>[t.id,(t.kind==='overseas'?'✈️':'🚆')+t.name]));
   const c=$('#chartScopeChips');c.innerHTML=opts.map(([v,l])=>{const on=v==='all'?selectedScopes.size===0:selectedScopes.has(v);return `<button class="chip ${on?'on':''}" data-s="${v}">${esc(l)}</button>`;}).join('');
   const names=opts.filter(([v])=>v!=='all'&&selectedScopes.has(v)).map(([,l])=>l);$('#chartScopeSummary').textContent=selectedScopes.size?(names.length<=2?'情境：'+names.join('、'):`情境：已選 ${selectedScopes.size} 項`):'情境：全部';
-  c.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{const v=b.dataset.s;if(v==='all')selectedScopes.clear();else{selectedScopes.has(v)?selectedScopes.delete(v):selectedScopes.add(v);}renderChartScopeChips();renderStatKpis();renderPie();renderBar();});
+  c.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{const v=b.dataset.s;if(v==='all')selectedScopes.clear();else{selectedScopes.has(v)?selectedScopes.delete(v):selectedScopes.add(v);}renderChartScopeChips();renderStatKpis();renderPie();renderBar();renderChartCalendar();});
 }
 function renderStatKpis(){const ex=chartExp(),all=chartAll(),sp=ex.reduce((s,r)=>s+myShareOf(r),0),paid=ex.reduce((s,r)=>s+paidOutOf(r),0),inc=all.filter(r=>r.kind==='income').reduce((s,r)=>s+r.total,0);const by={};ex.forEach(r=>expenseContribs(r).forEach(c=>by[c.category]=(by[c.category]||0)+c.amount));const top=Object.entries(by).sort((a,b)=>b[1]-a[1])[0];$('#statSpend').textContent=nf(sp);$('#statPaid').textContent=nf(paid);$('#statIncome').textContent=nf(inc);$('#statCount').textContent=ex.length.toLocaleString();$('#statTopCat').textContent=top?`最多：${top[0]} ${nf(top[1])}`:'尚無支出';}
 function renderCharts(){renderRangeSeg();$('#customRange').classList.toggle('show',chartRange==='custom');$('#pieModeSelect').value=pieMode;$('#barDimSelect').value=barDim;renderChartScopeChips();renderStatKpis();renderPie();renderBar();renderTripCompare();renderBalance();}
@@ -1091,7 +1145,7 @@ function renderPie(){let by={},colorList=catsExpense,signed=null,note='';
   if(pieMode==='invest'){const q=investStatsForRange();signed=[['已實現損益',q.realized],['未實現損益',q.unrealized],['股利收入',q.dividends]].filter(x=>x[1]!=null&&Math.abs(x[1])>0.5);signed.forEach(([k,v])=>by[k]=Math.abs(v));colorList=Object.keys(by);note='圓餅圖無法表達負值，投資損益以「絕對值占比」呈現；正負方向請看下方金額。未實現損益為目前持股估值，不受期間與情境篩選。';}
   else if(pieMode==='scope'){chartExp().forEach(r=>{const key=scopeLabel(r.scope||{type:'daily'});by[key]=(by[key]||0)+myShareOf(r);});colorList=Object.keys(by);}
   else if(pieMode==='payment'){chartExp().forEach(r=>{const key=r.payment||'未設定';const v=paidOutOf(r);if(v>0)by[key]=(by[key]||0)+v;});colorList=Object.keys(by);note='付款方式依「你實際付出去的金額」統計；若對方先付款，該筆不計入你的付款方式。';}
-  else if(pieMode==='store'){chartExp().forEach(r=>{const key=r.store||'未填店家';by[key]=(by[key]||0)+myShareOf(r);});colorList=Object.keys(by);}
+  else if(pieMode==='store'){chartExp().forEach(r=>{const key=storeStatKey(r);by[key]=(by[key]||0)+myShareOf(r);});colorList=Object.keys(by);note=settings.chartMergeChains?'已將可辨識的連鎖店分店合併到品牌層級。':'';}
   else if(pieMode==='chain'){chartExp().forEach(r=>{const key=chainNameOfRecord(r);if(key)by[key]=(by[key]||0)+myShareOf(r);});colorList=Object.keys(by);note='只統計已標記或可辨識的連鎖店；一般獨立店家不列入。';}
   else if(pieMode==='partner'){chartExp().filter(r=>r.split).forEach(r=>{const key=r.split.partner||'未填對象';by[key]=(by[key]||0)+myShareOf(r);});colorList=Object.keys(by);note='顯示與各分帳對象一起消費時，你最後實際負擔的金額。';}
   else{chartExp().forEach(r=>expenseContribs(r).forEach(c=>{const key=pieMode==='sub'?(c.sub?c.category+' · '+c.sub:c.category):c.category;by[key]=(by[key]||0)+c.amount;}));}
@@ -1115,7 +1169,7 @@ function renderBar(){let labels=[],datasets=[],note='';
   }else if(barDim==='category'){const by={};chartExp().forEach(r=>expenseContribs(r).forEach(c=>by[c.category]=(by[c.category]||0)+c.amount));const ent=Object.entries(by).filter(e=>e[1]>0).sort((a,b)=>b[1]-a[1]);labels=ent.map(e=>e[0]);datasets=[{data:ent.map(e=>e[1]),backgroundColor:labels.map(l=>catColor(l)),borderRadius:5,maxBarThickness:46}];
   }else if(barDim==='payment'){const by={};chartExp().forEach(r=>{const kk=r.payment||'未設定',v=paidOutOf(r);if(v>0)by[kk]=(by[kk]||0)+v;});const ent=Object.entries(by).sort((a,b)=>b[1]-a[1]);labels=ent.map(e=>e[0]);datasets=[{data:ent.map(e=>e[1]),backgroundColor:labels.map(l=>palColor(payments,l)),borderRadius:5,maxBarThickness:46}];note='付款方式依你實際付出去的金額統計。';
   }else if(barDim==='scope'){const by={};chartExp().forEach(r=>{const kk=scopeLabel(r.scope||{type:'daily'});by[kk]=(by[kk]||0)+myShareOf(r);});const ent=Object.entries(by).sort((a,b)=>b[1]-a[1]);labels=ent.map(e=>e[0]);datasets=[{data:ent.map(e=>e[1]),backgroundColor:labels.map(l=>palColor(labels,l)),borderRadius:5,maxBarThickness:46}];
-  }else if(barDim==='store'){const by={};chartExp().forEach(r=>{const kk=r.store||'未填店家';by[kk]=(by[kk]||0)+myShareOf(r);});const ent=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,12);labels=ent.map(e=>e[0]);datasets=[{data:ent.map(e=>e[1]),backgroundColor:labels.map(l=>palColor(labels,l)),borderRadius:5,maxBarThickness:46}];note='最多顯示前 12 個店家。';
+  }else if(barDim==='store'){const by={};chartExp().forEach(r=>{const kk=storeStatKey(r);by[kk]=(by[kk]||0)+myShareOf(r);});const ent=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,12);labels=ent.map(e=>e[0]);datasets=[{data:ent.map(e=>e[1]),backgroundColor:labels.map(l=>palColor(labels,l)),borderRadius:5,maxBarThickness:46}];note=(settings.chartMergeChains?'已合併連鎖品牌分店；':'')+'最多顯示前 12 個店家。';
   }else if(barDim==='chain'){const by={};chartExp().forEach(r=>{const kk=chainNameOfRecord(r);if(kk)by[kk]=(by[kk]||0)+myShareOf(r);});const ent=Object.entries(by).sort((a,b)=>b[1]-a[1]);labels=ent.map(e=>e[0]);datasets=[{data:ent.map(e=>e[1]),backgroundColor:labels.map(l=>palColor(labels,l)),borderRadius:5,maxBarThickness:46}];note='只統計已標記或可辨識的連鎖店，可直接比較例如全家、全聯、7-ELEVEN的總支出。';
   }else if(barDim==='partner'){const by={};chartExp().filter(r=>r.split).forEach(r=>{const kk=r.split.partner||'未填對象';by[kk]=(by[kk]||0)+myShareOf(r);});const ent=Object.entries(by).sort((a,b)=>b[1]-a[1]);labels=ent.map(e=>e[0]);datasets=[{data:ent.map(e=>e[1]),backgroundColor:labels.map(l=>palColor(labels,l)),borderRadius:5,maxBarThickness:46}];note='與各對象分帳時，你最後實際負擔的消費。';
   }else{const q=investStatsForRange();labels=['已實現損益','未實現損益','股利收入'];datasets=[{data:[q.realized,q.unrealized??0,q.dividends],backgroundColor:['#6f56bd','#0d6e60','#3269c0'],borderRadius:5,maxBarThickness:54}];note='已實現損益與股利依所選期間計算；未實現損益為目前持股依最新現價估算，不受期間與情境篩選。';}
@@ -1248,7 +1302,7 @@ function recordMap(db){const m=new Map();(db.records||[]).forEach(r=>{if(r&&r.id
 function makeBaseSnapshot(db){const m={};recordMap(db).forEach((r,id)=>m[id]=stableStringify(r));return {records:m,globals:stableStringify({...db,records:[]})};}
 function freshUserLedger(){const ce=['餐食','交通','日用品','娛樂','居家','醫療','其他'],ci=['薪資','其他收入'],pay=['信用卡','現金','行動支付','轉帳'],sub={餐食:['早餐','午餐','晚餐','點心／飲料'],交通:['大眾運輸','計程車／叫車','加油']},cc={},dc=['#0d6e60','#3269c0','#bb5c2c','#6f56bd','#3f9e6b','#cf9a2b','#bd5079'];ce.forEach((c,i)=>cc[c]=dc[i%dc.length]);cc['薪資']='#2c9968';cc['其他收入']='#3f9e6b';return normalizeLedger({records:[],catsExpense:ce,catsIncome:ci,payments:pay,trips:[],subcats:sub,catColors:cc,prices:{},settings:{osm:false,financeSheetId:'',storeChains:[],mrtRecentPairs:[]},savedAt:Date.now()});}
 function unionUnique(a,b){return [...new Set([...(a||[]),...(b||[])])];}
-function mergeGlobals(local,cloud){const out=deepClone(cloud);out.catsExpense=unionUnique(cloud.catsExpense,local.catsExpense);out.catsIncome=unionUnique(cloud.catsIncome,local.catsIncome);out.payments=unionUnique(cloud.payments,local.payments);const tb={};[...(cloud.trips||[]),...(local.trips||[])].forEach(t=>{if(t&&t.id)tb[t.id]=t;});out.trips=Object.values(tb);out.subcats={...cloud.subcats};Object.entries(local.subcats||{}).forEach(([k,v])=>out.subcats[k]=unionUnique(out.subcats[k],v));out.catColors={...cloud.catColors,...local.catColors};out.prices={...cloud.prices,...local.prices};out.settings={...cloud.settings,...local.settings};out.savedAt=Math.max(+cloud.savedAt||0,+local.savedAt||0,Date.now());return out;}
+function mergeGlobals(local,cloud){const out=deepClone(cloud);out.catsExpense=unionUnique(cloud.catsExpense,local.catsExpense);out.catsIncome=unionUnique(cloud.catsIncome,local.catsIncome);out.payments=unionUnique(cloud.payments,local.payments);const tb={};[...(cloud.trips||[]),...(local.trips||[])].forEach(t=>{if(t&&t.id)tb[t.id]=t;});out.trips=Object.values(tb);out.subcats={...cloud.subcats};Object.entries(local.subcats||{}).forEach(([k,v])=>out.subcats[k]=unionUnique(out.subcats[k],v));out.catColors={...cloud.catColors,...local.catColors};out.prices={...cloud.prices,...local.prices};out.settings={...cloud.settings,...local.settings};out.settings.recurringSkipped=unionUnique(cloud.settings?.recurringSkipped,local.settings?.recurringSkipped);out.savedAt=Math.max(+cloud.savedAt||0,+local.savedAt||0,Date.now());return out;}
 function mergeLedgerThreeWay(local,cloud,base){local=normalizeLedger(local);cloud=normalizeLedger(cloud);base=base||makeBaseSnapshot(cloud);const lm=recordMap(local),cm=recordMap(cloud),ids=new Set([...Object.keys(base.records||{}),...lm.keys(),...cm.keys()]),out=[],conflicts=[];ids.forEach(id=>{const l=lm.get(id)||null,c=cm.get(id)||null,b=(base.records||{})[id]??null,lh=l?stableStringify(l):null,ch=c?stableStringify(c):null,lc=lh!==b,cc=ch!==b;if(lc&&cc&&lh!==ch){conflicts.push(id);if(l)out.push(l);}else if(lc){if(l)out.push(l);}else if(cc){if(c)out.push(c);}else if(l||c)out.push(l||c);});const globals=mergeGlobals(local,cloud);globals.records=out;return {data:globals,conflicts};}
 function tokenUsable(){return !!(GOOGLE_SYNC.token&&Date.now()<GOOGLE_SYNC.expiresAt-30000);}
 function cloudStatusView(){if(GOOGLE_SYNC.mode!=='google')return{text:'單機',cls:''};if(GOOGLE_SYNC.syncing)return{text:'同步中',cls:'pending'};if(GOOGLE_SYNC.status==='synced')return{text:'已同步',cls:'ok'};if(GOOGLE_SYNC.status==='offline')return{text:'離線',cls:'warn'};if(GOOGLE_SYNC.status==='pending')return{text:'待同步',cls:'pending'};if(GOOGLE_SYNC.status==='auth')return{text:'恢復同步',cls:'warn'};return{text:'同步異常',cls:'warn'};}
@@ -1457,6 +1511,48 @@ renderFilterChips=function(){_renderFilterChips_v19();const s=$('#listTypeSelect
 
 // 初始同步一次。
 syncCompactChoiceLabels();syncEntryBlocks();renderFilterChips();
+
+
+/* ===== v23 UX / data glue ===== */
+function storeStatKey(r){if(settings.chartMergeChains){const c=chainNameOfRecord(r);if(c)return c;}return shortPlaceName(r?.store||'')||'未填店家';}
+function updateChartMergeToggle(){const wrap=$('#chartChainMergeWrap');if(!wrap)return;wrap.classList.toggle('show',pieMode==='store'||barDim==='store');$('#chartMergeChains').checked=!!settings.chartMergeChains;}
+$('#chartMergeChains')?.addEventListener('change',e=>{settings.chartMergeChains=!!e.target.checked;save(K.set,settings);renderPie();renderBar();});
+const _renderCharts_v23=renderCharts;renderCharts=function(){_renderCharts_v23();updateChartMergeToggle();renderChartCalendar();};
+$('#pieModeSelect')?.addEventListener('change',updateChartMergeToggle);$('#barDimSelect')?.addEventListener('change',updateChartMergeToggle);
+
+// 類別選擇完成後，以該分類顏色輕染選擇框；逐項分類比照處理。
+const _syncCompactChoiceLabels_v23=syncCompactChoiceLabels;syncCompactChoiceLabels=function(){_syncCompactChoiceLabels_v23();const b=$('#catSelectBtn'),sb=$('#subSelectBtn');if(b){if(selCat){const c=catColor(selCat);b.style.background=colorBg(c,.12);b.style.borderColor=colorBg(c,.42);b.classList.add('cat-tinted');}else{b.style.background='';b.style.borderColor='';b.classList.remove('cat-tinted');}}if(sb){if(selCat&&selSub){const c=catColor(selCat);sb.style.background=colorBg(c,.08);sb.style.borderColor=colorBg(c,.32);}else{sb.style.background='';sb.style.borderColor='';}}};
+function tintItemCategoryRow(row){if(!row)return;const cat=row.querySelector('.i-cat')?.value||'',c=cat?catColor(cat):'';for(const el of [row.querySelector('.i-cat'),row.querySelector('.i-sub')]){if(!el)continue;if(c){el.style.backgroundColor=colorBg(c,.11);el.style.borderColor=colorBg(c,.38);}else{el.style.backgroundColor='';el.style.borderColor='';}}}
+$('#itemRows')?.addEventListener('change',e=>{if(e.target.matches('.i-cat,.i-sub'))tintItemCategoryRow(e.target.closest('.itemrow'));});
+const itemTintObserver=new MutationObserver(ms=>{ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1&&n.classList?.contains('itemrow'))tintItemCategoryRow(n);n.querySelectorAll?.('.itemrow').forEach(tintItemCategoryRow);}));});if($('#itemRows'))itemTintObserver.observe($('#itemRows'),{childList:true});
+
+// 情境欄與分類一致：整列可點，無額外「切換」文字。
+$('#formScopeChange').textContent='';$('#formScopeChange').innerHTML='<span class="choice-label">情境</span><span class="choice-value"><strong id="formScopeText">'+esc(scopeLabel(formScope||currentScope))+'</strong></span><span class="choice-chevron">›</span>';
+$('#formScopeChange').onclick=()=>{formScope=formScope||{...currentScope};openScopePicker('form');};
+
+// 每月日曆：以目前圖表情境篩選，月份獨立切換。
+let chartCalendarMonth=new Date(viewMonth.getFullYear(),viewMonth.getMonth(),1);
+function compactMoney(n){n=Math.round(+n||0);const a=Math.abs(n);if(a>=1000000)return (n/1000000).toFixed(a>=10000000?0:1)+'m';if(a>=10000)return (n/1000).toFixed(a>=100000?0:1)+'k';return String(n);}
+function renderChartCalendar(){const grid=$('#calendarGrid');if(!grid)return;const y=chartCalendarMonth.getFullYear(),m=chartCalendarMonth.getMonth(),days=new Date(y,m+1,0).getDate(),first=(new Date(y,m,1).getDay()+6)%7,prefix=`${y}-${String(m+1).padStart(2,'0')}-`,today=todayISO();$('#calendarMonthLabel').textContent=`${y} / ${String(m+1).padStart(2,'0')}`;const map={};records.forEach(r=>{if(!r.date?.startsWith(prefix)||!scopeMatch(r))return;if(r.kind!=='expense'&&r.kind!=='income')return;const d=+r.date.slice(8,10),x=map[d]=map[d]||{e:0,i:0};if(r.kind==='expense')x.e+=myShareOf(r);else x.i+=+r.total||0;});let h='';for(let i=0;i<first;i++)h+='<div class="cal-day empty"></div>';for(let d=1;d<=days;d++){const date=prefix+String(d).padStart(2,'0'),x=map[d]||{e:0,i:0},n=x.i-x.e,has=x.e||x.i;h+=`<button type="button" class="cal-day ${has?'has':''} ${date===today?'today':''}" data-cal-date="${date}"><div class="dn">${d}</div>${has?`<div class="cv ce">支 ${compactMoney(x.e)}</div><div class="cv ci">收 ${compactMoney(x.i)}</div><div class="cv cn">餘 ${n>=0?'+':''}${compactMoney(n)}</div>`:''}</button>`;}grid.innerHTML=h;grid.querySelectorAll('[data-cal-date]').forEach(b=>b.onclick=()=>{listQuery='';if($('#listSearch'))$('#listSearch').value='';if($('#clearSearch'))$('#clearSearch').style.display='none';if($('#searchScopeNote'))$('#searchScopeNote').classList.remove('show');setListPeriod('day',b.dataset.calDate,b.dataset.calDate);document.querySelector('.nav button[data-view="list"]')?.click();});}
+$('#calendarPrev')?.addEventListener('click',()=>{chartCalendarMonth=new Date(chartCalendarMonth.getFullYear(),chartCalendarMonth.getMonth()-1,1);renderChartCalendar();});$('#calendarNext')?.addEventListener('click',()=>{chartCalendarMonth=new Date(chartCalendarMonth.getFullYear(),chartCalendarMonth.getMonth()+1,1);renderChartCalendar();});
+
+// 每月固定支出：只在 App 開啟時補入已到期月份；以 deterministic id 避免多裝置重複。
+function recurringRules(){return Array.isArray(settings.recurringRules)?settings.recurringRules:[];}
+function recurringOccurrenceDate(y,m,day){const last=new Date(y,m+1,0).getDate();return `${y}-${String(m+1).padStart(2,'0')}-${String(Math.min(last,Math.max(1,+day||1))).padStart(2,'0')}`;}
+function ensureRecurringTransactions(){const rules=recurringRules(),today=todayISO(),now=new Date(today+'T00:00:00'),nowYM=today.slice(0,7),existing=new Set(records.map(r=>r.id)),skipped=new Set(settings.recurringSkipped||[]);let added=0;for(const rule of rules){if(!rule?.active)continue;const start=/^\d{4}-\d{2}$/.test(rule.startMonth||'')?rule.startMonth:nowYM,end=/^\d{4}-\d{2}$/.test(rule.endMonth||'')?rule.endMonth:'';let [y,m]=start.split('-').map(Number);m-=1;let guard=0;while(guard++<240){const ym=`${y}-${String(m+1).padStart(2,'0')}`;if(ym>nowYM||(end&&ym>end))break;const date=recurringOccurrenceDate(y,m,rule.day),id=`recurring:${rule.id}:${date}`;if(date<=today&&!existing.has(id)&&!skipped.has(rule.id+'|'+date)){records.push({id,createdAt:new Date(date+'T08:00:00').getTime(),updatedAt:Date.now(),date,kind:'expense',scope:{type:'daily',trip:null},store:rule.store||'',storeChain:null,storeBranch:null,payment:rule.payment||null,hashtags:[],note:rule.note||'',items:null,catMode:'whole',category:rule.category||null,sub:rule.sub||null,total:+rule.amount||0,split:null,inv:null,settlement:null,recurring:{ruleId:rule.id,occurrenceDate:date}});existing.add(id);added++;}m++;if(m>11){m=0;y++;}}}if(added){save(K.rec,records);}return added;}
+let recurringEditingId=null;
+function recurringSelectOptions(){const cat=$('#rc-category'),pay=$('#rc-payment');if(!cat||!pay)return;cat.innerHTML='<option value="">未指定</option>'+catsExpense.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');pay.innerHTML='<option value="">未指定</option>'+payments.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');}
+function updateRecurringSub(){const c=$('#rc-category').value,l=c?(subcats[c]||[]):[],cur=$('#rc-sub').value;$('#rc-sub').innerHTML='<option value="">未指定</option>'+l.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');if(l.includes(cur))$('#rc-sub').value=cur;}
+function openRecurringSheet(id=null){recurringEditingId=id;const r=id?recurringRules().find(x=>x.id===id):null,ym=todayISO().slice(0,7);recurringSelectOptions();$('#recurringTitle').textContent=r?'編輯每月固定支出':'新增每月固定支出';$('#rc-store').value=r?.store||'';$('#rc-amount').value=r?.amount||'';$('#rc-day').value=r?.day||1;$('#rc-category').value=r?.category||'';updateRecurringSub();$('#rc-sub').value=r?.sub||'';$('#rc-payment').value=r?.payment||'';$('#rc-start').value=r?.startMonth||ym;$('#rc-end').value=r?.endMonth||'';$('#rc-note').value=r?.note||'';$('#rc-active').checked=r?r.active!==false:true;$('#recurringDelete').style.display=r?'block':'none';$('#recurringBackdrop').classList.add('show');$('#recurringSheet').classList.add('show');}
+function closeRecurringSheet(){$('#recurringBackdrop').classList.remove('show');$('#recurringSheet').classList.remove('show');recurringEditingId=null;}
+function saveRecurringRule(){const store=$('#rc-store').value.trim(),amount=+$('#rc-amount').value,day=Math.max(1,Math.min(31,Math.floor(+$('#rc-day').value||1))),start=$('#rc-start').value||todayISO().slice(0,7),end=$('#rc-end').value;if(!store){toast('請輸入店家或項目名稱');return;}if(!(amount>0)){toast('請輸入每月金額');return;}if(end&&end<start){toast('結束月份不能早於開始月份');return;}const rules=recurringRules().slice(),old=rules.find(x=>x.id===recurringEditingId),r={id:recurringEditingId||uid(),createdAt:old?.createdAt||Date.now(),updatedAt:Date.now(),store,amount:money2(amount),day,category:$('#rc-category').value||null,sub:$('#rc-sub').value||null,payment:$('#rc-payment').value||null,startMonth:start,endMonth:end||'',note:$('#rc-note').value.trim(),active:$('#rc-active').checked};if(recurringEditingId){const i=rules.findIndex(x=>x.id===recurringEditingId);rules[i]=r;}else rules.push(r);settings.recurringRules=rules;save(K.set,settings);const added=ensureRecurringTransactions();closeRecurringSheet();renderSettings();renderAll();toast(added?`已儲存，並補入 ${added} 筆到期支出`:'已儲存固定支出');}
+function renderRecurringRules(){const box=$('#recurringManage');if(!box)return;const rules=recurringRules();box.innerHTML=rules.length?rules.map(r=>`<div class="recurring-rule"><div><div class="rr-name">${esc(r.store)}</div><div class="rr-sub">每月 ${r.day} 日 · ${nf(r.amount)}${r.category?' · '+esc(r.category):''}${r.payment?' · '+esc(r.payment):''}</div></div><span class="rr-state ${r.active===false?'off':''}">${r.active===false?'已停用':'啟用中'}</span><button type="button" data-recurring-edit="${r.id}">編輯規則</button></div>`).join(''):'<div class="empty" style="padding:10px;font-size:13px">尚未設定固定支出</div>';box.querySelectorAll('[data-recurring-edit]').forEach(b=>b.onclick=()=>openRecurringSheet(b.dataset.recurringEdit));}
+$('#addRecurringRule')?.addEventListener('click',()=>openRecurringSheet());$('#recurringCancel')?.addEventListener('click',closeRecurringSheet);$('#recurringBackdrop')?.addEventListener('click',closeRecurringSheet);$('#recurringSave')?.addEventListener('click',saveRecurringRule);$('#rc-category')?.addEventListener('change',updateRecurringSub);$('#recurringDelete')?.addEventListener('click',()=>{if(!recurringEditingId||!confirm('刪除這個固定支出規則？已經產生的舊帳會保留。'))return;settings.recurringRules=recurringRules().filter(x=>x.id!==recurringEditingId);save(K.set,settings);closeRecurringSheet();renderSettings();toast('已刪除固定支出規則');});
+const _renderSettings_v23=renderSettings;renderSettings=function(){_renderSettings_v23();renderRecurringRules();};
+const _persistLedgerSnapshot_v23=persistLedgerSnapshot;persistLedgerSnapshot=function(d){_persistLedgerSnapshot_v23(d);const added=ensureRecurringTransactions();if(added){renderAll();scheduleCloudSync?.(500);}};
+
+// 初始補入到期固定支出，並同步目前顯示。
+const recurringAddedOnInit=ensureRecurringTransactions();if(recurringAddedOnInit)renderAll();syncCompactChoiceLabels();updateChartMergeToggle();
 
 </script>
 </body>
