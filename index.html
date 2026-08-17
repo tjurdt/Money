@@ -495,9 +495,9 @@
           <input type="text" id="f-partner" list="partnerList" placeholder="對象（例如：女友、小明）" />
           <div class="miniseg" id="payerSeg" style="margin-top:10px"><button data-p="me" class="on">我先付款</button><button data-p="other">對方先付款</button></div>
           <div class="miniseg" id="shareSeg" style="margin-top:8px"><button data-s="even" class="on">均分</button><button data-s="own">自訂</button><button data-s="mine">我請客</button><button data-s="theirs">對方請客</button></div>
-          <input type="number" id="f-myshare" inputmode="decimal" placeholder="我實際應負擔多少" style="display:none;margin-top:8px" />
+          <div class="miniseg" id="splitCustomModeSeg" style="display:none;margin-top:8px"><button data-cm="amount" class="on">依金額</button><button data-cm="ratio">依比例</button></div>
+          <input type="number" id="f-myshare" inputmode="decimal" placeholder="我應負擔的金額" style="display:none;margin-top:8px" />
           <div class="invpreview" id="splitPreview"></div>
-          <label class="checkline" style="margin-top:8px"><input type="checkbox" id="f-settled"> 這筆已當場結清（不列入欠款）</label>
         </div>
       </div>
       </div>
@@ -767,11 +767,11 @@ function renderList(){
         return;
       }
       const bal=splitBalance(r);
-      const cls=r.investmentDerived?('inv-derived '+(r.kind==='income'?'income':'')):(r.kind==='income'?'income':r.split?(bal>0?'split-recv':bal<0?'split-pay':''):'');
+      const cls=r.investmentDerived?('inv-derived '+(r.kind==='income'?'income':'')):(r.kind==='income'?'income':'');
       const pos=r.kind==='income';
       const shownAmt=r.kind==='expense'?myShareOf(r):r.total;
       const normalCat=r.kind==='expense'&&r.catMode!=='perItem'?r.category:null;
-      const recStyle=normalCat&&!r.split?` style="border-left-color:${catColor(normalCat)}"`:'';
+      const recStyle=normalCat?` style="border-left-color:${catColor(normalCat)}"`:'';
       let splitTags='';
       if(r.split){splitTags+=`<span class="tag">我的負擔 ${nf(myShareOf(r))}</span>`;
         if(!r.split.settled&&Math.round(bal)!==0)splitTags+=bal>0?`<span class="tag recv">${esc(r.split.partner||'對方')}此筆應補 ${nf(bal)}</span>`:`<span class="tag pay">此筆應補${esc(r.split.partner||'對方')} ${nf(-bal)}</span>`;
@@ -779,7 +779,7 @@ function renderList(){
       const scopeTag=(listQuery||currentScope.type==='all'||(currentScope.type==='daily'&&r.scope&&r.scope.type!=='daily'))?`<span class="tag scope">${esc(scopeLabel(r.scope))}</span>`:'';
       const catTag=r.kind==='income'?(r.category?`<span class="tag cat" style="color:${catColor(r.category)};background:${colorBg(catColor(r.category))}">${esc(r.category)}</span>`:''):(r.catMode==='perItem'?`<span class="tag cat">逐項</span>`:(r.category?`<span class="tag cat" style="color:${catColor(r.category)};background:${colorBg(catColor(r.category))}">${esc(r.category)}${r.sub?'·'+esc(r.sub):''}</span>`:''));
       const sub=r.kind==='expense'?itemsPreview(r):'';
-      html+=`<div class="rec ${cls} ${r.split&&r.split.settled?'settled-dim':''}"${recStyle} data-id="${r.id}"><div class="body">
+      html+=`<div class="rec ${cls}"${recStyle} data-id="${r.id}"><div class="body">
         <div class="top"><span class="store">${esc(r.store||(r.kind==='income'?'（收入）':'（未填店家）'))}</span><span class="amt ${pos?'pos':''}">${pos?'+':''}${nf(shownAmt)}</span></div>
         ${r.kind==='expense'&&r.split&&Math.abs(r.total-shownAmt)>.5?`<div class="secondary">本筆總額 ${nf(r.total)} · ${r.split.payer==='me'?'我先付款':'對方先付款'}</div>`:''}
         ${sub?`<div class="item">${esc(sub)}</div>`:''}
@@ -831,7 +831,8 @@ $('#addTripSettings').onclick=()=>openTripSheet(null,'domestic');
 
 /* ===== 分類/付款 chips ===== */
 const getKind=()=>document.querySelector('input[name=kind]:checked').value;
-function renderChipSelectors(){const catList=getKind()==='income'?catsIncome:catsExpense;
+function catOrder(list){const a=[],b=[];(list||[]).forEach(c=>{(c==='其他'||c==='其他收入')?b.push(c):a.push(c);});return a.concat(b);}
+function renderChipSelectors(){const catList=catOrder(getKind()==='income'?catsIncome:catsExpense);
   $('#catChips').innerHTML=(catList.length?catList.map(c=>`<button data-v="${esc(c)}" class="${selCat===c?'on':''}" style="${selCat===c?`background:${catColor(c)};border-color:${catColor(c)};color:#fff`:`color:${catColor(c)};border-color:${colorBg(catColor(c),.35)};background:${colorBg(catColor(c),.08)}`}">${esc(c)}</button>`).join(''):`<span class="none">尚無分類，點右方新增 →</span>`)+`<button class="add" data-add="cat">＋ 新增</button>`;
   $('#payChips').innerHTML=(payments.length?payments.map(p=>`<button data-v="${esc(p)}" class="${selPay===p?'on':''}">${esc(p)}</button>`).join(''):`<span class="none">尚無付款方式 →</span>`)+`<button class="add" data-add="pay">＋ 新增</button>`;
   $('#catChips').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.add)return addOption('cat');selCat=selCat===b.dataset.v?null:b.dataset.v;selSub=null;renderChipSelectors();renderSubChips();});
@@ -848,7 +849,7 @@ function addOption(type){const v=(prompt(type==='cat'?'新增分類名稱':'新�
   else{if(!payments.includes(v)){payments.push(v);save(K.pay,payments);}selPay=v;}renderChipSelectors();}
 
 /* ===== 店家與品項明細（漸進式 UX） ===== */
-function catSelOptions(sel){return `<option value="">分類</option>`+catsExpense.map(c=>`<option ${c===sel?'selected':''}>${esc(c)}</option>`).join('')+`<option value="__add__">＋新增…</option>`;}
+function catSelOptions(sel){return `<option value="">分類</option>`+catOrder(catsExpense).map(c=>`<option ${c===sel?'selected':''}>${esc(c)}</option>`).join('')+`<option value="__add__">＋新增…</option>`;}
 function subSelOptions(cat,sel){const subs=subcats[cat]||[];return `<option value="">子分類</option>`+subs.map(s=>`<option ${s===sel?'selected':''}>${esc(s)}</option>`).join('')+(cat?`<option value="__add__">＋新增…</option>`:'');}
 function composedStore(){if(storeMode==='chain'){const c=$('#f-chain').value.trim(),b=$('#f-branch').value.trim();return c?(b?`${c}・${b}`:c):b;}return $('#f-store').value.trim();}
 const BUILTIN_CHAINS=['7-ELEVEN','全家','全聯','萊爾富','OKmart','家樂福','星巴克','路易莎','麥當勞','摩斯漢堡','康是美','屈臣氏'];
@@ -943,13 +944,14 @@ function buildDatalists(){const f={};records.forEach(r=>{if(r.store)f[r.store]=(
 $('#f-store').addEventListener('change',refreshStoreItems);$('#f-chain').addEventListener('change',refreshStoreItems);$('#f-branch').addEventListener('change',refreshStoreItems);
 
 /* ===== 分帳 ===== */
-let splitPayer='me',splitPreset='even';
+let splitPayer='me',splitPreset='even',splitCustomMode='amount';
 $('#splitToggle').addEventListener('change',e=>{$('#splitBody').classList.toggle('show',e.target.checked);updateSplitPreview();});
 $('#payerSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{splitPayer=b.dataset.p;$('#payerSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));updateSplitPreview();});
-$('#shareSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{splitPreset=b.dataset.s;$('#shareSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));$('#f-myshare').style.display=splitPreset==='own'?'block':'none';updateSplitPreview();});
+$('#shareSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{splitPreset=b.dataset.s;$('#shareSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));const own=splitPreset==='own';$('#f-myshare').style.display=own?'block':'none';$('#splitCustomModeSeg').style.display=own?'flex':'none';updateSplitPreview();});
+$('#splitCustomModeSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{splitCustomMode=b.dataset.cm;$('#splitCustomModeSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));$('#f-myshare').placeholder=splitCustomMode==='ratio'?'我負擔的比例 %（例如 30）':'我應負擔的金額';updateSplitPreview();});
 $('#f-myshare').addEventListener('input',updateSplitPreview);
 function normalizedSplitPreset(p){return p==='all'?'mine':p==='none'?'theirs':p==='custom'?'own':(p||'even');}
-function currentMyShare(total){return splitPreset==='even'?total/2:splitPreset==='mine'?total:splitPreset==='theirs'?0:(parseFloat($('#f-myshare').value)||0);}
+function currentMyShare(total){if(splitPreset==='even')return total/2;if(splitPreset==='mine')return total;if(splitPreset==='theirs')return 0;const v=parseFloat($('#f-myshare').value)||0;return splitCustomMode==='ratio'?total*Math.max(0,Math.min(100,v))/100:v;}
 function updateSplitPreview(){if(!$('#splitToggle').checked){$('#splitPreview').textContent='';return;}
   const total=parseFloat($('#f-total').value)||0;
   const ms=Math.max(0,Math.min(currentMyShare(total),total)),partner=$('#f-partner').value.trim()||'對方';
@@ -1026,8 +1028,9 @@ function openSheet(id){editingId=id||null;const r=id?records.find(x=>x.id===id):
   splitPayer=sp?sp.payer:'me';splitPreset=sp?normalizedSplitPreset(sp.preset):'even';
   $('#payerSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.p===splitPayer));
   $('#shareSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.s===splitPreset));
+  splitCustomMode='amount';$('#splitCustomModeSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.cm==='amount'));$('#f-myshare').placeholder='我應負擔的金額';$('#splitCustomModeSeg').style.display=splitPreset==='own'?'flex':'none';
   $('#f-myshare').style.display=splitPreset==='own'?'block':'none';$('#f-myshare').value=sp&&normalizedSplitPreset(sp.preset)==='own'?sp.myShare:'';
-  $('#f-partner').value=sp?sp.partner:'';$('#f-settled').checked=sp?!!sp.settled:false;
+  $('#f-partner').value=sp?sp.partner:'';
   // invest
   const inv=r&&r.inv?r.inv:{};invAct=inv.action||'buy';$('#sheet').querySelectorAll('.ia').forEach(x=>x.classList.toggle('on',x.dataset.a===invAct));
   $('#f-symbol').value=inv.symbol||'';$('#f-ticker').value=inv.ticker||'';$('#f-shares').value=inv.shares||'';$('#f-uprice').value=inv.unitPrice||'';$('#f-fee').value=inv.fee||'';$('#f-auto-fee').checked=r&&r.kind==='investment'?(inv.autoFee===true):true;$('#f-daytrade').checked=!!inv.dayTrade;$('#f-divamt').value=(r&&r.kind==='investment'&&inv.action==='dividend')?r.total:'';
@@ -1044,7 +1047,7 @@ function saveRecord(cont){const k=getKind();let total,inv=null,items=null,split=
     if(!inv.symbol){toast('請輸入標的名稱');return;}}
   else if(k==='income'){total=parseFloat($('#f-total').value);if(!(total>0)){toast('請輸入金額');return;}}
   else{total=parseFloat($('#f-total').value);items=itemDetailOpen?collectItems():null;const itemGross=(items||[]).reduce((s,i)=>s+(+i.grossPrice||+i.price||0),0),base=itemGross>0?itemGross:(discountBaseAmount||total||0),applied=applyDiscountsToItems(items||[],base);if(items)items=applied.items;if(discountDraft.length||discountOverrideTotal!==null)total=applied.plan.finalTotal;else if(itemDetailOpen&&itemGross>0)total=itemGross;if(!(total>0)){toast('請輸入支出金額');return;}
-    if($('#splitToggle').checked){const ms=Math.max(0,Math.min(currentMyShare(total),total));split={partner:$('#f-partner').value.trim(),payer:splitPayer,myShare:ms,preset:splitPreset,settled:$('#f-settled').checked};}}
+    if($('#splitToggle').checked){const ms=Math.max(0,Math.min(currentMyShare(total),total));split={partner:$('#f-partner').value.trim(),payer:splitPayer,myShare:ms,preset:splitPreset,settled:false};}}
   const rec={id:editingId||uid(),createdAt:editingId?(records.find(x=>x.id===editingId)?.createdAt||Date.now()):Date.now(),
     date:$('#f-date').value||new Date().toISOString().slice(0,10),kind:k,scope:k==='investment'?{type:'daily',trip:null}:(formScope||{type:'daily',trip:null}),
     store:composedStore(),storeChain:(k==='expense'&&storeMode==='chain'?$('#f-chain').value.trim():null),storeBranch:(k==='expense'&&storeMode==='chain'?$('#f-branch').value.trim():null),payment:k==='investment'?null:selPay,hashtags:old?.hashtags||[],note:$('#f-note').value.trim(),
@@ -1096,10 +1099,12 @@ function inferChainBranch(name){const raw=String(name||'').replace(/\s+/g,' ').t
   for(const c of chainCatalog().sort((a,b)=>b.length-a.length)){const i=raw.toLowerCase().indexOf(c.toLowerCase());if(i>=0)return{chain:c,branch:cleanBranchName(raw.slice(i+c.length)),recognized:true};}
   return{chain:'',branch:raw,recognized:false};
 }
-function stripTaiwanAddressPrefix(name){let x=String(name||'').replace(/\s+/g,' ').trim();const re=/^(?:(?:臺|台)北市|新北市|桃園市|(?:(?:臺|台)中市)|(?:(?:臺|台)南市)|高雄市|基隆市|新竹市|嘉義市|.{1,3}縣)(?:.{1,7}[區鄉鎮市])?(?:.{1,7}[里村])?[^\s]{1,16}?(?:路|街|大道)(?:[一二三四五六七八九十0-9]+段)?(?:\d+巷)?(?:\d+弄)?(?:\d+號)?\s*/;const y=x.replace(re,'').trim();return y.length>=2?y:x;}
+function stripTaiwanAddressPrefix(name){let x=String(name||'').replace(/\s+/g,' ').trim().replace(/^\d{3,6}\s*/,'');const re=/^(?:(?:臺|台)北市|新北市|桃園市|(?:(?:臺|台)中市)|(?:(?:臺|台)南市)|高雄市|基隆市|新竹市|嘉義市|.{1,3}縣)(?:.{1,7}[區鄉鎮市])?(?:.{1,7}[里村])?[^\s]{1,16}?(?:路|街|大道)(?:[一二三四五六七八九十0-9]+段)?(?:\d+巷)?(?:\d+弄)?(?:\d+號)?\s*/;const y=x.replace(re,'').trim();if(y!==x)return y.length>=2?y:x;const re2=/^(?:(?:臺|台)北市|新北市|桃園市|(?:臺|台)中市|(?:臺|台)南市|高雄市|基隆市|新竹市|嘉義市|.{1,3}[縣市])(?:.{1,4}?[鄉鎮市區])(?:.{1,4}?[里村])?/;const z=x.replace(re2,'').trim();return (z!==x&&z.length>=2)?z:x;}
 function shortPlaceName(name){const raw=String(name||'').replace(/\s+/g,' ').trim(),stripped=stripTaiwanAddressPrefix(raw),x=inferChainBranch(stripped);if(x.recognized)return x.chain+(x.branch?' '+x.branch:'');return stripped;}
 function chainNameOfRecord(r){if(r?.storeChain)return r.storeChain;const x=inferChainBranch(r?.store||'');return x.recognized?x.chain:'';}
-function applyPlaceNameToStore(name){const n=shortPlaceName(name),x=inferChainBranch(n);if(storeMode==='chain'){if(x.recognized){setChainValue(x.chain);$('#f-chain').value=x.chain;$('#f-branch').value=x.branch;}else{$('#f-chain').value='';$('#f-branch').value=n;}refreshBranchList();}else $('#f-store').value=n;refreshStoreItems();smartFillFromStore();}
+function placeTypeToCategory(type){const t=String(type||'').toLowerCase();if(!t)return '';const inn=arr=>arr.some(k=>t===k||t.includes(k));if(inn(['convenience','restaurant','cafe','coffee','bakery','meal_takeaway','meal_delivery','fast_food','food_court','bar','pub','ice_cream','deli','food']))return '餐食';if(inn(['gas_station','fuel','parking','transit','bus_station','train_station','subway']))return '交通';if(inn(['pharmacy','drugstore','chemist','doctor','hospital','clinic','dentist']))return '醫療';if(inn(['movie','cinema','book','fitness','sports','gym','stadium','amusement','bowling','karaoke']))return '娛樂';if(inn(['home_goods','furniture','hardware','laundry','dry_cleaning','florist']))return '居家';if(inn(['supermarket','grocery','food_store','marketplace','discount_store','variety_store','department_store','shopping_mall']))return '日用品';return '';}
+function applyPlaceTypeCategory(type){if(getKind()!=='expense'||selCat)return;const c=placeTypeToCategory(type);if(c&&catsExpense.includes(c)){selCat=c;selSub=null;renderChipSelectors();renderSubChips();}}
+function applyPlaceNameToStore(name,type=''){const n=shortPlaceName(name),x=inferChainBranch(n);if(storeMode==='chain'){if(x.recognized){setChainValue(x.chain);$('#f-chain').value=x.chain;$('#f-branch').value=x.branch;}else{$('#f-chain').value='';$('#f-branch').value=n;}refreshBranchList();}else $('#f-store').value=n;refreshStoreItems();smartFillFromStore();applyPlaceTypeCategory(type);}
 let storeSuggestTimer=null,storeSuggestSeq=0;
 function renderStoreSuggestions(names){const box=$('#storeSuggest');if(!box)return;const uniq=[...new Set((names||[]).map(shortPlaceName).filter(Boolean))].slice(0,6);box.innerHTML=uniq.map((n,i)=>`<button type="button" data-si="${i}">${esc(n)}</button>`).join('');box.querySelectorAll('button').forEach(b=>b.onclick=()=>{applyPlaceNameToStore(uniq[+b.dataset.si]);box.innerHTML='';});}
 async function fetchShortStoreSuggestions(q){if(!hasAdvancedAccess()||storeMode!=='single'||q.trim().length<2){renderStoreSuggestions([]);return;}const seq=++storeSuggestSeq;try{const lib=await ensureGoogle();if(seq!==storeSuggestSeq)return;const A=lib.AutocompleteSuggestion||google.maps.places.AutocompleteSuggestion;if(!A?.fetchAutocompleteSuggestions)return;const {suggestions}=await A.fetchAutocompleteSuggestions({input:q.trim(),language:'zh-TW',region:'tw'});if(seq!==storeSuggestSeq)return;const names=(suggestions||[]).map(s=>{const p=s.placePrediction||{};return p.structuredFormat?.mainText?.text||p.structuredFormat?.mainText?.toString?.()||p.structuredFormatting?.main_text||p.text?.text||p.text?.toString?.()||'';}).filter(Boolean);renderStoreSuggestions(names);}catch(e){console.warn('short autocomplete failed',e);}}
@@ -1112,11 +1117,11 @@ function openPlacesApiConsole(){const proj=lastPlacesProject||'919564958801';win
 async function fetchOverpass(q){const urls=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];let last=null;for(const base of urls){try{const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),16000);const r=await fetch(base+'?data='+encodeURIComponent(q),{cache:'no-store',signal:ctl.signal});clearTimeout(to);if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}catch(e){last=e;}}throw last||new Error('Overpass unavailable');}
 async function osmNearby(){const btn=$('#nearBtn');btn.textContent='📍 定位中…';btn.disabled=true;try{const c=await currentCoords();await osmNearbyAt(c.lat,c.lng,false);}catch(e){toast(e.message);}finally{btn.textContent='📍 找附近店家';btn.disabled=false;}}
 async function osmNearbyAt(la,lo,fromFallback=false){const btn=$('#nearBtn');btn.textContent='📍 搜尋附近…';btn.disabled=true;const q=`[out:json][timeout:15];(nwr(around:250,${la},${lo})["name"]["shop"];nwr(around:250,${la},${lo})["name"]["amenity"~"restaurant|cafe|fast_food|food_court|bar|pub|pharmacy|fuel|marketplace|cinema|ice_cream"];nwr(around:250,${la},${lo})["name"]["leisure"~"fitness_centre|sports_centre"];);out center tags 100;`;
-  try{const d=await fetchOverpass(q),seen=new Set(),items=[];(d.elements||[]).forEach(e=>{const n=e.tags&&(e.tags['name:zh-Hant']||e.tags['name:zh']||e.tags.name);const ela=e.lat??e.center?.lat,elo=e.lon??e.center?.lon;if(!n||!Number.isFinite(ela)||!Number.isFinite(elo))return;const dx=(elo-lo)*111000*Math.cos(la*Math.PI/180),dy=(ela-la)*111000,dist=Math.hypot(dx,dy),key=n+'|'+Math.round(dist/30);if(seen.has(key))return;seen.add(key);items.push({name:n,address:'',dist});});items.sort((a,b)=>a.dist-b.dist);const top=items.slice(0,18);if(!top.length)toast('250 公尺內查無適合消費的 OpenStreetMap 店家');else{showNearChips(top);if(fromFallback)toast(`已改用 OpenStreetMap，找到 ${top.length} 個地點`);}}
+  try{const d=await fetchOverpass(q),seen=new Set(),items=[];(d.elements||[]).forEach(e=>{const n=e.tags&&(e.tags['name:zh-Hant']||e.tags['name:zh']||e.tags.name);const ela=e.lat??e.center?.lat,elo=e.lon??e.center?.lon;if(!n||!Number.isFinite(ela)||!Number.isFinite(elo))return;const dx=(elo-lo)*111000*Math.cos(la*Math.PI/180),dy=(ela-la)*111000,dist=Math.hypot(dx,dy),key=n+'|'+Math.round(dist/30);if(seen.has(key))return;seen.add(key);items.push({name:n,address:'',dist,type:(e.tags.shop||e.tags.amenity||e.tags.leisure||'')});});items.sort((a,b)=>a.dist-b.dist);const top=items.slice(0,18);if(!top.length)toast('250 公尺內查無適合消費的 OpenStreetMap 店家');else{showNearChips(top);if(fromFallback)toast(`已改用 OpenStreetMap，找到 ${top.length} 個地點`);}}
   catch(e){console.warn('OSM nearby failed',e);toast('附近地點服務暫時無法連線');}
   finally{btn.textContent='📍 找附近店家';btn.disabled=false;}
 }
-function showNearChips(items){items=(items||[]).map(x=>typeof x==='string'?{name:shortPlaceName(x)}:{...x,name:shortPlaceName(x.name)});$('#nearChips').innerHTML=items.map((x,i)=>`<button data-i="${i}">${esc(x.name)}</button>`).join('');$('#nearChips').querySelectorAll('button').forEach(b=>b.onclick=()=>{applyPlaceNameToStore(items[+b.dataset.i]?.name||'');});}
+function showNearChips(items){items=(items||[]).map(x=>typeof x==='string'?{name:shortPlaceName(x)}:{...x,name:shortPlaceName(x.name)});$('#nearChips').innerHTML=items.map((x,i)=>`<button data-i="${i}">${esc(x.name)}</button>`).join('');$('#nearChips').querySelectorAll('button').forEach(b=>b.onclick=()=>{applyPlaceNameToStore(items[+b.dataset.i]?.name||'',items[+b.dataset.i]?.type||'');});}
 
 
 /* ===== 臺北捷運票價快捷：只在交通情境出現 ===== */
@@ -1445,7 +1450,7 @@ function renderSettings(){$('#countInfo').textContent=records.length;$('#osmTogg
   const fd=$('#financeDiag');if(fd){const n=Object.keys(tickerCacheMap()).length,oauthProj=oauthProjectNumber();fd.textContent=`股票名稱：${n>500?'本機已有 '+n.toLocaleString()+' 筆代號快取':'可自動下載台股代號表'}。價格：${access?(settings.financeSheetId?'Google Finance 行情橋接已建立':'白名單已登入；若 Google Finance 尚未建立會自動退回 TWSE／TPEx'):'目前使用 TWSE／TPEx／手動現價；Google Finance 僅限白名單登入後使用'}${oauthProj?' · OAuth 專案 '+oauthProj:''}`;}
   if(!storageOK){$('#storageWarn').style.display='block';$('#storageWarn').innerHTML='⚠️ 目前環境不支援瀏覽器儲存，資料只暫存於此分頁。請下載此檔或部署到 GitHub Pages / Netlify 後使用即可永久保存。';}
   const nextColor=()=>CAT_COLORS[(Object.keys(catColors).length)%CAT_COLORS.length];
-  const renderCatBox=(box,list,key,label)=>{box.innerHTML=list.map(v=>{const cur=catColor(v);return `<div class="catmanage"><div class="catline"><span class="tag cat" style="color:${cur};background:${colorBg(cur)}">${esc(v)}</span></div><input class="cat-color" type="color" value="${cur}" data-nativecolor="${esc(v)}" aria-label="${esc(v)} 顏色"><button class="rename" data-ren="${esc(v)}">改名</button><button class="x" data-del="${esc(v)}">刪除</button></div>`;}).join('')+`<button class="addtrip" data-addcat="1" style="margin-top:4px">＋ 新增${label}</button>`;
+  const renderCatBox=(box,list,key,label)=>{box.innerHTML=catOrder(list).map(v=>{const cur=catColor(v);return `<div class="catmanage"><div class="catline"><span class="tag cat" style="color:${cur};background:${colorBg(cur)}">${esc(v)}</span></div><input class="cat-color" type="color" value="${cur}" data-nativecolor="${esc(v)}" aria-label="${esc(v)} 顏色"><button class="rename" data-ren="${esc(v)}">改名</button><button class="x" data-del="${esc(v)}">刪除</button></div>`;}).join('')+`<button class="addtrip" data-addcat="1" style="margin-top:4px">＋ 新增${label}</button>`;
     box.querySelectorAll('[data-nativecolor]').forEach(inp=>inp.oninput=()=>{catColors[inp.dataset.nativecolor]=inp.value;save(K.cc,catColors);renderAll();if($('#view-chart').classList.contains('active'))renderCharts();const tag=inp.closest('.catmanage')?.querySelector('.tag.cat');if(tag){tag.style.color=inp.value;tag.style.background=colorBg(inp.value);}});
     box.querySelectorAll('[data-ren]').forEach(b=>b.onclick=()=>{const old=b.dataset.ren,n=(prompt('將「'+old+'」改名為：',old)||'').trim();if(!n||n===old||list.includes(n))return;const i=list.indexOf(old);if(i>=0)list[i]=n;const targetKind=key===K.ce?'expense':'income';records.forEach(r=>{if(r.kind!==targetKind)return;if(r.category===old)r.category=n;if(targetKind==='expense')(r.items||[]).forEach(it=>{if(it.category===old)it.category=n;});});if(key===K.ce&&subcats[old]){subcats[n]=subcats[old];delete subcats[old];}if(catColors[old]){catColors[n]=catColors[old];const other=key===K.ce?catsIncome:catsExpense;if(!other.includes(old))delete catColors[old];}save(key,list);save(K.rec,records);save(K.sub,subcats);save(K.cc,catColors);renderSettings();renderAll();});
     box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const v=b.dataset.del;if(!confirm('刪除「'+v+'」？'))return;const i=list.indexOf(v);if(i>=0)list.splice(i,1);if(key===K.ce)delete subcats[v];if(!catsExpense.includes(v)&&!catsIncome.includes(v))delete catColors[v];save(key,list);save(K.sub,subcats);save(K.cc,catColors);renderSettings();});
@@ -1507,7 +1512,7 @@ function chooseAndClose(mode,value){
 }
 function openChoiceSheet(mode){
   choiceMode=mode;const body=$('#choiceSheetBody'),title=$('#choiceTitle'),sheet=$('#choiceSheet');let list=[],current='',allowAdd=true;sheet.classList.remove('choice-mode-cat','choice-mode-sub','choice-mode-pay');sheet.classList.add('choice-mode-'+mode);
-  if(mode==='cat'){title.textContent=getKind()==='income'?'選擇收入分類':'選擇分類';list=getKind()==='income'?catsIncome:catsExpense;current=selCat||'';}
+  if(mode==='cat'){title.textContent=getKind()==='income'?'選擇收入分類':'選擇分類';list=catOrder(getKind()==='income'?catsIncome:catsExpense);current=selCat||'';}
   else if(mode==='sub'){title.textContent='選擇子分類';list=selCat?(subcats[selCat]||[]):[];current=selSub||'';}
   else{title.textContent=getKind()==='income'?'選擇收款方式':'選擇付款方式';list=payments;current=selPay||'';}
   const dot=v=>mode==='cat'?`<span class="dot" style="background:${catColor(v)}"></span>`:'';
