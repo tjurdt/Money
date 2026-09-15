@@ -14,6 +14,31 @@ function syncCompactChoiceLabels() {
       dot.classList.add('show');
     } else dot.classList.remove('show');
   }
+
+  const b = $('#catSelectBtn'),
+    sb = $('#subSelectBtn');
+  if (b) {
+    if (selCat) {
+      const c = catColor(selCat);
+      b.style.background = colorBg(c, 0.12);
+      b.style.borderColor = colorBg(c, 0.42);
+      b.classList.add('cat-tinted');
+    } else {
+      b.style.background = '';
+      b.style.borderColor = '';
+      b.classList.remove('cat-tinted');
+    }
+  }
+  if (sb) {
+    if (selCat && selSub) {
+      const c = catColor(selCat);
+      sb.style.background = colorBg(c, 0.08);
+      sb.style.borderColor = colorBg(c, 0.32);
+    } else {
+      sb.style.background = '';
+      sb.style.borderColor = '';
+    }
+  }
 }
 function closeChoiceSheet() {
   $('#choiceBackdrop').classList.remove('show');
@@ -136,33 +161,13 @@ function syncEntryBlocks() {
   renderDiscountSummary();
 }
 // 既有 onchange 綁的是舊函式參照，因此在這裡重新綁一次，功能內容仍沿用原 updateKindUI。
-const _updateKindUI_v19 = updateKindUI;
-updateKindUI = function () {
-  _updateKindUI_v19();
-  syncEntryBlocks();
-};
 $$('input[name=kind]').forEach((r) => (r.onchange = updateKindUI));
-const _openSheet_v19 = openSheet;
-openSheet = function (id) {
-  _openSheet_v19(id);
-  syncEntryBlocks();
-  const nd = $('#noteDetails');
-  if (nd) nd.open = !!$('#f-note')?.value.trim();
-};
-
 // 清單：類型改成與搜尋同列的單一選單；舊 chips 保留在 DOM 供原邏輯相容。
 $('#listTypeSelect')?.addEventListener('change', (e) => {
   activeFilter = e.target.value;
   renderFilterChips();
   renderList();
 });
-const _renderFilterChips_v19 = renderFilterChips;
-renderFilterChips = function () {
-  _renderFilterChips_v19();
-  const s = $('#listTypeSelect');
-  if (s) s.value = activeFilter;
-};
-
 // 初始同步一次。
 syncCompactChoiceLabels();
 syncEntryBlocks();

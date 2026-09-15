@@ -121,6 +121,12 @@ function persistLedgerSnapshot(d) {
   renderAll();
   renderInvest();
   if ($('#view-settings').classList.contains('active')) renderSettings();
+
+  const added = ensureRecurringTransactions();
+  if (added) {
+    renderAll();
+    scheduleCloudSync?.(500);
+  }
 }
 function recordMap(db) {
   const m = new Map();

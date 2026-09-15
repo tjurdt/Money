@@ -416,6 +416,8 @@ function syncDiscountEditorFields() {
   $('#discountModeSeg')
     .querySelectorAll('button')
     .forEach((b) => b.classList.toggle('on', b.dataset.mode === discountEditorMode));
+
+  refreshDiscountEditorFeedback();
 }
 function openDiscountEditor(id = null) {
   discountEditingRuleId = id;

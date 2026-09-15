@@ -85,11 +85,6 @@ $('#discountTarget')?.addEventListener('change', refreshDiscountEditorFeedback);
 ['#discountRepeat', '#discountBundleRepeat'].forEach((sel) =>
   $(sel)?.addEventListener('change', refreshDiscountEditorFeedback),
 );
-const _syncDiscountEditorFields_v23c = syncDiscountEditorFields;
-syncDiscountEditorFields = function () {
-  _syncDiscountEditorFields_v23c();
-  refreshDiscountEditorFeedback();
-};
 $('#discountBaseAmount').addEventListener('input', () => {
   discountBaseAmount = Math.max(0, +$('#discountBaseAmount').value || 0);
   updateDiscountPreview();

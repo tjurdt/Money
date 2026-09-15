@@ -212,6 +212,8 @@ function renderSettings() {
   $('#tripManage')
     .querySelectorAll('[data-edit]')
     .forEach((b) => (b.onclick = () => openTripSheet(b.dataset.edit)));
+
+  renderRecurringRules();
 }
 
 $('#osmToggle').onchange = (e) => {
