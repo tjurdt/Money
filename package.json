@@ -1,0 +1,28 @@
+{
+  "name": "money-ledger",
+  "version": "0.0.0",
+  "description": "記帳本 PWA — 個人記帳、分帳、投資與雲端同步",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/stamp-build.js",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tjurdt/Money.git"
+  },
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/tjurdt/Money/issues"
+  },
+  "homepage": "https://github.com/tjurdt/Money#readme",
+  "devDependencies": {
+    "jsdom": "^30.0.1",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
+  },
+  "private": true
+}
