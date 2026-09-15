@@ -12,6 +12,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { JSDOM } from 'jsdom';
+import { readLegacyBundle, PLACEHOLDER } from '../build/legacy-bundle.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -74,7 +75,19 @@ const STUBS = `<script>
  */
 export function bootLegacyApp({ storage = {}, url = 'https://tjurdt.github.io/Money/', entry = 'index.html' } = {}) {
   const raw = readFileSync(resolve(ROOT, entry), 'utf8');
-  const html = raw.replace(STRIP_EXTERNAL_SCRIPTS, '').replace('</head>', `${STUBS}</head>`);
+
+  // 原始碼的 index.html 只留下佔位註解，app 邏輯放在 src/legacy/ 各檔。
+  // 這裡用與 Vite plugin 相同的串接函式注入，確保測試與實際產出一致。
+  // dist/ 的 index.html 已由建置注入完畢，不含佔位註解，此步驟自動跳過。
+  // 用 replacer 函式而非字串：替換字串中的 $$、$& 等會被當成特殊樣式解讀，
+  // 而 legacy 程式碼裡就有 `const $$ = s => document.querySelectorAll(s)`。
+  const withBundle = raw.includes(PLACEHOLDER)
+    ? raw.replace(PLACEHOLDER, () => `<script>
+${readLegacyBundle()}
+</script>`)
+    : raw;
+
+  const html = withBundle.replace(STRIP_EXTERNAL_SCRIPTS, '').replace('</head>', `${STUBS}</head>`);
 
   const errors = [];
   const dom = new JSDOM(html, {

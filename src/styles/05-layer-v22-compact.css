@@ -1,0 +1,16 @@
+/* v22 層：優惠保險模式、投資費用、緊湊雙欄
+ *
+ * ⚠️ 這些檔案是「cascade 覆寫層」，不是主題分類。
+ *    .appbar 被宣告 4 次、:root 2 次，後面的層刻意覆寫前面的層。
+ *    調換 index.css 裡的 @import 順序會改變畫面。
+ *    合併重複宣告屬於後續階段的工作，P1 只搬不改。
+ */
+  /* ===== v22：更完整的優惠保險模式 + 投資費用 + 緊湊雙欄 ===== */
+  .classify-choice-pair,.payment-choice-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start}.classify-choice-pair .field,.payment-choice-pair .field{margin-bottom:0}.classify-choice-pair.sub-hidden #fld-cat,.payment-choice-pair.split-hidden #fld-pay{grid-column:1/-1}.payment-choice-pair #fld-split.hidden{display:none!important}.classify-choice-pair .choice-row,.payment-choice-pair .choice-row{height:100%}
+  .payment-choice-pair #fld-split{display:contents}.payment-choice-pair #fld-split>label.checkline{min-height:49px;margin:0;border:1px solid rgba(202,218,209,.9);border-radius:11px;background:rgba(255,255,255,.64);display:flex;align-items:center;justify-content:center;padding:9px 10px;font-size:13px}.payment-choice-pair #splitBody{grid-column:1/-1;margin-top:0!important;background:rgba(255,255,255,.48);border:1px solid rgba(210,221,215,.82);border-radius:11px;padding:10px}
+  #scopeBackdrop{z-index:54}#scopeSheet{z-index:55;background:#eef5fc}#scopeSheet .sheet-hdr{background:#e2edf8;border-bottom:1px solid #d1e0ee}#scopeSheet .grab{background:#b8cce0}#scopeSheet .scopeitem{background:rgba(255,255,255,.76);border-color:#d4e1ed}#scopeSheet .scopeitem.on{background:#dfebf7;border-color:#6e9bc0;box-shadow:0 0 0 1px #6e9bc0}
+  .discount-advanced{margin-top:8px;border:1px solid #eadfc8;border-radius:10px;background:rgba(255,255,255,.52)}.discount-advanced summary{padding:9px 10px;font-size:12px;color:#725b32;cursor:pointer}.discount-advanced .inside{padding:0 10px 10px}.discount-advanced .row2{gap:7px}.discount-override{margin-top:10px;padding:10px 11px;border:1px dashed #d7b46d;border-radius:11px;background:#fff8e9}.discount-override summary{font-size:12px;font-weight:700;color:#765923;cursor:pointer}.discount-override .inside{padding-top:9px}.discount-override .withbtn button{white-space:nowrap}.discount-override-note{font-size:11px;color:var(--muted);line-height:1.5;margin-top:6px}.discount-rule .dr-badge.override{background:#e7eff9;color:#416789}
+  .inv-auto-fee{margin-top:8px;padding:9px 10px;border:1px solid #dfd7ee;border-radius:10px;background:rgba(255,255,255,.62)}.inv-auto-fee .fee-line{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.inv-auto-fee .fee-note{font-size:11px;color:var(--muted);line-height:1.45;margin-top:5px}.inv-auto-fee #invDayTradeWrap{display:none}.inv-auto-fee.sell #invDayTradeWrap{display:flex}.inv-derived{border-left-color:var(--invest)!important}.inv-derived .tag.invtag{background:#eee9f8;color:#6b54aa}.inv-derived .secondary{color:var(--muted)}
+  @media(max-width:370px){.classify-choice-pair,.payment-choice-pair{grid-template-columns:1fr}.payment-choice-pair #splitBody{grid-column:1}}
+
+
