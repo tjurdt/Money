@@ -1,5 +1,5 @@
-// __BUILD_ID__ 由 scripts/stamp-build.js 在 vite build 之後替換成當次建置的雜湊。
-// 開發時維持原字串，快取名稱固定，不影響行為。
+// 下方的佔位字串由 scripts/stamp-build.js 在 vite build 之後替換成當次建置的雜湊。
+// 開發時維持原樣，快取名稱固定，不影響行為。
 const BUILD_ID = '__BUILD_ID__';
 const CACHE = 'ledger-shell-' + BUILD_ID;
 const SHELL = ['./', './ledger-manifest.webmanifest', './ledger-icon-180.png', './ledger-icon-192.png', './ledger-icon-512.png'];
