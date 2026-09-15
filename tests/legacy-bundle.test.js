@@ -13,7 +13,9 @@ import { LEGACY_FILES, LEGACY_DIR, readLegacyBundle } from '../build/legacy-bund
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 describe('manifest 與 src/legacy/ 必須一致', () => {
-  const onDisk = readdirSync(LEGACY_DIR).filter((f) => f.endsWith('.js')).sort();
+  const onDisk = readdirSync(LEGACY_DIR)
+    .filter((f) => f.endsWith('.js'))
+    .sort();
 
   it('沒有孤兒檔案：src/legacy/ 內的每個檔案都列在 manifest 中', () => {
     // 漏列的檔案不會被載入，而且完全沒有錯誤訊息 —— 必須自動擋下。
@@ -35,9 +37,15 @@ describe('串接結果的完整性', () => {
 
   it('保留 $$ 選擇器輔助函式', () => {
     // 曾經出過事：用字串當 replace() 的替換值，其中的 $$ 被當成跳脫序列，
-    // `const $$ = s => document.querySelectorAll(s)` 被改寫成 `const $ = ...`，
+    // `const $$ = (s) => document.querySelectorAll(s)` 被改寫成 `const $ = ...`，
     // 造成重複宣告的 SyntaxError，整個 app 變成空白頁。
-    expect(bundle).toContain('$$=s=>document.querySelectorAll(s)');
+    // 用寬鬆比對，才不會被格式化變動影響。
+    expect(bundle).toMatch(/\$\$\s*=\s*\(?\s*s\s*\)?\s*=>\s*document\.querySelectorAll/);
+  });
+
+  it('$ 與 $$ 是兩個不同的宣告', () => {
+    // 這是上述 bug 的直接症狀：兩者被合併成同名宣告。
+    expect(bundle).toMatch(/\$\s*=\s*\(?\s*s\s*\)?\s*=>\s*document\.querySelector\(/);
   });
 
   it('包含每個分區的起始內容', () => {

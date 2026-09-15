@@ -6,7 +6,9 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { bootLegacyApi } from '../harness.js';
 
 let api, close;
-beforeAll(() => { ({ api, close } = bootLegacyApi()); });
+beforeAll(() => {
+  ({ api, close } = bootLegacyApi());
+});
 afterAll(() => close());
 
 describe('recurringOccurrenceDate — 月份參數為 0-based', () => {

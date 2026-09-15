@@ -1,0 +1,6 @@
+dist/
+node_modules/
+package-lock.json
+# 這些 CSS 是 cascade 覆寫層，格式化不影響行為但會讓「層」的邊界變模糊，
+# 且 P1 已驗證其與原始完全等價 —— 留待 P6 合併重複宣告時一併處理。
+src/styles/

@@ -73,7 +73,11 @@ const STUBS = `<script>
  *   用來確認打包流程沒有改變行為。
  * @returns {{window: object, errors: Error[], close: () => void}}
  */
-export function bootLegacyApp({ storage = {}, url = 'https://tjurdt.github.io/Money/', entry = 'index.html' } = {}) {
+export function bootLegacyApp({
+  storage = {},
+  url = 'https://tjurdt.github.io/Money/',
+  entry = 'index.html',
+} = {}) {
   const raw = readFileSync(resolve(ROOT, entry), 'utf8');
 
   // 原始碼的 index.html 只留下佔位註解，app 邏輯放在 src/legacy/ 各檔。
@@ -82,9 +86,12 @@ export function bootLegacyApp({ storage = {}, url = 'https://tjurdt.github.io/Mo
   // 用 replacer 函式而非字串：替換字串中的 $$、$& 等會被當成特殊樣式解讀，
   // 而 legacy 程式碼裡就有 `const $$ = s => document.querySelectorAll(s)`。
   const withBundle = raw.includes(PLACEHOLDER)
-    ? raw.replace(PLACEHOLDER, () => `<script>
+    ? raw.replace(
+        PLACEHOLDER,
+        () => `<script>
 ${readLegacyBundle()}
-</script>`)
+</script>`,
+      )
     : raw;
 
   const html = withBundle.replace(STRIP_EXTERNAL_SCRIPTS, '').replace('</head>', `${STUBS}</head>`);
@@ -104,7 +111,15 @@ ${readLegacyBundle()}
       window.confirm = () => true;
       window.prompt = () => null;
       window.scrollTo = () => {};
-      window.matchMedia = window.matchMedia || (() => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }));
+      window.matchMedia =
+        window.matchMedia ||
+        (() => ({
+          matches: false,
+          addListener() {},
+          removeListener() {},
+          addEventListener() {},
+          removeEventListener() {},
+        }));
     },
   });
 

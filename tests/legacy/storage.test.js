@@ -32,9 +32,17 @@ describe('儲存鍵名', () => {
 
 describe('v1 → v2 遷移', () => {
   const v1Record = {
-    id: 'old-1', createdAt: 1600000000000, date: '2025-06-01',
-    store: '早餐店', payment: '現金', item: '蛋餅', total: 45,
-    category: '餐食', status: null, counterpart: '', settled: false,
+    id: 'old-1',
+    createdAt: 1600000000000,
+    date: '2025-06-01',
+    store: '早餐店',
+    payment: '現金',
+    item: '蛋餅',
+    total: 45,
+    category: '餐食',
+    status: null,
+    counterpart: '',
+    settled: false,
   };
 
   it('把舊格式帳目轉成 v2 結構', () => {
@@ -71,7 +79,9 @@ describe('v1 → v2 遷移', () => {
   });
 
   it('已有 v2 資料時不覆寫（遷移只跑一次）', () => {
-    const existing = [{ id: 'keep-me', kind: 'expense', date: '2026-01-01', total: 1, items: [], split: null }];
+    const existing = [
+      { id: 'keep-me', kind: 'expense', date: '2026-01-01', total: 1, items: [], split: null },
+    ];
     const { api, close } = bootLegacyApi({
       storage: {
         'ledger.v2.records': existing,
@@ -86,10 +96,23 @@ describe('v1 → v2 遷移', () => {
 
 describe('lending → split 正規化', () => {
   const legacy = (lending, total) => ({
-    id: 'lg', createdAt: 1, date: '2026-01-01', kind: 'expense',
-    scope: { type: 'daily', trip: null }, store: 'x', payment: '現金',
-    hashtags: [], note: '', items: [], category: '餐食',
-    catMode: 'whole', total, lending, counterpart: '小明', settled: false, inv: null,
+    id: 'lg',
+    createdAt: 1,
+    date: '2026-01-01',
+    kind: 'expense',
+    scope: { type: 'daily', trip: null },
+    store: 'x',
+    payment: '現金',
+    hashtags: [],
+    note: '',
+    items: [],
+    category: '餐食',
+    catMode: 'whole',
+    total,
+    lending,
+    counterpart: '小明',
+    settled: false,
+    inv: null,
   });
 
   it('代墊（advance）轉成「我付款、我不負擔」', () => {
@@ -98,7 +121,11 @@ describe('lending → split 正規化', () => {
     });
     const [r] = readBack(api, 'ledger.v2.records');
     expect(r.split).toEqual({
-      partner: '小明', payer: 'me', myShare: 0, preset: 'none', settled: false,
+      partner: '小明',
+      payer: 'me',
+      myShare: 0,
+      preset: 'none',
+      settled: false,
     });
     close();
   });
@@ -109,7 +136,11 @@ describe('lending → split 正規化', () => {
     });
     const [r] = readBack(api, 'ledger.v2.records');
     expect(r.split).toEqual({
-      partner: '小明', payer: 'other', myShare: 300, preset: 'all', settled: false,
+      partner: '小明',
+      payer: 'other',
+      myShare: 300,
+      preset: 'all',
+      settled: false,
     });
     close();
   });
@@ -125,7 +156,11 @@ describe('lending → split 正規化', () => {
   });
 
   it('已經有 split 的帳目不被動到', () => {
-    const withSplit = { ...legacy(null, 300), split: { partner: '阿華', payer: 'me', myShare: 150, preset: 'even', settled: false }, sub: null };
+    const withSplit = {
+      ...legacy(null, 300),
+      split: { partner: '阿華', payer: 'me', myShare: 150, preset: 'even', settled: false },
+      sub: null,
+    };
     const { api, close } = bootLegacyApi({
       storage: { 'ledger.v2.records': [withSplit], 'ledger.v23.seeded': '1' },
     });

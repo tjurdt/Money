@@ -34,6 +34,9 @@ jobs:
 
       - run: npm ci
 
+      - name: 檢查格式
+        run: npm run format:check
+
       # 測試不過就不部署 —— 特徵化測試是防止重構改壞行為的閘門。
       - name: 執行測試
         run: npm test

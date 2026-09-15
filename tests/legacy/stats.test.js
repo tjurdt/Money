@@ -7,7 +7,9 @@ import { bootLegacyApi } from '../harness.js';
 import * as F from '../fixtures/records.js';
 
 let api, close;
-beforeAll(() => { ({ api, close } = bootLegacyApi()); });
+beforeAll(() => {
+  ({ api, close } = bootLegacyApi());
+});
 afterAll(() => close());
 
 describe('expenseContribs — 整筆分類', () => {
@@ -47,7 +49,10 @@ describe('expenseContribs — 逐項分類', () => {
   });
 
   it('品項沒填分類時歸入「未分類」', () => {
-    const r = { ...F.perItemCategories, items: [{ name: '雜項', price: 50, category: null, sub: null }] };
+    const r = {
+      ...F.perItemCategories,
+      items: [{ name: '雜項', price: 50, category: null, sub: null }],
+    };
     expect(api.expenseContribs(r)).toEqual([{ category: '未分類', sub: '', amount: 50 }]);
   });
 });
@@ -61,8 +66,6 @@ describe('expenseContribs — 不計入的情況', () => {
   });
   it('沒有品項時退回用整筆金額', () => {
     const r = { ...F.plainExpense, items: [], total: 250 };
-    expect(api.expenseContribs(r)).toEqual([
-      { category: '餐食', sub: '點心／飲料', amount: 250 },
-    ]);
+    expect(api.expenseContribs(r)).toEqual([{ category: '餐食', sub: '點心／飲料', amount: 250 }]);
   });
 });

@@ -52,7 +52,9 @@ describe.skipIf(!hasDist)('dist/ 建置產物', () => {
       `dist/ 比原始碼舊 ${Math.round((srcAge - distAge) / 1000)} 秒，請先執行 npm run build`,
     ).toBe(true);
   });
-  beforeAll(() => { ({ api, grab, close } = bootLegacyApi({ entry: 'dist/index.html' })); });
+  beforeAll(() => {
+    ({ api, grab, close } = bootLegacyApi({ entry: 'dist/index.html' }));
+  });
   afterAll(() => close?.());
 
   it('建置產物能正常啟動', () => {
