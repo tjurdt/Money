@@ -8,7 +8,9 @@ import { bootLegacyApi } from '../harness.js';
 import * as F from '../fixtures/records.js';
 
 let api, close;
-beforeAll(() => { ({ api, close } = bootLegacyApi()); });
+beforeAll(() => {
+  ({ api, close } = bootLegacyApi());
+});
 afterAll(() => close());
 
 describe('myShareOf — 我實際負擔的金額', () => {

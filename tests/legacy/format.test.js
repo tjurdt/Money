@@ -6,7 +6,9 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { bootLegacyApi } from '../harness.js';
 
 let grab, close;
-beforeAll(() => { ({ grab, close } = bootLegacyApi()); });
+beforeAll(() => {
+  ({ grab, close } = bootLegacyApi());
+});
 afterAll(() => close());
 
 describe('nf — 金額格式化', () => {

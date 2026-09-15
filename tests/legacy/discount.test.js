@@ -73,7 +73,9 @@ describe('calculateDiscountPlan — 基本情況', () => {
   });
 
   it('單一品項打五折，只影響該品項', () => {
-    const p = plan(ITEMS, 0, [{ id: 'i1', type: 'item_percent', mode: 'stack', targetLineId: 'L2', rate: 5 }]);
+    const p = plan(ITEMS, 0, [
+      { id: 'i1', type: 'item_percent', mode: 'stack', targetLineId: 'L2', rate: 5 },
+    ]);
     expect(p.finalTotal).toBe(310);
     expect(p.netByLine).toEqual({ L1: 120, L2: 90, L3: 100 });
   });
@@ -94,7 +96,7 @@ describe('calculateDiscountPlan — 疊加與擇優', () => {
   it('同一擇優組只會選中省最多的那一條', () => {
     const p = plan(ITEMS, 0, [
       { id: 'b1', type: 'order_percent', mode: 'best', bestGroup: 'A', rate: 9 }, // 省 40
-      { id: 'b2', type: 'fixed', mode: 'best', bestGroup: 'A', amount: 60 },      // 省 60 ← 勝出
+      { id: 'b2', type: 'fixed', mode: 'best', bestGroup: 'A', amount: 60 }, // 省 60 ← 勝出
     ]);
     expect(p.chosenIds).toEqual(['b2']);
     expect(p.finalTotal).toBe(340);
@@ -112,14 +114,18 @@ describe('calculateDiscountPlan — 疊加與擇優', () => {
 
 describe('calculateDiscountPlan — 門檻與上限', () => {
   it('未達最低消費的規則不生效', () => {
-    const p = plan(ITEMS, 0, [{ id: 'm1', type: 'fixed', mode: 'stack', amount: 50, minSpend: 9999 }]);
+    const p = plan(ITEMS, 0, [
+      { id: 'm1', type: 'fixed', mode: 'stack', amount: 50, minSpend: 9999 },
+    ]);
     expect(p.finalTotal).toBe(400);
     expect(p.savings).toEqual({});
   });
 
   it('折抵上限會截斷折扣金額', () => {
     // 五折本可省 200，maxSaving 30 截斷為 30
-    const p = plan(ITEMS, 0, [{ id: 'c1', type: 'order_percent', mode: 'stack', rate: 5, maxSaving: 30 }]);
+    const p = plan(ITEMS, 0, [
+      { id: 'c1', type: 'order_percent', mode: 'stack', rate: 5, maxSaving: 30 },
+    ]);
     expect(p.discountTotal).toBe(30);
     expect(p.finalTotal).toBe(370);
   });
@@ -134,7 +140,14 @@ describe('calculateDiscountPlan — 加購組合價', () => {
   it('組合價低於原價時產生折扣', () => {
     // L3 數量 2、單價 50（淨額 100）；兩件 80 元 → 省 20
     const p = plan(ITEMS, 0, [
-      { id: 'g1', type: 'bundle_price', mode: 'stack', targetLineId: 'L3', bundleQty: 2, bundlePrice: 80 },
+      {
+        id: 'g1',
+        type: 'bundle_price',
+        mode: 'stack',
+        targetLineId: 'L3',
+        bundleQty: 2,
+        bundlePrice: 80,
+      },
     ]);
     expect(p.savings.g1).toBe(20);
     expect(p.finalTotal).toBe(380);
@@ -142,7 +155,14 @@ describe('calculateDiscountPlan — 加購組合價', () => {
 
   it('組合價高於原價時不倒扣', () => {
     const p = plan(ITEMS, 0, [
-      { id: 'g1', type: 'bundle_price', mode: 'stack', targetLineId: 'L3', bundleQty: 2, bundlePrice: 150 },
+      {
+        id: 'g1',
+        type: 'bundle_price',
+        mode: 'stack',
+        targetLineId: 'L3',
+        bundleQty: 2,
+        bundlePrice: 150,
+      },
     ]);
     expect(p.savings.g1).toBe(0);
     expect(p.finalTotal).toBe(400);

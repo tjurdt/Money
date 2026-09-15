@@ -1,82 +1,739 @@
 /* ===== 投資 ===== */
-function computeHoldings(){const bySym={};let realized=0,dividends=0;
-  records.filter(r=>r.kind==='investment').sort((a,b)=>a.date.localeCompare(b.date)||a.createdAt-b.createdAt).forEach(t=>{const s=t.inv||{},sym=s.symbol||'—',h=bySym[sym]=bySym[sym]||{shares:0,cost:0,ticker:s.ticker||''};if(s.ticker)h.ticker=s.ticker;const sh=+s.shares||0,pr=+s.unitPrice||0,fee=+s.fee||0;
-    if(s.action==='buy'){h.shares+=sh;h.cost+=sh*pr+fee;}else if(s.action==='sell'){const avg=h.shares>0?h.cost/h.shares:0;realized+=(sh*pr-fee)-avg*sh;h.cost-=avg*sh;h.shares-=sh;if(h.shares<1e-6){h.shares=0;h.cost=0;}}else if(s.action==='dividend'){dividends+=+t.total||0;}});
-  let unreal=null;Object.entries(bySym).forEach(([sym,h])=>{if(h.shares>0){const px=prices[h.ticker]??prices[sym];if(px!=null){unreal=(unreal||0)+(px-h.cost/h.shares)*h.shares;}}});
-  return{bySym,realized,dividends,unrealized:unreal};}
-function renderInvest(){const{bySym,realized,dividends,unrealized}=computeHoldings();const holds=Object.entries(bySym).filter(([,h])=>h.shares>0);
-  $('#invCost').textContent=nf(holds.reduce((s,[,h])=>s+h.cost,0));
-  const un=$('#invUnreal');if(unrealized==null){un.textContent='—';un.className='v';}else{un.textContent=(unrealized>=0?'+':'−')+nf(Math.abs(unrealized));un.className='v '+(unrealized>=0?'pos':'neg');}
-  const rz=$('#invRealized');rz.textContent=(realized>=0?'+':'−')+nf(Math.abs(realized));rz.className='v '+(realized>=0?'pos':'neg');$('#invDiv').textContent=nf(dividends);
-  if(twseCache?.liveAt){const src=twseCache.lastSource==='googlefinance'?'Google Finance':twseCache.lastSource==='live'?'證交所即時':'最近收盤';const delay=twseCache.lastDelay!=null?` · 資料延遲約 ${twseCache.lastDelay} 分鐘`:'';$('#quoteTime').textContent=`${src}更新 ${new Date(twseCache.liveAt).toLocaleString('zh-TW',{hour12:false})}${delay}`;}else $('#quoteTime').textContent='可按右方更新行情；Google Finance 可能有延遲';
-  $('#holdList').innerHTML=holds.length?holds.sort((a,b)=>b[1].cost-a[1].cost).map(([sym,h])=>{const avg=h.cost/h.shares,px=prices[h.ticker]??prices[sym];let pl='';if(px!=null){const g=(px-avg)*h.shares,pct=avg>0?(px/avg-1)*100:0;pl=`<div class="pl ${g>=0?'pos':'neg'}">市值 ${nf(px*h.shares)}<br>${g>=0?'+':'−'}${nf(Math.abs(g))}（${g>=0?'+':''}${pct.toFixed(1)}%）</div>`;}else pl=`<div class="pl" style="color:var(--faint)">輸入現價算損益</div>`;
-    return `<div class="hold"><div class="h1"><div class="sym">${esc(sym)}${h.ticker?' <small style="color:var(--faint);font-weight:400">'+esc(h.ticker)+'</small>':''}</div><div class="det">投入 ${nf(h.cost)}</div></div><div class="h2"><div class="det">${Math.round(h.shares).toLocaleString()} 股 · 均價 ${avg.toFixed(2)}</div><div style="display:flex;align-items:center;gap:8px"><input class="priceinp" inputmode="decimal" placeholder="現價" value="${px!=null?px:''}" data-key="${esc(h.ticker||sym)}">${pl}</div></div></div>`;}).join(''):'<div class="empty" style="padding:14px">目前無持股</div>';
-  $('#holdList').querySelectorAll('.priceinp').forEach(inp=>inp.addEventListener('change',()=>{const v=parseFloat(inp.value);if(!isNaN(v)){prices[inp.dataset.key]=v;save(K.prices,prices);}else{delete prices[inp.dataset.key];save(K.prices,prices);}renderInvest();}));
-  const tx=records.filter(r=>r.kind==='investment').sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt-a.createdAt);
-  $('#invTxList').innerHTML=tx.length?tx.map(t=>{const s=t.inv||{},nm={buy:'買進',sell:'賣出',dividend:'股利'}[s.action]||'',col=s.action==='buy'?'var(--invest)':s.action==='sell'?'var(--income)':'var(--advance)',det=s.action==='dividend'?'股利':`${Math.round(s.shares).toLocaleString()}股 × ${s.unitPrice}`;return `<div class="hold" style="border-left-color:${col};padding:11px 13px" data-id="${t.id}"><div class="h1"><div class="sym" style="font-size:14px">${esc(s.symbol||'—')} <small style="color:${col};font-weight:600">${nm}</small></div><div class="det" style="font-weight:600">${s.action==='buy'?'−':'+'}${nf(t.total)}</div></div><div class="det">${t.date} · ${det}</div></div>`;}).join(''):'<div class="empty" style="padding:14px">尚無交易，點 ＋ 新增（選「投資」）</div>';
-  $('#invTxList').querySelectorAll('[data-id]').forEach(el=>el.onclick=()=>openSheet(el.dataset.id));
+function computeHoldings() {
+  const bySym = {};
+  let realized = 0,
+    dividends = 0;
+  records
+    .filter((r) => r.kind === 'investment')
+    .sort((a, b) => a.date.localeCompare(b.date) || a.createdAt - b.createdAt)
+    .forEach((t) => {
+      const s = t.inv || {},
+        sym = s.symbol || '—',
+        h = (bySym[sym] = bySym[sym] || { shares: 0, cost: 0, ticker: s.ticker || '' });
+      if (s.ticker) h.ticker = s.ticker;
+      const sh = +s.shares || 0,
+        pr = +s.unitPrice || 0,
+        fee = +s.fee || 0;
+      if (s.action === 'buy') {
+        h.shares += sh;
+        h.cost += sh * pr + fee;
+      } else if (s.action === 'sell') {
+        const avg = h.shares > 0 ? h.cost / h.shares : 0;
+        realized += sh * pr - fee - avg * sh;
+        h.cost -= avg * sh;
+        h.shares -= sh;
+        if (h.shares < 1e-6) {
+          h.shares = 0;
+          h.cost = 0;
+        }
+      } else if (s.action === 'dividend') {
+        dividends += +t.total || 0;
+      }
+    });
+  let unreal = null;
+  Object.entries(bySym).forEach(([sym, h]) => {
+    if (h.shares > 0) {
+      const px = prices[h.ticker] ?? prices[sym];
+      if (px != null) {
+        unreal = (unreal || 0) + (px - h.cost / h.shares) * h.shares;
+      }
+    }
+  });
+  return { bySym, realized, dividends, unrealized: unreal };
 }
-const normalizeTicker=v=>String(v||'').trim().toUpperCase().replace(/^TPE:/,'').replace(/\.(TW|TWO)$/,'');
-const LOCAL_TICKER_NAMES={'2330':'台積電','0050':'元大台灣50','0056':'元大高股息','00878':'國泰永續高股息','00919':'群益台灣精選高息','00929':'復華台灣科技優息','2317':'鴻海','2454':'聯發科','2303':'聯電','2412':'中華電','2881':'富邦金','2882':'國泰金','2891':'中信金','2308':'台達電','2382':'廣達','3017':'奇鋐','3008':'大立光','3034':'聯詠','3231':'緯創','6669':'緯穎','2379':'瑞昱','3711':'日月光投控','2357':'華碩','2345':'智邦','2376':'技嘉','2603':'長榮','2615':'萬海','2618':'長榮航','1301':'台塑','2002':'中鋼'};
-const TICKER_CACHE_KEY='ledger.local.tickerCatalog.v1';
-let tickerCatalogCache=load(TICKER_CACHE_KEY,{updatedAt:0,map:{}}),tickerCatalogPromise=null;
-function tickerCacheMap(){return tickerCatalogCache&&tickerCatalogCache.map||{};}
-function saveTickerCatalog(map){tickerCatalogCache={updatedAt:Date.now(),map};try{if(storageOK)localStorage.setItem(TICKER_CACHE_KEY,JSON.stringify(tickerCatalogCache));else memStore[TICKER_CACHE_KEY]=tickerCatalogCache;}catch(e){memStore[TICKER_CACHE_KEY]=tickerCatalogCache;}}
-function csvCatalogRows(text,marketHint){if(!window.Papa)return[];const r=Papa.parse(text,{header:true,skipEmptyLines:'greedy'});return (r.data||[]).map(x=>({type:String(x.type||'').trim(),code:normalizeTicker(x.code),name:String(x.name||'').trim(),market:String(x.market||marketHint||'').trim()}));}
-async function fetchTextTimeout(url,ms=18000){const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),ms);try{const r=await fetch(url,{cache:'no-store',signal:ctl.signal});if(!r.ok)throw new Error('HTTP '+r.status);return await r.text();}finally{clearTimeout(to);}}
-async function loadTickerCatalogFallback(force=false){const age=Date.now()-(+tickerCatalogCache?.updatedAt||0);if(!force&&Object.keys(tickerCacheMap()).length>500&&age<30*864e5)return tickerCacheMap();if(tickerCatalogPromise&&!force)return tickerCatalogPromise;
-  tickerCatalogPromise=(async()=>{const urls=[['https://raw.githubusercontent.com/mlouielu/twstock/refs/heads/dev/twstock/codes/twse_equities.csv','tse'],['https://raw.githubusercontent.com/mlouielu/twstock/refs/heads/dev/twstock/codes/tpex_equities.csv','otc']],map={...tickerCacheMap()};let success=0;
-    const res=await Promise.allSettled(urls.map(async([u,m])=>{const tx=await fetchTextTimeout(u);return csvCatalogRows(tx,m);}));
-    res.forEach((z,idx)=>{if(z.status!=='fulfilled')return;success++;for(const r of z.value){if(!r.code||!r.name)continue;if(!/^(股票|ETF|受益憑證|存託憑證)/.test(r.type))continue;if(!/^[0-9A-Z]{4,7}$/.test(r.code))continue;const market=/上櫃/.test(r.market)?'otc':'tse';map[r.code]={name:r.name,market,source:'catalog-cache'};}});
-    Object.entries(LOCAL_TICKER_NAMES).forEach(([code,name])=>{if(!map[code])map[code]={name,market:'tse',source:'built-in'};});if(!success&&Object.keys(map).length<20)throw new Error('股票代號表下載失敗');saveTickerCatalog(map);return map;
-  })().finally(()=>{tickerCatalogPromise=null;});return tickerCatalogPromise;
+function renderInvest() {
+  const { bySym, realized, dividends, unrealized } = computeHoldings();
+  const holds = Object.entries(bySym).filter(([, h]) => h.shares > 0);
+  $('#invCost').textContent = nf(holds.reduce((s, [, h]) => s + h.cost, 0));
+  const un = $('#invUnreal');
+  if (unrealized == null) {
+    un.textContent = '—';
+    un.className = 'v';
+  } else {
+    un.textContent = (unrealized >= 0 ? '+' : '−') + nf(Math.abs(unrealized));
+    un.className = 'v ' + (unrealized >= 0 ? 'pos' : 'neg');
+  }
+  const rz = $('#invRealized');
+  rz.textContent = (realized >= 0 ? '+' : '−') + nf(Math.abs(realized));
+  rz.className = 'v ' + (realized >= 0 ? 'pos' : 'neg');
+  $('#invDiv').textContent = nf(dividends);
+  if (twseCache?.liveAt) {
+    const src =
+      twseCache.lastSource === 'googlefinance'
+        ? 'Google Finance'
+        : twseCache.lastSource === 'live'
+          ? '證交所即時'
+          : '最近收盤';
+    const delay = twseCache.lastDelay != null ? ` · 資料延遲約 ${twseCache.lastDelay} 分鐘` : '';
+    $('#quoteTime').textContent =
+      `${src}更新 ${new Date(twseCache.liveAt).toLocaleString('zh-TW', { hour12: false })}${delay}`;
+  } else $('#quoteTime').textContent = '可按右方更新行情；Google Finance 可能有延遲';
+  $('#holdList').innerHTML = holds.length
+    ? holds
+        .sort((a, b) => b[1].cost - a[1].cost)
+        .map(([sym, h]) => {
+          const avg = h.cost / h.shares,
+            px = prices[h.ticker] ?? prices[sym];
+          let pl = '';
+          if (px != null) {
+            const g = (px - avg) * h.shares,
+              pct = avg > 0 ? (px / avg - 1) * 100 : 0;
+            pl = `<div class="pl ${g >= 0 ? 'pos' : 'neg'}">市值 ${nf(px * h.shares)}<br>${g >= 0 ? '+' : '−'}${nf(Math.abs(g))}（${g >= 0 ? '+' : ''}${pct.toFixed(1)}%）</div>`;
+          } else pl = `<div class="pl" style="color:var(--faint)">輸入現價算損益</div>`;
+          return `<div class="hold"><div class="h1"><div class="sym">${esc(sym)}${h.ticker ? ' <small style="color:var(--faint);font-weight:400">' + esc(h.ticker) + '</small>' : ''}</div><div class="det">投入 ${nf(h.cost)}</div></div><div class="h2"><div class="det">${Math.round(h.shares).toLocaleString()} 股 · 均價 ${avg.toFixed(2)}</div><div style="display:flex;align-items:center;gap:8px"><input class="priceinp" inputmode="decimal" placeholder="現價" value="${px != null ? px : ''}" data-key="${esc(h.ticker || sym)}">${pl}</div></div></div>`;
+        })
+        .join('')
+    : '<div class="empty" style="padding:14px">目前無持股</div>';
+  $('#holdList')
+    .querySelectorAll('.priceinp')
+    .forEach((inp) =>
+      inp.addEventListener('change', () => {
+        const v = parseFloat(inp.value);
+        if (!isNaN(v)) {
+          prices[inp.dataset.key] = v;
+          save(K.prices, prices);
+        } else {
+          delete prices[inp.dataset.key];
+          save(K.prices, prices);
+        }
+        renderInvest();
+      }),
+    );
+  const tx = records
+    .filter((r) => r.kind === 'investment')
+    .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
+  $('#invTxList').innerHTML = tx.length
+    ? tx
+        .map((t) => {
+          const s = t.inv || {},
+            nm = { buy: '買進', sell: '賣出', dividend: '股利' }[s.action] || '',
+            col =
+              s.action === 'buy'
+                ? 'var(--invest)'
+                : s.action === 'sell'
+                  ? 'var(--income)'
+                  : 'var(--advance)',
+            det =
+              s.action === 'dividend'
+                ? '股利'
+                : `${Math.round(s.shares).toLocaleString()}股 × ${s.unitPrice}`;
+          return `<div class="hold" style="border-left-color:${col};padding:11px 13px" data-id="${t.id}"><div class="h1"><div class="sym" style="font-size:14px">${esc(s.symbol || '—')} <small style="color:${col};font-weight:600">${nm}</small></div><div class="det" style="font-weight:600">${s.action === 'buy' ? '−' : '+'}${nf(t.total)}</div></div><div class="det">${t.date} · ${det}</div></div>`;
+        })
+        .join('')
+    : '<div class="empty" style="padding:14px">尚無交易，點 ＋ 新增（選「投資」）</div>';
+  $('#invTxList')
+    .querySelectorAll('[data-id]')
+    .forEach((el) => (el.onclick = () => openSheet(el.dataset.id)));
 }
-async function fetchTWSE(){const today=todayISO();if(twseCache&&twseCache.date===today&&twseCache.map&&Object.keys(twseCache.map).length>50)return twseCache.map;const map={};let ok=false;
-  try{const r=await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL',{cache:'no-store'});if(!r.ok)throw new Error('TWSE '+r.status);const d=await r.json();(d||[]).forEach(x=>{const code=normalizeTicker(x.Code||x.code),name=x.Name||x.name,price=parseFloat(String(x.ClosingPrice||x.Close||'').replace(/,/g,''));if(code)map[code]={name,price:Number.isFinite(price)?price:null,market:'tse',source:'close'};});ok=true;}catch(e){console.warn('TWSE OpenAPI failed',e);}
-  try{const r=await fetch('https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes',{cache:'no-store'});if(!r.ok)throw new Error('TPEx '+r.status);const d=await r.json();(d||[]).forEach(x=>{const code=normalizeTicker(x.SecuritiesCompanyCode||x.Code||x.code),name=x.CompanyName||x.Name||x.SecuritiesCompanyName||x.CompanyAbbreviation,price=parseFloat(String(x.Close||x.ClosingPrice||x.ClosePrice||'').replace(/,/g,''));if(code&&!map[code])map[code]={name,price:Number.isFinite(price)?price:null,market:'otc',source:'close'};});ok=true;}catch(e){console.warn('TPEx OpenAPI failed',e);}
-  if(!ok)throw new Error('TWSE／TPEx 官方行情目前無法由此瀏覽器直接讀取');twseCache={...(twseCache||{}),date:today,map};save(K.twse,twseCache);return map;
+const normalizeTicker = (v) =>
+  String(v || '')
+    .trim()
+    .toUpperCase()
+    .replace(/^TPE:/, '')
+    .replace(/\.(TW|TWO)$/, '');
+const LOCAL_TICKER_NAMES = {
+  2330: '台積電',
+  '0050': '元大台灣50',
+  '0056': '元大高股息',
+  '00878': '國泰永續高股息',
+  '00919': '群益台灣精選高息',
+  '00929': '復華台灣科技優息',
+  2317: '鴻海',
+  2454: '聯發科',
+  2303: '聯電',
+  2412: '中華電',
+  2881: '富邦金',
+  2882: '國泰金',
+  2891: '中信金',
+  2308: '台達電',
+  2382: '廣達',
+  3017: '奇鋐',
+  3008: '大立光',
+  3034: '聯詠',
+  3231: '緯創',
+  6669: '緯穎',
+  2379: '瑞昱',
+  3711: '日月光投控',
+  2357: '華碩',
+  2345: '智邦',
+  2376: '技嘉',
+  2603: '長榮',
+  2615: '萬海',
+  2618: '長榮航',
+  1301: '台塑',
+  2002: '中鋼',
+};
+const TICKER_CACHE_KEY = 'ledger.local.tickerCatalog.v1';
+let tickerCatalogCache = load(TICKER_CACHE_KEY, { updatedAt: 0, map: {} }),
+  tickerCatalogPromise = null;
+function tickerCacheMap() {
+  return (tickerCatalogCache && tickerCatalogCache.map) || {};
 }
-async function resolveTickerIdentity(code){code=normalizeTicker(code);if(!code)return null;const local=tickerCacheMap()[code],officialCache=twseCache?.map?.[code],built=LOCAL_TICKER_NAMES[code];if(officialCache?.name)return{...officialCache,source:'official-cache'};if(local?.name)return{...local};if(built)return{name:built,market:'tse',source:'built-in'};
-  return await new Promise(resolve=>{let pending=2,done=false;const finish=x=>{if(done)return;if(x?.name){done=true;resolve(x);return;}pending--;if(pending<=0){done=true;resolve(null);}};
-    fetchTWSE().then(m=>finish(m[code]||null)).catch(()=>finish(null));
-    loadTickerCatalogFallback().then(m=>finish(m[code]||null)).catch(()=>finish(null));
+function saveTickerCatalog(map) {
+  tickerCatalogCache = { updatedAt: Date.now(), map };
+  try {
+    if (storageOK) localStorage.setItem(TICKER_CACHE_KEY, JSON.stringify(tickerCatalogCache));
+    else memStore[TICKER_CACHE_KEY] = tickerCatalogCache;
+  } catch (e) {
+    memStore[TICKER_CACHE_KEY] = tickerCatalogCache;
+  }
+}
+function csvCatalogRows(text, marketHint) {
+  if (!window.Papa) return [];
+  const r = Papa.parse(text, { header: true, skipEmptyLines: 'greedy' });
+  return (r.data || []).map((x) => ({
+    type: String(x.type || '').trim(),
+    code: normalizeTicker(x.code),
+    name: String(x.name || '').trim(),
+    market: String(x.market || marketHint || '').trim(),
+  }));
+}
+async function fetchTextTimeout(url, ms = 18000) {
+  const ctl = new AbortController(),
+    to = setTimeout(() => ctl.abort(), ms);
+  try {
+    const r = await fetch(url, { cache: 'no-store', signal: ctl.signal });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.text();
+  } finally {
+    clearTimeout(to);
+  }
+}
+async function loadTickerCatalogFallback(force = false) {
+  const age = Date.now() - (+tickerCatalogCache?.updatedAt || 0);
+  if (!force && Object.keys(tickerCacheMap()).length > 500 && age < 30 * 864e5)
+    return tickerCacheMap();
+  if (tickerCatalogPromise && !force) return tickerCatalogPromise;
+  tickerCatalogPromise = (async () => {
+    const urls = [
+        [
+          'https://raw.githubusercontent.com/mlouielu/twstock/refs/heads/dev/twstock/codes/twse_equities.csv',
+          'tse',
+        ],
+        [
+          'https://raw.githubusercontent.com/mlouielu/twstock/refs/heads/dev/twstock/codes/tpex_equities.csv',
+          'otc',
+        ],
+      ],
+      map = { ...tickerCacheMap() };
+    let success = 0;
+    const res = await Promise.allSettled(
+      urls.map(async ([u, m]) => {
+        const tx = await fetchTextTimeout(u);
+        return csvCatalogRows(tx, m);
+      }),
+    );
+    res.forEach((z, idx) => {
+      if (z.status !== 'fulfilled') return;
+      success++;
+      for (const r of z.value) {
+        if (!r.code || !r.name) continue;
+        if (!/^(股票|ETF|受益憑證|存託憑證)/.test(r.type)) continue;
+        if (!/^[0-9A-Z]{4,7}$/.test(r.code)) continue;
+        const market = /上櫃/.test(r.market) ? 'otc' : 'tse';
+        map[r.code] = { name: r.name, market, source: 'catalog-cache' };
+      }
+    });
+    Object.entries(LOCAL_TICKER_NAMES).forEach(([code, name]) => {
+      if (!map[code]) map[code] = { name, market: 'tse', source: 'built-in' };
+    });
+    if (!success && Object.keys(map).length < 20) throw new Error('股票代號表下載失敗');
+    saveTickerCatalog(map);
+    return map;
+  })().finally(() => {
+    tickerCatalogPromise = null;
+  });
+  return tickerCatalogPromise;
+}
+async function fetchTWSE() {
+  const today = todayISO();
+  if (
+    twseCache &&
+    twseCache.date === today &&
+    twseCache.map &&
+    Object.keys(twseCache.map).length > 50
+  )
+    return twseCache.map;
+  const map = {};
+  let ok = false;
+  try {
+    const r = await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL', {
+      cache: 'no-store',
+    });
+    if (!r.ok) throw new Error('TWSE ' + r.status);
+    const d = await r.json();
+    (d || []).forEach((x) => {
+      const code = normalizeTicker(x.Code || x.code),
+        name = x.Name || x.name,
+        price = parseFloat(String(x.ClosingPrice || x.Close || '').replace(/,/g, ''));
+      if (code)
+        map[code] = {
+          name,
+          price: Number.isFinite(price) ? price : null,
+          market: 'tse',
+          source: 'close',
+        };
+    });
+    ok = true;
+  } catch (e) {
+    console.warn('TWSE OpenAPI failed', e);
+  }
+  try {
+    const r = await fetch('https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes', {
+      cache: 'no-store',
+    });
+    if (!r.ok) throw new Error('TPEx ' + r.status);
+    const d = await r.json();
+    (d || []).forEach((x) => {
+      const code = normalizeTicker(x.SecuritiesCompanyCode || x.Code || x.code),
+        name = x.CompanyName || x.Name || x.SecuritiesCompanyName || x.CompanyAbbreviation,
+        price = parseFloat(
+          String(x.Close || x.ClosingPrice || x.ClosePrice || '').replace(/,/g, ''),
+        );
+      if (code && !map[code])
+        map[code] = {
+          name,
+          price: Number.isFinite(price) ? price : null,
+          market: 'otc',
+          source: 'close',
+        };
+    });
+    ok = true;
+  } catch (e) {
+    console.warn('TPEx OpenAPI failed', e);
+  }
+  if (!ok) throw new Error('TWSE／TPEx 官方行情目前無法由此瀏覽器直接讀取');
+  twseCache = { ...(twseCache || {}), date: today, map };
+  save(K.twse, twseCache);
+  return map;
+}
+async function resolveTickerIdentity(code) {
+  code = normalizeTicker(code);
+  if (!code) return null;
+  const local = tickerCacheMap()[code],
+    officialCache = twseCache?.map?.[code],
+    built = LOCAL_TICKER_NAMES[code];
+  if (officialCache?.name) return { ...officialCache, source: 'official-cache' };
+  if (local?.name) return { ...local };
+  if (built) return { name: built, market: 'tse', source: 'built-in' };
+  return await new Promise((resolve) => {
+    let pending = 2,
+      done = false;
+    const finish = (x) => {
+      if (done) return;
+      if (x?.name) {
+        done = true;
+        resolve(x);
+        return;
+      }
+      pending--;
+      if (pending <= 0) {
+        done = true;
+        resolve(null);
+      }
+    };
+    fetchTWSE()
+      .then((m) => finish(m[code] || null))
+      .catch(() => finish(null));
+    loadTickerCatalogFallback()
+      .then((m) => finish(m[code] || null))
+      .catch(() => finish(null));
   });
 }
-function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
-async function sheetsJson(url,opts={}){if(typeof driveFetch!=='function'||!tokenUsable())throw Object.assign(new Error('請先登入／重新連線 Google'),{code:'AUTH'});const r=await driveFetch(url,opts);if(r.status===204)return{};return r.json();}
-async function ensureFinanceSheet(){if(GOOGLE_SYNC?.mode!=='google'||!tokenUsable())throw Object.assign(new Error('Google Finance 需要先登入 Google'),{code:'AUTH'});let id=settings.financeSheetId||'';
-  if(id){try{await sheetsJson(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}?fields=spreadsheetId,properties.title`);return id;}catch(e){if(e.code==='AUTH')throw e;id='';settings.financeSheetId='';save(K.set,settings);}}
-  const made=await sheetsJson('https://sheets.googleapis.com/v4/spreadsheets?fields=spreadsheetId,properties.title',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({properties:{title:'記帳本_行情快取'},sheets:[{properties:{title:'Quotes',gridProperties:{rowCount:100,columnCount:6}}}]})});
-  if(!made?.spreadsheetId)throw new Error('無法建立 Google Finance 行情試算表；請確認已啟用 Google Sheets API');settings.financeSheetId=made.spreadsheetId;save(K.set,settings);return made.spreadsheetId;
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
 }
-async function fetchGoogleFinanceQuotes(codes){codes=[...new Set(codes.map(normalizeTicker).filter(Boolean))];if(!codes.length)return{};const id=await ensureFinanceSheet(),rows=[['代號','價格','最後成交時間','資料延遲(分鐘)','幣別']];
-  codes.forEach(code=>{const t=`TPE:${code}`;rows.push([code,`=IFERROR(GOOGLEFINANCE("${t}","price"),"")`,`=IFERROR(GOOGLEFINANCE("${t}","tradetime"),"")`,`=IFERROR(GOOGLEFINANCE("${t}","datadelay"),"")`,`=IFERROR(GOOGLEFINANCE("${t}","currency"),"")`]);});
-  const range=`Quotes!A1:E${rows.length}`;await sheetsJson(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({range,majorDimension:'ROWS',values:rows})});
-  let vals=[];for(let k=0;k<6;k++){await sleep(k?1000:650);const r=await sheetsJson(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}/values/${encodeURIComponent(`Quotes!A2:E${rows.length}`)}?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`);vals=r.values||[];if(vals.some(x=>Number.isFinite(+x[1])&&+x[1]>0))break;}
-  const out={};vals.forEach(row=>{const code=normalizeTicker(row[0]),price=+row[1],delay=row[3]===''||row[3]==null?null:+row[3];if(code&&Number.isFinite(price)&&price>0)out[code]={price,delay:Number.isFinite(delay)?delay:null,source:'googlefinance',market:'tpe'};});return out;
+async function sheetsJson(url, opts = {}) {
+  if (typeof driveFetch !== 'function' || !tokenUsable())
+    throw Object.assign(new Error('請先登入／重新連線 Google'), { code: 'AUTH' });
+  const r = await driveFetch(url, opts);
+  if (r.status === 204) return {};
+  return r.json();
 }
-async function fetchMISQuote(code,marketHint=''){const markets=marketHint==='otc'?['otc','tse']:marketHint==='tse'?['tse','otc']:['tse','otc'];for(const ex of markets){try{const r=await fetch(`https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=${ex}_${encodeURIComponent(code)}.tw&json=1&delay=0&_=${Date.now()}`,{cache:'no-store'});if(!r.ok)continue;const d=await r.json(),x=(d.msgArray||[]).find(x=>normalizeTicker(x.c)===code);if(x){const z=parseFloat(String(x.z||'').replace(/,/g,'')),y=parseFloat(String(x.y||'').replace(/,/g,'')),price=Number.isFinite(z)&&z>0?z:(Number.isFinite(y)&&y>0?y:null);return{name:x.n||x.nf||'',price,market:ex,source:Number.isFinite(z)&&z>0?'live':'prevclose'};}}catch(e){}}return null;}
-async function fetchRealtimeQuotes(codes){codes=[...new Set(codes.map(normalizeTicker).filter(Boolean))];const out={};if(!codes.length)return out;
-  let officialMap=null;try{officialMap=await fetchTWSE();codes.forEach(code=>{const c=officialMap[code];if(c)out[code]={...c};});}catch(e){console.warn('Official TW quote catalog failed',e);}
+async function ensureFinanceSheet() {
+  if (GOOGLE_SYNC?.mode !== 'google' || !tokenUsable())
+    throw Object.assign(new Error('Google Finance 需要先登入 Google'), { code: 'AUTH' });
+  let id = settings.financeSheetId || '';
+  if (id) {
+    try {
+      await sheetsJson(
+        `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}?fields=spreadsheetId,properties.title`,
+      );
+      return id;
+    } catch (e) {
+      if (e.code === 'AUTH') throw e;
+      id = '';
+      settings.financeSheetId = '';
+      save(K.set, settings);
+    }
+  }
+  const made = await sheetsJson(
+    'https://sheets.googleapis.com/v4/spreadsheets?fields=spreadsheetId,properties.title',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        properties: { title: '記帳本_行情快取' },
+        sheets: [
+          { properties: { title: 'Quotes', gridProperties: { rowCount: 100, columnCount: 6 } } },
+        ],
+      }),
+    },
+  );
+  if (!made?.spreadsheetId)
+    throw new Error('無法建立 Google Finance 行情試算表；請確認已啟用 Google Sheets API');
+  settings.financeSheetId = made.spreadsheetId;
+  save(K.set, settings);
+  return made.spreadsheetId;
+}
+async function fetchGoogleFinanceQuotes(codes) {
+  codes = [...new Set(codes.map(normalizeTicker).filter(Boolean))];
+  if (!codes.length) return {};
+  const id = await ensureFinanceSheet(),
+    rows = [['代號', '價格', '最後成交時間', '資料延遲(分鐘)', '幣別']];
+  codes.forEach((code) => {
+    const t = `TPE:${code}`;
+    rows.push([
+      code,
+      `=IFERROR(GOOGLEFINANCE("${t}","price"),"")`,
+      `=IFERROR(GOOGLEFINANCE("${t}","tradetime"),"")`,
+      `=IFERROR(GOOGLEFINANCE("${t}","datadelay"),"")`,
+      `=IFERROR(GOOGLEFINANCE("${t}","currency"),"")`,
+    ]);
+  });
+  const range = `Quotes!A1:E${rows.length}`;
+  await sheetsJson(
+    `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ range, majorDimension: 'ROWS', values: rows }),
+    },
+  );
+  let vals = [];
+  for (let k = 0; k < 6; k++) {
+    await sleep(k ? 1000 : 650);
+    const r = await sheetsJson(
+      `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}/values/${encodeURIComponent(`Quotes!A2:E${rows.length}`)}?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`,
+    );
+    vals = r.values || [];
+    if (vals.some((x) => Number.isFinite(+x[1]) && +x[1] > 0)) break;
+  }
+  const out = {};
+  vals.forEach((row) => {
+    const code = normalizeTicker(row[0]),
+      price = +row[1],
+      delay = row[3] === '' || row[3] == null ? null : +row[3];
+    if (code && Number.isFinite(price) && price > 0)
+      out[code] = {
+        price,
+        delay: Number.isFinite(delay) ? delay : null,
+        source: 'googlefinance',
+        market: 'tpe',
+      };
+  });
+  return out;
+}
+async function fetchMISQuote(code, marketHint = '') {
+  const markets =
+    marketHint === 'otc' ? ['otc', 'tse'] : marketHint === 'tse' ? ['tse', 'otc'] : ['tse', 'otc'];
+  for (const ex of markets) {
+    try {
+      const r = await fetch(
+        `https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=${ex}_${encodeURIComponent(code)}.tw&json=1&delay=0&_=${Date.now()}`,
+        { cache: 'no-store' },
+      );
+      if (!r.ok) continue;
+      const d = await r.json(),
+        x = (d.msgArray || []).find((x) => normalizeTicker(x.c) === code);
+      if (x) {
+        const z = parseFloat(String(x.z || '').replace(/,/g, '')),
+          y = parseFloat(String(x.y || '').replace(/,/g, '')),
+          price = Number.isFinite(z) && z > 0 ? z : Number.isFinite(y) && y > 0 ? y : null;
+        return {
+          name: x.n || x.nf || '',
+          price,
+          market: ex,
+          source: Number.isFinite(z) && z > 0 ? 'live' : 'prevclose',
+        };
+      }
+    } catch (e) {}
+  }
+  return null;
+}
+async function fetchRealtimeQuotes(codes) {
+  codes = [...new Set(codes.map(normalizeTicker).filter(Boolean))];
+  const out = {};
+  if (!codes.length) return out;
+  let officialMap = null;
+  try {
+    officialMap = await fetchTWSE();
+    codes.forEach((code) => {
+      const c = officialMap[code];
+      if (c) out[code] = { ...c };
+    });
+  } catch (e) {
+    console.warn('Official TW quote catalog failed', e);
+  }
   // 名稱先補齊，完全不依賴 Google Sheets
-  await Promise.all(codes.map(async code=>{if(out[code]?.name)return;const id=await resolveTickerIdentity(code).catch(()=>null);if(id)out[code]={...(out[code]||{}),...id};}));
+  await Promise.all(
+    codes.map(async (code) => {
+      if (out[code]?.name) return;
+      const id = await resolveTickerIdentity(code).catch(() => null);
+      if (id) out[code] = { ...(out[code] || {}), ...id };
+    }),
+  );
   // Google Finance 僅補價格；API 未啟用時不影響名稱查詢
-  if(typeof GOOGLE_SYNC!=='undefined'&&GOOGLE_SYNC.mode==='google'&&tokenUsable()){try{const gf=await fetchGoogleFinanceQuotes(codes);Object.entries(gf).forEach(([code,x])=>{out[code]={...(out[code]||{}),...x,name:out[code]?.name||tickerCacheMap()[code]?.name||LOCAL_TICKER_NAMES[code]||''};});}catch(e){console.warn('Google Finance via Sheets failed',e);}}
+  if (typeof GOOGLE_SYNC !== 'undefined' && GOOGLE_SYNC.mode === 'google' && tokenUsable()) {
+    try {
+      const gf = await fetchGoogleFinanceQuotes(codes);
+      Object.entries(gf).forEach(([code, x]) => {
+        out[code] = {
+          ...(out[code] || {}),
+          ...x,
+          name: out[code]?.name || tickerCacheMap()[code]?.name || LOCAL_TICKER_NAMES[code] || '',
+        };
+      });
+    } catch (e) {
+      console.warn('Google Finance via Sheets failed', e);
+    }
+  }
   // 再嘗試證交所 MIS 盤中／昨收
-  await Promise.all(codes.filter(c=>out[c]?.price==null).map(async code=>{const q=await fetchMISQuote(code,out[code]?.market||'');if(q)out[code]={...(out[code]||{}),...q,name:out[code]?.name||q.name||''};}));
-  codes.forEach(code=>{const cached=twseCache?.map?.[code],local=tickerCacheMap()[code];if(!out[code])out[code]={name:cached?.name||local?.name||LOCAL_TICKER_NAMES[code]||'',market:cached?.market||local?.market||'',price:prices[code]??cached?.price??null,source:prices[code]!=null?'manual':'local'};else{if(!out[code].name)out[code].name=cached?.name||local?.name||LOCAL_TICKER_NAMES[code]||'';if(out[code].price==null&&prices[code]!=null){out[code].price=prices[code];out[code].source=out[code].source||'manual';}}});return out;
+  await Promise.all(
+    codes
+      .filter((c) => out[c]?.price == null)
+      .map(async (code) => {
+        const q = await fetchMISQuote(code, out[code]?.market || '');
+        if (q) out[code] = { ...(out[code] || {}), ...q, name: out[code]?.name || q.name || '' };
+      }),
+  );
+  codes.forEach((code) => {
+    const cached = twseCache?.map?.[code],
+      local = tickerCacheMap()[code];
+    if (!out[code])
+      out[code] = {
+        name: cached?.name || local?.name || LOCAL_TICKER_NAMES[code] || '',
+        market: cached?.market || local?.market || '',
+        price: prices[code] ?? cached?.price ?? null,
+        source: prices[code] != null ? 'manual' : 'local',
+      };
+    else {
+      if (!out[code].name)
+        out[code].name = cached?.name || local?.name || LOCAL_TICKER_NAMES[code] || '';
+      if (out[code].price == null && prices[code] != null) {
+        out[code].price = prices[code];
+        out[code].source = out[code].source || 'manual';
+      }
+    }
+  });
+  return out;
 }
-async function refreshHeldPrices(){const{bySym}=computeHoldings(),codes=Object.values(bySym).filter(h=>h.shares>0&&h.ticker).map(h=>normalizeTicker(h.ticker));if(!codes.length)return{n:0,gf:0,live:0};const q=await fetchRealtimeQuotes(codes);let n=0,gf=0,live=0,delay=null;Object.entries(q).forEach(([code,x])=>{if(x.price!=null){prices[code]=x.price;n++;if(x.source==='googlefinance'){gf++;if(x.delay!=null)delay=x.delay;}if(x.source==='live')live++;}});save(K.prices,prices);twseCache={...(twseCache||{}),liveAt:new Date().toISOString(),lastSource:gf?'googlefinance':live?'live':'close',lastDelay:delay};save(K.twse,twseCache);return{n,gf,live};}
-$('#updatePrices').onclick=async()=>{const btn=$('#updatePrices');btn.textContent='更新中…';btn.disabled=true;try{const{n,gf,live}=await refreshHeldPrices();renderInvest();renderCharts();toast(n?`已更新 ${n} 檔${gf?` · Google Finance ${gf} 檔`:live?` · 即時 ${live} 檔`:''}`:'目前持股沒有可更新的行情；可先手動輸入現價');}catch(e){toast('行情更新失敗：'+(e.message||'請稍後再試'));}finally{btn.textContent='↻ 更新行情';btn.disabled=false;}};
-async function lookupTicker(silent=false){const code=normalizeTicker($('#f-ticker').value);if(!code){if(!silent)toast('請先輸入代號');return;}$('#f-ticker').value=code;const btn=$('#lookupBtn');if(!silent){btn.textContent='查詢中…';btn.disabled=true;}let identity=null;try{identity=await resolveTickerIdentity(code);if(identity?.name){$('#f-symbol').value=identity.name;updateInvPreview();if(!silent)toast(`已辨識 ${code} · ${identity.name}，正在取得行情…`);}else if(!silent)toast('目前代號表查不到 '+code+'；仍可手動輸入名稱');
-    const q=await fetchRealtimeQuotes([code]),hit=q[code]||identity;if(hit?.name&&!$('#f-symbol').value)$('#f-symbol').value=hit.name;if(hit?.price!=null){if(!$('#f-uprice').value)$('#f-uprice').value=hit.price;prices[code]=hit.price;save(K.prices,prices);}if(!silent&&hit){const src=hit.source==='googlefinance'?'Google Finance':hit.source==='live'?'證交所即時':hit.source==='close'?'官方收盤':hit.source==='prevclose'?'昨收':'';toast(`${hit.name||code}${hit.price!=null?' · '+hit.price:''}${src?' · '+src:''}`);}updateInvPreview();
-  }catch(e){console.warn('ticker lookup failed',e);if(!silent)toast(identity?.name?`名稱已帶入；行情暫時取不到`:'代號查詢失敗：'+(e.message||'請稍後再試'));}finally{if(!silent){btn.textContent='用代號自動帶入名稱與現價';btn.disabled=false;}}}
-$('#lookupBtn').onclick=()=>lookupTicker(false);let tickerLookupTimer=null;$('#f-ticker').addEventListener('input',()=>{clearTimeout(tickerLookupTimer);const code=normalizeTicker($('#f-ticker').value),nm=twseCache?.map?.[code]?.name||tickerCacheMap()[code]?.name||LOCAL_TICKER_NAMES[code];if(nm){$('#f-symbol').value=nm;updateInvPreview();}if(code.length>=4)tickerLookupTimer=setTimeout(()=>lookupTicker(true),300);});
-async function maybeRefreshPrices(force=false){const has=Object.values(computeHoldings().bySym).some(h=>h.shares>0&&h.ticker);if(!has)return;const last=twseCache?.liveAt?new Date(twseCache.liveAt).getTime():0;if(!force&&Date.now()-last<5*60*1000)return;try{await refreshHeldPrices();if($('#view-invest').classList.contains('active'))renderInvest();}catch(e){}}
-setInterval(()=>{if($('#view-invest').classList.contains('active'))maybeRefreshPrices(true);},5*60*1000);
-function oauthProjectNumber(){const m=googleClientId().match(/^(\d+)-/);return m?m[1]:'';}
-function openSheetsApiConsole(){const proj=oauthProjectNumber()||'253312388327';window.open(`https://console.cloud.google.com/apis/library/sheets.googleapis.com?project=${encodeURIComponent(proj)}`,'_blank','noopener');}
-async function refreshTickerCatalogUI(){const b=$('#refreshTickerCatalogBtn'),d=$('#financeDiag');if(b){b.disabled=true;b.textContent='更新中…';}if(d)d.textContent='正在更新台股代號表…';try{const m=await loadTickerCatalogFallback(true);const n=Object.keys(m).length;if(d)d.textContent=`✓ 股票代號表已更新，共 ${n.toLocaleString()} 筆；3017 = ${m['3017']?.name||'奇鋐'}`;toast('股票代號表已更新');}catch(e){if(d)d.textContent='✕ 股票代號表更新失敗：'+(e.message||'請稍後再試');}finally{if(b){b.disabled=false;b.textContent='更新股票代號表';}}}
-async function testGoogleFinance(){const b=$('#testFinanceBtn'),d=$('#financeDiag');if(!b||!d)return;b.disabled=true;b.textContent='測試中…';d.textContent='先測試股票名稱（不需要 Google Sheets）…';try{const [a,b3017]=await Promise.all([resolveTickerIdentity('2330'),resolveTickerIdentity('3017')]);const names=`2330=${a?.name||'未找到'}、3017=${b3017?.name||'未找到'}`;if(GOOGLE_SYNC.mode!=='google'||!tokenUsable()){d.textContent=`✓ 名稱查詢：${names}。價格尚未測試：請先重新連線 Google。`;return;}try{const q=await fetchGoogleFinanceQuotes(['2330','3017']),p1=q['2330']?.price,p2=q['3017']?.price;d.textContent=`✓ 名稱查詢：${names}。Google Finance：2330 ${p1??'無價格'}、3017 ${p2??'無價格'}。`;}catch(e){const m=String(e.message||e);if(/403|PERMISSION|SERVICE_DISABLED|Sheets API|has not been used|disabled/i.test(m))d.textContent=`✓ 名稱查詢：${names}。△ Google Finance 價格服務目前不可用；股票名稱仍正常，價格會改用 TWSE／TPEx 或手動現價。若你不是網站管理者，不需要做任何 API 設定。`;else d.textContent=`✓ 名稱查詢：${names}。△ Google Finance 目前失敗：${m.slice(0,180)}`;}}catch(e){d.textContent='✕ 股票名稱測試也失敗：'+(e.message||e);}finally{b.disabled=false;b.textContent='測試 2330 / 3017';}}
-
-
+async function refreshHeldPrices() {
+  const { bySym } = computeHoldings(),
+    codes = Object.values(bySym)
+      .filter((h) => h.shares > 0 && h.ticker)
+      .map((h) => normalizeTicker(h.ticker));
+  if (!codes.length) return { n: 0, gf: 0, live: 0 };
+  const q = await fetchRealtimeQuotes(codes);
+  let n = 0,
+    gf = 0,
+    live = 0,
+    delay = null;
+  Object.entries(q).forEach(([code, x]) => {
+    if (x.price != null) {
+      prices[code] = x.price;
+      n++;
+      if (x.source === 'googlefinance') {
+        gf++;
+        if (x.delay != null) delay = x.delay;
+      }
+      if (x.source === 'live') live++;
+    }
+  });
+  save(K.prices, prices);
+  twseCache = {
+    ...(twseCache || {}),
+    liveAt: new Date().toISOString(),
+    lastSource: gf ? 'googlefinance' : live ? 'live' : 'close',
+    lastDelay: delay,
+  };
+  save(K.twse, twseCache);
+  return { n, gf, live };
+}
+$('#updatePrices').onclick = async () => {
+  const btn = $('#updatePrices');
+  btn.textContent = '更新中…';
+  btn.disabled = true;
+  try {
+    const { n, gf, live } = await refreshHeldPrices();
+    renderInvest();
+    renderCharts();
+    toast(
+      n
+        ? `已更新 ${n} 檔${gf ? ` · Google Finance ${gf} 檔` : live ? ` · 即時 ${live} 檔` : ''}`
+        : '目前持股沒有可更新的行情；可先手動輸入現價',
+    );
+  } catch (e) {
+    toast('行情更新失敗：' + (e.message || '請稍後再試'));
+  } finally {
+    btn.textContent = '↻ 更新行情';
+    btn.disabled = false;
+  }
+};
+async function lookupTicker(silent = false) {
+  const code = normalizeTicker($('#f-ticker').value);
+  if (!code) {
+    if (!silent) toast('請先輸入代號');
+    return;
+  }
+  $('#f-ticker').value = code;
+  const btn = $('#lookupBtn');
+  if (!silent) {
+    btn.textContent = '查詢中…';
+    btn.disabled = true;
+  }
+  let identity = null;
+  try {
+    identity = await resolveTickerIdentity(code);
+    if (identity?.name) {
+      $('#f-symbol').value = identity.name;
+      updateInvPreview();
+      if (!silent) toast(`已辨識 ${code} · ${identity.name}，正在取得行情…`);
+    } else if (!silent) toast('目前代號表查不到 ' + code + '；仍可手動輸入名稱');
+    const q = await fetchRealtimeQuotes([code]),
+      hit = q[code] || identity;
+    if (hit?.name && !$('#f-symbol').value) $('#f-symbol').value = hit.name;
+    if (hit?.price != null) {
+      if (!$('#f-uprice').value) $('#f-uprice').value = hit.price;
+      prices[code] = hit.price;
+      save(K.prices, prices);
+    }
+    if (!silent && hit) {
+      const src =
+        hit.source === 'googlefinance'
+          ? 'Google Finance'
+          : hit.source === 'live'
+            ? '證交所即時'
+            : hit.source === 'close'
+              ? '官方收盤'
+              : hit.source === 'prevclose'
+                ? '昨收'
+                : '';
+      toast(
+        `${hit.name || code}${hit.price != null ? ' · ' + hit.price : ''}${src ? ' · ' + src : ''}`,
+      );
+    }
+    updateInvPreview();
+  } catch (e) {
+    console.warn('ticker lookup failed', e);
+    if (!silent)
+      toast(
+        identity?.name
+          ? `名稱已帶入；行情暫時取不到`
+          : '代號查詢失敗：' + (e.message || '請稍後再試'),
+      );
+  } finally {
+    if (!silent) {
+      btn.textContent = '用代號自動帶入名稱與現價';
+      btn.disabled = false;
+    }
+  }
+}
+$('#lookupBtn').onclick = () => lookupTicker(false);
+let tickerLookupTimer = null;
+$('#f-ticker').addEventListener('input', () => {
+  clearTimeout(tickerLookupTimer);
+  const code = normalizeTicker($('#f-ticker').value),
+    nm = twseCache?.map?.[code]?.name || tickerCacheMap()[code]?.name || LOCAL_TICKER_NAMES[code];
+  if (nm) {
+    $('#f-symbol').value = nm;
+    updateInvPreview();
+  }
+  if (code.length >= 4) tickerLookupTimer = setTimeout(() => lookupTicker(true), 300);
+});
+async function maybeRefreshPrices(force = false) {
+  const has = Object.values(computeHoldings().bySym).some((h) => h.shares > 0 && h.ticker);
+  if (!has) return;
+  const last = twseCache?.liveAt ? new Date(twseCache.liveAt).getTime() : 0;
+  if (!force && Date.now() - last < 5 * 60 * 1000) return;
+  try {
+    await refreshHeldPrices();
+    if ($('#view-invest').classList.contains('active')) renderInvest();
+  } catch (e) {}
+}
+setInterval(
+  () => {
+    if ($('#view-invest').classList.contains('active')) maybeRefreshPrices(true);
+  },
+  5 * 60 * 1000,
+);
+function oauthProjectNumber() {
+  const m = googleClientId().match(/^(\d+)-/);
+  return m ? m[1] : '';
+}
+function openSheetsApiConsole() {
+  const proj = oauthProjectNumber() || '253312388327';
+  window.open(
+    `https://console.cloud.google.com/apis/library/sheets.googleapis.com?project=${encodeURIComponent(proj)}`,
+    '_blank',
+    'noopener',
+  );
+}
+async function refreshTickerCatalogUI() {
+  const b = $('#refreshTickerCatalogBtn'),
+    d = $('#financeDiag');
+  if (b) {
+    b.disabled = true;
+    b.textContent = '更新中…';
+  }
+  if (d) d.textContent = '正在更新台股代號表…';
+  try {
+    const m = await loadTickerCatalogFallback(true);
+    const n = Object.keys(m).length;
+    if (d)
+      d.textContent = `✓ 股票代號表已更新，共 ${n.toLocaleString()} 筆；3017 = ${m['3017']?.name || '奇鋐'}`;
+    toast('股票代號表已更新');
+  } catch (e) {
+    if (d) d.textContent = '✕ 股票代號表更新失敗：' + (e.message || '請稍後再試');
+  } finally {
+    if (b) {
+      b.disabled = false;
+      b.textContent = '更新股票代號表';
+    }
+  }
+}
+async function testGoogleFinance() {
+  const b = $('#testFinanceBtn'),
+    d = $('#financeDiag');
+  if (!b || !d) return;
+  b.disabled = true;
+  b.textContent = '測試中…';
+  d.textContent = '先測試股票名稱（不需要 Google Sheets）…';
+  try {
+    const [a, b3017] = await Promise.all([
+      resolveTickerIdentity('2330'),
+      resolveTickerIdentity('3017'),
+    ]);
+    const names = `2330=${a?.name || '未找到'}、3017=${b3017?.name || '未找到'}`;
+    if (GOOGLE_SYNC.mode !== 'google' || !tokenUsable()) {
+      d.textContent = `✓ 名稱查詢：${names}。價格尚未測試：請先重新連線 Google。`;
+      return;
+    }
+    try {
+      const q = await fetchGoogleFinanceQuotes(['2330', '3017']),
+        p1 = q['2330']?.price,
+        p2 = q['3017']?.price;
+      d.textContent = `✓ 名稱查詢：${names}。Google Finance：2330 ${p1 ?? '無價格'}、3017 ${p2 ?? '無價格'}。`;
+    } catch (e) {
+      const m = String(e.message || e);
+      if (/403|PERMISSION|SERVICE_DISABLED|Sheets API|has not been used|disabled/i.test(m))
+        d.textContent = `✓ 名稱查詢：${names}。△ Google Finance 價格服務目前不可用；股票名稱仍正常，價格會改用 TWSE／TPEx 或手動現價。若你不是網站管理者，不需要做任何 API 設定。`;
+      else d.textContent = `✓ 名稱查詢：${names}。△ Google Finance 目前失敗：${m.slice(0, 180)}`;
+    }
+  } catch (e) {
+    d.textContent = '✕ 股票名稱測試也失敗：' + (e.message || e);
+  } finally {
+    b.disabled = false;
+    b.textContent = '測試 2330 / 3017';
+  }
+}

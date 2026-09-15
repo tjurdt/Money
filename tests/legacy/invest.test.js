@@ -25,22 +25,38 @@ afterAll(() => close());
 describe('estimateCathayStockCosts — 手續費與交易稅', () => {
   it('買進只收手續費，無交易稅', () => {
     expect(api.estimateCathayStockCosts(1000, 100, 'buy')).toEqual({
-      value: 100000, commission: 40, tax: 0, total: 40, taxRate: 0,
+      value: 100000,
+      commission: 40,
+      tax: 0,
+      total: 40,
+      taxRate: 0,
     });
   });
   it('賣出加收千分之三證交稅', () => {
     expect(api.estimateCathayStockCosts(1000, 100, 'sell')).toEqual({
-      value: 100000, commission: 40, tax: 300, total: 340, taxRate: 0.003,
+      value: 100000,
+      commission: 40,
+      tax: 300,
+      total: 340,
+      taxRate: 0.003,
     });
   });
   it('當沖證交稅減半', () => {
     expect(api.estimateCathayStockCosts(1000, 100, 'sell', true)).toEqual({
-      value: 100000, commission: 40, tax: 150, total: 190, taxRate: 0.0015,
+      value: 100000,
+      commission: 40,
+      tax: 150,
+      total: 190,
+      taxRate: 0.0015,
     });
   });
   it('股數或價格為 0 時全部歸零', () => {
     expect(api.estimateCathayStockCosts(0, 100, 'buy')).toEqual({
-      value: 0, commission: 0, tax: 0, total: 0, taxRate: 0,
+      value: 0,
+      commission: 0,
+      tax: 0,
+      total: 0,
+      taxRate: 0,
     });
   });
 });
@@ -66,8 +82,16 @@ describe('investStatsForRange — 移動平均成本法', () => {
 
 describe('investStatsForRange — 邊界情況', () => {
   it('沒有任何行情時未實現損益為 null，而非 0', () => {
-    const { api: a2, evalInApp: e2, close: c2 } = bootLegacyApi({
-      storage: { 'ledger.v2.records': investRecords, 'ledger.v2.prices': {}, 'ledger.v23.seeded': '1' },
+    const {
+      api: a2,
+      evalInApp: e2,
+      close: c2,
+    } = bootLegacyApi({
+      storage: {
+        'ledger.v2.records': investRecords,
+        'ledger.v2.prices': {},
+        'ledger.v23.seeded': '1',
+      },
     });
     e2("chartRange = 'all';");
     expect(a2.investStatsForRange().unrealized).toBeNull();
@@ -75,7 +99,11 @@ describe('investStatsForRange — 邊界情況', () => {
   });
 
   it('完全沒有投資紀錄時回傳零值', () => {
-    const { api: a3, evalInApp: e3, close: c3 } = bootLegacyApi({
+    const {
+      api: a3,
+      evalInApp: e3,
+      close: c3,
+    } = bootLegacyApi({
       storage: { 'ledger.v2.records': [], 'ledger.v23.seeded': '1' },
     });
     e3("chartRange = 'all';");

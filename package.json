@@ -8,7 +8,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run build && vitest run"
+    "check": "npm run format:check && npm run build && vitest run",
+    "format": "prettier --write \"src/legacy/**/*.js\" \"tests/**/*.js\" \"build/**/*.js\" \"scripts/**/*.js\"",
+    "format:check": "prettier --check \"src/legacy/**/*.js\" \"tests/**/*.js\" \"build/**/*.js\" \"scripts/**/*.js\""
   },
   "repository": {
     "type": "git",
@@ -20,7 +22,9 @@
   },
   "homepage": "https://github.com/tjurdt/Money#readme",
   "devDependencies": {
+    "esbuild": "^0.28.2",
     "jsdom": "^30.0.1",
+    "prettier": "^3.9.6",
     "vite": "^8.3.0",
     "vitest": "^5.0.1"
   },

@@ -22,13 +22,13 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 /** @type {string[]} 依載入順序排列的檔名。 */
 export const LEGACY_FILES = JSON.parse(
-  readFileSync(resolve(ROOT, 'build/legacy-manifest.json'), 'utf8')
+  readFileSync(resolve(ROOT, 'build/legacy-manifest.json'), 'utf8'),
 );
 
 export const LEGACY_DIR = resolve(ROOT, 'src/legacy');
 
 /** 每個檔案的絕對路徑，供 dev server 監看變更。 */
-export const legacyPaths = () => LEGACY_FILES.map(f => resolve(LEGACY_DIR, f));
+export const legacyPaths = () => LEGACY_FILES.map((f) => resolve(LEGACY_DIR, f));
 
 /**
  * 串接成單一段 JS。
@@ -40,9 +40,9 @@ export const legacyPaths = () => LEGACY_FILES.map(f => resolve(LEGACY_DIR, f));
  * 使串接結果比原始內容多出一個換行。
  */
 export function readLegacyBundle() {
-  return LEGACY_FILES
-    .map(f => readFileSync(resolve(LEGACY_DIR, f), 'utf8').replace(/\r?\n$/, ''))
-    .join('\n');
+  return LEGACY_FILES.map((f) =>
+    readFileSync(resolve(LEGACY_DIR, f), 'utf8').replace(/\r?\n$/, ''),
+  ).join('\n');
 }
 
 /** index.html 內的佔位註解，legacy bundle 會取代它。 */
