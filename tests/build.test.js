@@ -7,7 +7,7 @@
  * dist/ 不存在時整個檔案會被跳過（例如只跑單元測試、還沒建置的情境）。
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { bootLegacyApi } from './harness.js';
@@ -59,5 +59,28 @@ describe.skipIf(!hasDist)('dist/ 建置產物', () => {
 
   it('儲存鍵名沒有在打包過程中被改動', () => {
     expect(grab('K').rec).toBe('ledger.v2.records');
+  });
+});
+
+/**
+ * Service worker 的快取版本化。
+ *
+ * 曾經出過事：stamp-build.js 用 replace() 只替換第一個出現處，而那是檔頭註解，
+ * 真正的 const 沒被換到，cache 名稱固定成 'ledger-shell-__BUILD_ID__'，
+ * 版本化完全失效卻沒有任何徵兆。以下測試就是為了讓這種情況被 CI 擋下。
+ */
+describe.skipIf(!hasDist)('dist/ledger-sw.js 快取版本化', () => {
+  const sw = () => readFileSync(resolve(ROOT, 'dist/ledger-sw.js'), 'utf8');
+
+  it('建置產物內不得殘留任何佔位符', () => {
+    expect(sw()).not.toContain('__BUILD_ID__');
+  });
+
+  it('BUILD_ID 常數被替換成 12 位十六進位雜湊', () => {
+    expect(sw()).toMatch(/^const BUILD_ID = '[0-9a-f]{12}';$/m);
+  });
+
+  it('cache 名稱由 BUILD_ID 組成', () => {
+    expect(sw()).toContain("const CACHE = 'ledger-shell-' + BUILD_ID;");
   });
 });
