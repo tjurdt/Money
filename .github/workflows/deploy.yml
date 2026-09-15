@@ -1,0 +1,61 @@
+# 建置並部署到 GitHub Pages。
+#
+# ⚠️ 啟用前必做：到 repo 的 Settings → Pages → Build and deployment，
+#    把 Source 從「Deploy from a branch」改成「GitHub Actions」。
+#    未切換就把這個分支合併進 main 的話，icons／manifest／service worker 會 404
+#    （它們已經移進 public/，不再位於 repo 根目錄）。
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同時只跑一個部署；排隊中的舊任務會被取消。
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # 測試不過就不部署 —— 特徵化測試是防止重構改壞行為的閘門。
+      - name: 執行測試
+        run: npm test
+
+      - name: 建置
+        run: npm run build
+
+      # 對建置產物再跑一次核心測試，確認打包沒有改變行為。
+      - name: 驗證建置產物
+        run: npx vitest run tests/build.test.js
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
