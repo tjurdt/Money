@@ -7,17 +7,51 @@
  * dist/ 不存在時整個檔案會被跳過（例如只跑單元測試、還沒建置的情境）。
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { bootLegacyApi } from './harness.js';
 import * as F from './fixtures/records.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const hasDist = existsSync(resolve(ROOT, 'dist/index.html'));
+const DIST = resolve(ROOT, 'dist/index.html');
+const hasDist = existsSync(DIST);
+
+/**
+ * dist/ 過期偵測。
+ *
+ * 曾經出過事：src/ 改動後沒重新建置，這些測試仍對舊產物跑出全綠，
+ * 讓一個會讓 app 完全無法啟動的 bug（$$ 被改寫成 $）溜過本地驗證。
+ * 現在只要產物比原始碼舊就直接失敗。
+ */
+function newestSourceMtime() {
+  const walk = (dir) => {
+    let newest = 0;
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.name === 'node_modules' || e.name === 'dist' || e.name.startsWith('.')) continue;
+      const p = resolve(dir, e.name);
+      newest = Math.max(newest, e.isDirectory() ? walk(p) : statSync(p).mtimeMs);
+    }
+    return newest;
+  };
+  return Math.max(
+    statSync(resolve(ROOT, 'index.html')).mtimeMs,
+    walk(resolve(ROOT, 'src')),
+    walk(resolve(ROOT, 'build')),
+  );
+}
 
 describe.skipIf(!hasDist)('dist/ 建置產物', () => {
   let api, grab, close;
+
+  it('產物不得比原始碼舊（否則以下測試等於在驗證過期的東西）', () => {
+    const distAge = statSync(DIST).mtimeMs;
+    const srcAge = newestSourceMtime();
+    expect(
+      distAge >= srcAge,
+      `dist/ 比原始碼舊 ${Math.round((srcAge - distAge) / 1000)} 秒，請先執行 npm run build`,
+    ).toBe(true);
+  });
   beforeAll(() => { ({ api, grab, close } = bootLegacyApi({ entry: 'dist/index.html' })); });
   afterAll(() => close?.());
 

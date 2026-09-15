@@ -7,8 +7,20 @@
 
 正在從「單一 335KB 的 index.html」重構成模組化結構。進度見 `ARCHITECTURE.md`。
 
-- **P0 已完成**：Vite + Vitest + GitHub Actions；88 條特徵化測試釘住現有行為。
-- 目前所有應用程式邏輯仍在 `index.html` 的單一 inline `<script>` 內（約 232KB、268 個函式）。
+- **P0 已完成**：Vite + Vitest + GitHub Actions；特徵化測試釘住現有行為。
+- **P1 已完成**：CSS 拆成 6 個 cascade 層（`src/styles/`），
+  JS 拆成 27 個檔案（`src/legacy/`）。目前共 101 條測試。
+
+### 改程式碼要去哪裡
+
+`index.html` 只剩外殼，不要往裡面加 CSS 或 JS。
+
+- 樣式 → `src/styles/`，並在 `index.css` 註冊（順序即 cascade，不可調換）
+- 應用邏輯 → `src/legacy/` 對應的檔案，並在 `build/legacy-manifest.json` 註冊
+
+`src/legacy/` 的檔案在建置時**依序串接成單一 script**，所以彼此仍共用同一個
+全域作用域 —— 這是為了讓 P1 做到零行為變更的過渡設計，不是最終型態。
+現階段不要在這些檔案裡寫 `import` / `export`。
 
 ## 指令
 
@@ -16,7 +28,7 @@
 npm run dev      # 本機開發（http://localhost:5173）
 npm test         # 執行所有測試
 npm run build    # 建置到 dist/ 並戳記 service worker 版本
-npm run check    # 提交前必跑
+npm run check    # 提交前必跑（先建置再測試）
 ```
 
 ## 六條鐵則

@@ -1,0 +1,41 @@
+/* v23 層：搜尋、附近店家、分類色彩、日曆、固定支出
+ *
+ * ⚠️ 這些檔案是「cascade 覆寫層」，不是主題分類。
+ *    .appbar 被宣告 4 次、:root 2 次，後面的層刻意覆寫前面的層。
+ *    調換 index.css 裡的 @import 順序會改變畫面。
+ *    合併重複宣告屬於後續階段的工作，P1 只搬不改。
+ */
+  /* ===== v23：搜尋、附近店家、分類色彩、日曆、固定支出 ===== */
+  .appbar{padding:calc(env(safe-area-inset-top) + 10px) 15px 10px}.appbar .top{margin-bottom:0}.top-summary-row{display:grid;grid-template-columns:minmax(132px,1.35fr) repeat(3,minmax(54px,.72fr));gap:6px;margin-top:9px;align-items:stretch}.top-summary-row .monthbar{margin:0;gap:2px;background:rgba(255,255,255,.11);border-radius:11px;padding:2px}.top-summary-row .monthbar button{width:27px;height:32px;border-radius:8px}.top-summary-row .monthbar .m{min-width:0;font-size:13px;line-height:1.15;padding:0 2px}.top-summary-row .monthbar .m .sub{font-size:9px;margin-top:1px}.top-summary-row .summary{display:contents}.top-summary-row .summary .c{min-width:0;padding:5px 3px;border-radius:10px;background:rgba(255,255,255,.09);text-align:center;border-right:none}.top-summary-row .summary .lbl{font-size:9px;opacity:.78}.top-summary-row .summary .val{font-size:12px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.scope-choice-field{margin-bottom:10px}.scope-choice-field .choice-row{background:rgba(255,255,255,.68)}
+  #scopeSheet{background:#e7f2fb!important}#scopeSheet .sheet-hdr{background:#d9eafa!important}#scopeSheet .scopeitem{background:rgba(255,255,255,.83)!important;border-color:#c9ddea!important}#scopeSheet .scopeitem.on{background:#d6e9f8!important}
+  .itemrow{border:1px solid var(--line)!important;border-radius:14px!important;background:rgba(255,255,255,.52)!important;padding:9px!important}.itemrow input,.itemrow select{border:1px solid var(--line)!important;border-radius:10px!important;box-shadow:none!important}.itemrow .line2{padding-top:1px}.itemrow .i-cat,.itemrow .i-sub{transition:background-color .15s,border-color .15s}
+  .choice-row.cat-tinted{transition:background-color .16s,border-color .16s}.chart-chain-merge{display:none;align-items:center;gap:7px;font-size:12px;color:var(--muted);padding:8px 10px;margin-top:7px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}.chart-chain-merge.show{display:flex}.chart-chain-merge input{width:17px;height:17px}
+  .pie-store-opts{display:flex;flex-direction:column;gap:0}.pie-store-opts:empty{display:none}
+  .calendar-card{padding:13px}.calendar-head{display:grid;grid-template-columns:34px 1fr 34px;align-items:center;text-align:center;margin-bottom:9px}.calendar-head button{height:32px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font-size:19px;color:var(--teal)}.calendar-head h2{margin:0;font-size:15px}.calendar-head .sub{margin-top:1px}.calendar-week,.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}.calendar-week span{text-align:center;font-size:10px;color:var(--faint);padding:3px 0}.cal-day{min-height:69px;padding:5px 4px;border:1px solid #e4ebe8;border-radius:9px;background:#fbfcfb;text-align:left;overflow:hidden}.cal-day.empty{visibility:hidden}.cal-day.has{background:#f6faf8;cursor:pointer}.cal-day.today{border-color:#7db7a9;box-shadow:inset 0 0 0 1px #7db7a9}.cal-day .dn{font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px}.cal-day .cv{font-family:var(--num);font-size:9px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cal-day .ce{color:#a05240}.cal-day .ci{color:#2e8a5f}.cal-day .cn{color:#52645e;font-weight:700}.calendar-help{font-size:10px;color:var(--faint);margin-top:8px;text-align:center}
+  .recurring-sheet{background:#f4f8f6}.recurring-note{font-size:12px;line-height:1.55;color:var(--muted);padding:10px 11px;border:1px solid #d8e6df;border-radius:11px;background:#eaf4ef;margin-bottom:12px}.recurring-active{padding:9px 0}.recurring-rule{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:center;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:7px}.recurring-rule .rr-name{font-weight:650;font-size:14px}.recurring-rule .rr-sub{font-size:11px;color:var(--muted);margin-top:3px}.recurring-rule .rr-state{font-size:11px;padding:4px 7px;border-radius:999px;background:#e7f3ed;color:#34755d}.recurring-rule .rr-state.off{background:#f0f1f0;color:#8b9490}.recurring-rule button{grid-column:1/-1;text-align:left;color:var(--teal);font-size:12px;padding-top:2px}
+  @media(max-width:390px){.top-summary-row{grid-template-columns:minmax(118px,1.25fr) repeat(3,minmax(48px,.65fr));gap:4px}.top-summary-row .summary .val{font-size:11px}.top-summary-row .monthbar button{width:24px}.cal-day{min-height:63px;padding:4px 3px}.cal-day .cv{font-size:8.5px}}
+
+
+  @media (max-width:420px){.appbar{padding:calc(env(safe-area-inset-top) + 12px) 14px 12px}.monthbar{gap:6px;margin-top:12px}.monthbar button{width:28px;height:28px;flex-basis:28px;font-size:16px}.monthbar .m{font-size:14px;flex-basis:134px;max-width:134px}.monthbar .m .sub{font-size:10px}.summary{margin-top:12px}.summary .lbl{font-size:10px}.summary .val{font-size:16px}}
+
+  /* v23b header layout fix: move month selector into the top row */
+  .appbar .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .appbar h1{flex:0 0 auto;margin-right:4px}
+  .top-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;flex:1 1 auto}
+  .top-actions .monthbar.monthbar-inline{margin-top:0;gap:8px;flex:1 1 210px;min-width:150px;max-width:250px}
+  .top-actions .monthbar.monthbar-inline button{width:30px;height:30px;flex:0 0 30px}
+  .top-actions .monthbar.monthbar-inline .m{flex:1 1 auto;min-width:0;max-width:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .summary{margin-top:10px}
+  @media (max-width:420px){
+    .appbar{padding:calc(env(safe-area-inset-top) + 12px) 14px 12px}
+    .appbar .top{gap:8px}
+    .appbar h1{font-size:16px}
+    .top-actions{gap:6px}
+    .top-actions .monthbar.monthbar-inline{flex:1 1 176px;min-width:140px;max-width:190px;gap:6px}
+    .top-actions .monthbar.monthbar-inline button{width:28px;height:28px;flex-basis:28px;font-size:16px}
+    .top-actions .monthbar.monthbar-inline .m{font-size:14px}
+    .scopepill{padding:7px 10px;font-size:12px}
+    .cloudpill{width:34px;height:34px}
+    .summary{margin-top:8px}
+  }
+

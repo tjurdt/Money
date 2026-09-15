@@ -1,0 +1,39 @@
+/* v22 層：優惠／投資／版面微調
+ *
+ * ⚠️ 這些檔案是「cascade 覆寫層」，不是主題分類。
+ *    .appbar 被宣告 4 次、:root 2 次，後面的層刻意覆寫前面的層。
+ *    調換 index.css 裡的 @import 順序會改變畫面。
+ *    合併重複宣告屬於後續階段的工作，P1 只搬不改。
+ */
+  /* ===== v22 優惠／投資／版面微調 ===== */
+  .discount-summary{display:none;margin:8px 0 0;padding:10px 11px;border:1px solid #ead4a8;border-radius:11px;background:#fff8e8;color:#6f572a;font-size:12px;line-height:1.45}
+  .discount-summary.show{display:flex;align-items:center;justify-content:space-between;gap:10px}.discount-summary .ds-main{min-width:0}.discount-summary b{color:#5d451b}.discount-summary button{flex:none;color:#8a6427;font-weight:700;font-size:12px;padding:5px 7px;border-radius:7px;background:#fff3d6}
+  .discount-sheet{background:#fffaf0}.discount-help{font-size:12px;line-height:1.6;color:var(--muted);background:#fff4d9;border:1px solid #ecd7a5;border-radius:11px;padding:10px 11px;margin-bottom:10px}.discount-help b{color:#725724}
+  .discount-base{display:none;background:rgba(255,255,255,.72);border:1px solid #eadfc8;border-radius:11px;padding:10px;margin-bottom:10px}.discount-base.show{display:block}.discount-base .base-note{font-size:11px;color:var(--faint);margin-top:5px}
+  .discount-list{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}.discount-empty{padding:14px 10px;text-align:center;color:var(--faint);font-size:12px;border:1px dashed #dfd3b9;border-radius:11px;background:rgba(255,255,255,.45)}
+  .discount-rule{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;background:rgba(255,255,255,.75);border:1px solid #eadfc8;border-radius:11px;padding:10px}.discount-rule .dr-title{font-size:13px;font-weight:700;color:#5f4b27}.discount-rule .dr-sub{font-size:11px;color:var(--muted);margin-top:3px}.discount-rule .dr-badge{display:inline-block;margin-left:5px;padding:2px 6px;border-radius:999px;font-size:10px;background:#f6ead0;color:#7a5e2a}.discount-rule .dr-badge.best{background:#e6f5ee;color:#23664e}.discount-rule .dr-badge.off{background:#f1f2f1;color:#8b9490}.discount-rule .dr-actions{display:flex;gap:4px}.discount-rule .dr-actions button{font-size:12px;padding:6px;color:var(--teal)}.discount-rule .dr-actions .danger{color:var(--debt)}
+  .discount-editor{display:none;border-top:1px solid #eadfc8;margin-top:11px;padding-top:11px}.discount-editor.show{display:block}.discount-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px}.discount-type-grid button{min-height:40px;border:1px solid #e4d6ba;border-radius:10px;background:rgba(255,255,255,.75);font-size:12px;color:#6b5834;padding:7px}.discount-type-grid button.on{border-color:#b98e39;background:#fff0cb;color:#694d17;font-weight:700}
+  .discount-editor .field{margin-bottom:10px}.discount-editor select,.discount-editor input{background:#fff!important}.discount-mode{display:grid;grid-template-columns:1fr 1fr;gap:7px}.discount-mode button{min-height:38px;border:1px solid #e3d7bf;border-radius:9px;background:#fff;font-size:12px;color:var(--muted)}.discount-mode button.on{background:#f7ead0;border-color:#d0ab62;color:#6b4e1d;font-weight:700}.discount-mode-note{font-size:11px;color:var(--faint);margin-top:5px;line-height:1.45}
+  .discount-preview{margin-top:10px;padding:11px;border-radius:11px;background:#f7f1e4;border:1px solid #e5d7b9;font-size:12px;line-height:1.55;color:#665332}.discount-preview strong{font-family:var(--num);font-size:16px;color:#3c3323}.discount-preview .saving{color:#9a5b18;font-weight:700}.discount-editor-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.discount-editor-actions button{padding:10px;border-radius:10px;font-size:13px;font-weight:650}.discount-editor-actions .cancel{border:1px solid #e0d5bf;background:#fff;color:var(--muted)}.discount-editor-actions .save{background:#9a6a20;color:#fff}
+  .discount-amount-lock{font-size:11px;color:#8a6427;text-align:center;margin:-5px 0 8px;display:none}.discount-amount-lock.show{display:block}
+  @media(max-width:390px){.discount-type-grid{grid-template-columns:1fr 1fr}.entry-head-tools .tiny-btn#discountBtn{padding-left:6px;padding-right:6px}}
+  /* v23c：折扣輸入即時回饋與可讀性強化 */
+  .discount-echo{font-size:12px;line-height:1.45;margin-top:6px;padding:7px 9px;border-radius:9px;background:#fff3d6;color:#7a5e2a}
+  .discount-echo:empty{display:none}
+  .discount-echo.bad{background:#fbe6de;color:#a5502f}
+  .discount-echo strong{font-family:var(--num)}
+  .discount-editor-live{font-size:12px;line-height:1.45;margin:2px 0 10px;padding:9px 11px;border-radius:10px;background:#eef6f0;border:1px solid #cfe6d8;color:#33654e}
+  .discount-editor-live strong{font-family:var(--num);font-size:14px;color:#1f5a41}
+  .discount-type-grid button{display:flex;flex-direction:column;gap:2px;line-height:1.18;text-align:center;justify-content:center}
+  .discount-type-grid button b{font-size:12px}
+  .discount-type-grid button small{font-size:10px;opacity:.72;font-weight:400}
+  .discount-override-primary{border:1px solid #d0ab62;background:#fff6e2;margin:0 0 10px}
+  .discount-override-primary>summary{font-weight:700;color:#6b4e1d}
+  .discount-section-label{font-size:12px;font-weight:700;color:#7a5e2a;margin:6px 2px 9px;padding-top:11px;border-top:1px solid #eadfc8}
+  /* v23c：優惠 sheet 改為滿版，蓋住底下「新增一筆」標題列，避免頂端兩條標題相疊 */
+  #discountBackdrop{z-index:44}
+  .discount-sheet{top:0;height:100%;max-height:100vh;border-radius:0;z-index:45;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+  .discount-sheet .grab{display:none}
+  .discount-sheet .sheet-hdr{padding-top:calc(env(safe-area-inset-top) + 10px)}
+
+
