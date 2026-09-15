@@ -30,44 +30,10 @@ $('#chartStoreTop10')?.addEventListener('change', (e) => {
   save(K.set, settings);
   renderPie();
 });
-const _renderCharts_v23 = renderCharts;
-renderCharts = function () {
-  _renderCharts_v23();
-  updateChartMergeToggle();
-  renderChartCalendar();
-};
 $('#pieModeSelect')?.addEventListener('change', updateChartMergeToggle);
 $('#barDimSelect')?.addEventListener('change', updateChartMergeToggle);
 
 // 類別選擇完成後，以該分類顏色輕染選擇框；逐項分類比照處理。
-const _syncCompactChoiceLabels_v23 = syncCompactChoiceLabels;
-syncCompactChoiceLabels = function () {
-  _syncCompactChoiceLabels_v23();
-  const b = $('#catSelectBtn'),
-    sb = $('#subSelectBtn');
-  if (b) {
-    if (selCat) {
-      const c = catColor(selCat);
-      b.style.background = colorBg(c, 0.12);
-      b.style.borderColor = colorBg(c, 0.42);
-      b.classList.add('cat-tinted');
-    } else {
-      b.style.background = '';
-      b.style.borderColor = '';
-      b.classList.remove('cat-tinted');
-    }
-  }
-  if (sb) {
-    if (selCat && selSub) {
-      const c = catColor(selCat);
-      sb.style.background = colorBg(c, 0.08);
-      sb.style.borderColor = colorBg(c, 0.32);
-    } else {
-      sb.style.background = '';
-      sb.style.borderColor = '';
-    }
-  }
-};
 function tintItemCategoryRow(row) {
   if (!row) return;
   const cat = row.querySelector('.i-cat')?.value || '',
@@ -364,21 +330,6 @@ $('#recurringDelete')?.addEventListener('click', () => {
   renderSettings();
   toast('已刪除固定支出規則');
 });
-const _renderSettings_v23 = renderSettings;
-renderSettings = function () {
-  _renderSettings_v23();
-  renderRecurringRules();
-};
-const _persistLedgerSnapshot_v23 = persistLedgerSnapshot;
-persistLedgerSnapshot = function (d) {
-  _persistLedgerSnapshot_v23(d);
-  const added = ensureRecurringTransactions();
-  if (added) {
-    renderAll();
-    scheduleCloudSync?.(500);
-  }
-};
-
 // 初始補入到期固定支出，並同步目前顯示。
 const recurringAddedOnInit = ensureRecurringTransactions();
 if (recurringAddedOnInit) renderAll();

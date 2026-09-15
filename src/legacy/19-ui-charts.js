@@ -97,6 +97,9 @@ function renderCharts() {
   renderBar();
   renderTripCompare();
   renderBalance();
+
+  updateChartMergeToggle();
+  renderChartCalendar();
 }
 $('#rangeSeg')
   .querySelectorAll('button')

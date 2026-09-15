@@ -1,0 +1,86 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`切換到投資與設定頁 > 投資頁摘要 1`] = `
+{
+  "已實現": "$0",
+  "成本": "$0",
+  "未實現": "—",
+  "股利": "$0",
+}
+`;
+
+exports[`切換到投資與設定頁 > 設定頁的固定支出區塊 1`] = `""`;
+
+exports[`啟動後的畫面 > 帳目清單 1`] = `
+"<div class="daygroup"><div class="dayhdr"><span>2026/3/5（四）</span><span class="dsum">$-1,155</span></div><div class="rec " style="border-left-color:#0d6e60" data-id="r-plain"><div class="body">
+        <div class="top"><span class="store">全家</span><span class="amt ">$55</span></div>
+        
+        <div class="item">咖啡</div>
+        <div class="meta"><span class="tag cat" style="color:#0d6e60;background:rgba(13,110,96,0.12)">餐食·點心／飲料</span><span class="tag">信用卡</span></div>
+      </div></div><div class="rec " style="border-left-color:#0d6e60" data-id="r-split-even"><div class="body">
+        <div class="top"><span class="store">火鍋店</span><span class="amt ">$600</span></div>
+        <div class="secondary">本筆總額 $1,200 · 我先付款</div>
+        <div class="item">兩人套餐</div>
+        <div class="meta"><span class="tag cat" style="color:#0d6e60;background:rgba(13,110,96,0.12)">餐食·晚餐</span><span class="tag">信用卡</span><span class="tag">我的負擔 $600</span><span class="tag recv">小明此筆應補 $600</span></div>
+      </div></div><div class="rec " data-id="r-peritem"><div class="body">
+        <div class="top"><span class="store">家樂福</span><span class="amt ">$500</span></div>
+        
+        <div class="item">牛奶、洗衣精、原子筆</div>
+        <div class="meta"><span class="tag cat">逐項</span><span class="tag">信用卡</span></div>
+      </div></div></div><div class="daygroup"><div class="dayhdr"><span>2026/3/1（日）</span><span class="dsum">+$50,000</span></div><div class="rec income" data-id="r-income"><div class="body">
+        <div class="top"><span class="store">公司</span><span class="amt pos">+$50,000</span></div>
+        
+        
+        <div class="meta"><span class="tag cat" style="color:#cf9a2b;background:rgba(207,154,43,0.12)">薪資</span><span class="tag">轉帳</span></div>
+      </div></div></div>"
+`;
+
+exports[`啟動後的畫面 > 清單篩選列的狀態 1`] = `
+{
+  "篩選chips": "<button class="chip on" data-f="all">全部</button><button class="chip " data-f="expense">支出</button><button class="chip " data-f="income">收入</button><button class="chip " data-f="split">分帳</button><button class="chip " data-f="settlement">還款</button>",
+  "類型選單": "all",
+}
+`;
+
+exports[`啟動後的畫面 > 頂部收支摘要 1`] = `
+{
+  "支出": "$1,155",
+  "收入": "$50,000",
+  "結餘": "+$48,845",
+}
+`;
+
+exports[`新增帳目表單 > 備註區塊的展開狀態 1`] = `false`;
+
+exports[`新增帳目表單 > 分類選擇鈕的著色 1`] = `
+{
+  "已著色": false,
+  "背景": "(無)",
+  "邊框": "(無)",
+}
+`;
+
+exports[`新增帳目表單 > 四個區塊的顯示狀態 1`] = `
+[
+  {
+    "id": "entryBlockMain",
+    "隱藏": false,
+  },
+  {
+    "id": "entryBlockClassify",
+    "隱藏": false,
+  },
+  {
+    "id": "entryBlockItems",
+    "隱藏": false,
+  },
+  {
+    "id": "entryBlockInvest",
+    "隱藏": true,
+  },
+  {
+    "id": "entryBlockPayment",
+    "隱藏": false,
+  },
+]
+`;

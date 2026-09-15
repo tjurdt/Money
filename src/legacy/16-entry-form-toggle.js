@@ -52,6 +52,8 @@ function updateKindUI() {
   if (k === 'investment') updateInvUI();
   updateRepeatButton();
   updateSplitPreview();
+
+  syncEntryBlocks();
 }
 $('#sheet')
   .querySelectorAll('.ia')
@@ -251,6 +253,10 @@ function openSheet(id) {
   $('#sheet').scrollTop = 0;
   const _cont = $('#saveContinueBtn');
   if (_cont) _cont.style.display = editingId ? 'none' : 'block';
+
+  syncEntryBlocks();
+  const nd = $('#noteDetails');
+  if (nd) nd.open = !!$('#f-note')?.value.trim();
 }
 function closeSheet() {
   $('#backdrop').classList.remove('show');

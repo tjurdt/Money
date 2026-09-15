@@ -40,6 +40,9 @@ function renderFilterChips() {
           `<option value="${esc(x)}" ${listPayFilter === x ? 'selected' : ''}>${esc(x)}</option>`,
       )
       .join('');
+
+  const s = $('#listTypeSelect');
+  if (s) s.value = activeFilter;
 }
 function passFilter(r) {
   const f = activeFilter;
