@@ -1,8 +1,34 @@
-/* ===== 品項批次輸入：一行一項、逗點分欄 ===== */
+/* ===== 品項批次輸入：一行一項、逗點或 $ 分欄 ===== */
+
+/**
+ * 把一行輸入正規化成以逗點分欄的形式。
+ *
+ * 除了逗點，也接受 $ 當作品項與價格之間的分隔（「牛奶$20」）——
+ * 手機打字時 $ 比逗點好按，寫起來也更像實際的價錢標示。
+ *
+ * $ 出現在逗點旁邊時視為裝飾性的幣別符號而非分隔符，直接去掉：
+ *   牛奶,$20   →  牛奶,20      （不會變成「品項,空欄,20」）
+ *   牛奶$20    →  牛奶,20
+ *   拿鐵$65×2,餐食 → 拿鐵,65×2,餐食
+ */
+function normalizeBulkLine(raw) {
+  return (
+    raw
+      // 逗點後面緊接的 $ 是幣別符號
+      .replace(/([,，])\s*[$＄]\s*/g, '$1')
+      // 逗點前面的 $ 同理
+      .replace(/\s*[$＄]\s*([,，])/g, '$1')
+      // 其餘的 $ 才是分隔符
+      .replace(/\s*[$＄]\s*/g, ',')
+  );
+}
+
 function parseBulkItemLine(line, index) {
   const raw = String(line || '').trim();
   if (!raw) return null;
-  const parts = raw.split(/[,，]/).map((x) => x.trim());
+  const parts = normalizeBulkLine(raw)
+    .split(/[,，]/)
+    .map((x) => x.trim());
   if (parts.length < 2) return { error: `第 ${index + 1} 行缺少價格`, raw };
   const name = parts[0],
     amountSpec = (parts[1] || '').replace(/\s+/g, '');

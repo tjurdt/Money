@@ -125,3 +125,25 @@
 .install-card .install-btn:active{opacity:.85}
 .install-card.ok{background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:none}
 .install-card.ok p{opacity:.72}
+
+/* ===== 手機上新增帳目的表單改為全螢幕 =====
+   這是使用頻率最高的畫面，欄位多、又常要捲動。
+   原本 max-height:93vh 會在頂端留一條，捲動時容易誤觸到底下的清單。
+   全螢幕後手勢範圍明確，也更接近原生 App 的表單頁。
+
+   只在手機寬度套用；桌面維持由下方滑入的面板，因為畫面大不需要佔滿。 */
+@media (max-width:700px){
+  #sheet{
+    top:0;
+    bottom:auto;
+    height:100vh;          /* 舊版瀏覽器的後備值 */
+    height:100dvh;         /* 行動瀏覽器的工具列伸縮時才不會被裁掉 */
+    max-height:none;
+    border-radius:0;
+    padding-bottom:calc(20px + env(safe-area-inset-bottom));
+  }
+  /* 全螢幕時沒有「往下拖曳關閉」的意象，拖曳條反而佔空間。 */
+  #sheet .grab{display:none}
+  /* 狀態列為 black-translucent，內容會延伸到瀏海底下，需自行留出安全區。 */
+  #sheet .sheet-hdr{padding-top:calc(env(safe-area-inset-top) + 12px)}
+}
