@@ -14,6 +14,7 @@
 export * from '../core/format.js';
 export * from '../core/date.js';
 export * from '../core/storage.js';
+export * from '../core/schema.js';
 export * from './split.js';
 export * from './stats.js';
 export * from './discount.js';

@@ -60,39 +60,4 @@ function safeUserSettings(v) {
   return x;
 }
 
-/* v1 遷移 */
-(function () {
-  if (load(K.rec, null) !== null) return;
-  const old = load('ledger.records.v1', null);
-  if (!Array.isArray(old)) return;
-  save(
-    K.rec,
-    old.map((r) => ({
-      id: r.id,
-      createdAt: r.createdAt || Date.now(),
-      date: r.date,
-      kind: 'expense',
-      scope: { type: 'daily', trip: null },
-      store: r.store,
-      payment: r.payment,
-      hashtags: r.hashtags || [],
-      note: r.note || '',
-      items:
-        r.item || r.total
-          ? [{ name: r.item || '', price: r.total, category: null, sub: null }]
-          : [],
-      category: r.category || null,
-      sub: null,
-      catMode: 'whole',
-      total: r.total,
-      lending: r.status === 'advance' ? 'advance' : r.status === 'debt' ? 'debt' : null,
-      counterpart: r.counterpart || '',
-      settled: !!r.settled,
-      inv: null,
-    })),
-  );
-  const oc = load('ledger.cats.v1', null);
-  if (Array.isArray(oc)) save(K.ce, oc);
-  const op = load('ledger.pays.v1', null);
-  if (Array.isArray(op)) save(K.pay, op);
-})();
+// v1 遷移已移至 src/core/migrations.js（有版本號、冪等、可單獨測試）。

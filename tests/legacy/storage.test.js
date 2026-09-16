@@ -200,33 +200,74 @@ describe('毀損資料的容錯', () => {
   });
 
   /**
-   * ⚠️ 已知缺陷（P5 第一優先修復）
+   * 這裡原本記錄的是一個嚴重缺陷（見 P0／ARCHITECTURE.md）：
+   * load() 只防 JSON 解析失敗、不檢查型別，若 ledger.v2.records 存到
+   * 「合法 JSON 但不是陣列」的值，啟動時會拋 records.forEach is not a function，
+   * 整段腳本中止 —— 事件監聽全未註冊，app 變成沒有反應的空殼。
    *
-   * `load()` 只防 JSON 解析失敗，不檢查型別。若 ledger.v2.records 存到「合法 JSON
-   * 但不是陣列」的值（雲端同步寫壞、匯入異常、手動編輯），正規化 IIFE 會拋出
-   * `records.forEach is not a function`，inline <script> 當場中止。
-   *
-   * 後果：函式宣告因 hoisting 仍存在，但其後的事件監聽註冊與初始渲染完全不執行
-   * ——App 變成一個沒有任何反應的空殼，且 App 內沒有任何復原途徑。
-   *
-   * 以下測試「釘住」這個錯誤現況。P5 修好之後，這幾條期望值要改成正常啟動。
+   * P5 已修復：載入時經過 schema 驗證，無法使用的值送進隔離區保存，
+   * 該鍵改用預設值，確保 app 一定能啟動。
    */
-  it('[已知缺陷] 帳目不是陣列時，啟動過程中止', () => {
+  it('帳目不是陣列時仍能正常啟動', () => {
     const { errors, close } = bootLegacyApi({
       storage: { 'ledger.v2.records': { oops: true }, 'ledger.v23.seeded': '1' },
     });
-    expect(errors.map((e) => e.message)).toEqual(['records.forEach is not a function']);
+    expect(errors).toEqual([]);
     close();
   });
 
-  it('[已知缺陷] 中止後 App 成為死殼：不渲染、按鈕無反應', () => {
+  it('啟動後畫面正常、按鈕有反應', () => {
     const { api, close } = bootLegacyApi({
       storage: { 'ledger.v2.records': { oops: true }, 'ledger.v23.seeded': '1' },
     });
     const doc = api.document;
-    expect(doc.querySelector('#recordList').innerHTML).toBe('');
+    expect(doc.querySelector('#recordList').innerHTML).toContain('這裡還沒有帳目');
     doc.querySelector('#fab').click();
-    expect(doc.querySelector('#sheet').classList.contains('show')).toBe(false);
+    expect(doc.querySelector('#sheet').classList.contains('show')).toBe(true);
+    close();
+  });
+
+  it('無法使用的原始值被保存在隔離區，而不是被刪掉', () => {
+    // 這些是使用者的帳本資料，就算目前程式碼看不懂也不該直接丟棄。
+    const { api, close } = bootLegacyApi({
+      storage: { 'ledger.v2.records': { oops: true }, 'ledger.v23.seeded': '1' },
+    });
+    const quarantined = api.listQuarantine();
+    expect(quarantined).toHaveLength(1);
+    expect(quarantined[0].quarantineKey).toMatch(/^ledger[.]quarantine[.]ledger[.]v2[.]records[.]/);
+    expect(quarantined[0].key).toBe('ledger.v2.records');
+    expect(quarantined[0].value).toEqual({ oops: true });
+    close();
+  });
+
+  it('資料問題會被記錄下來供介面顯示', () => {
+    const { api, close } = bootLegacyApi({
+      storage: { 'ledger.v2.records': { oops: true }, 'ledger.v23.seeded': '1' },
+    });
+    const issues = api.store.getIntegrityIssues();
+    expect(issues).toContainEqual(expect.objectContaining({ key: 'records', kind: 'quarantined' }));
+    close();
+  });
+
+  it('陣列中個別壞掉的項目被剔除，其餘資料保留', () => {
+    const good = {
+      id: 'keep',
+      kind: 'expense',
+      date: '2026-03-05',
+      total: 100,
+      items: [],
+      split: null,
+      scope: { type: 'daily', trip: null },
+    };
+    const { api, close } = bootLegacyApi({
+      storage: {
+        'ledger.v2.records': [good, null, 'not a record', { 沒有id: true }],
+        'ledger.v23.seeded': '1',
+      },
+    });
+    const records = api.store.get('records');
+    expect(records).toHaveLength(1);
+    expect(records[0].id).toBe('keep');
     close();
   });
 

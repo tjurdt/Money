@@ -26,11 +26,7 @@ function renderSettings() {
       oauthProj = oauthProjectNumber();
     fd.textContent = `股票名稱：${n > 500 ? '本機已有 ' + n.toLocaleString() + ' 筆代號快取' : '可自動下載台股代號表'}。價格：${access ? (settings.financeSheetId ? 'Google Finance 行情橋接已建立' : '白名單已登入；若 Google Finance 尚未建立會自動退回 TWSE／TPEx') : '目前使用 TWSE／TPEx／手動現價；Google Finance 僅限白名單登入後使用'}${oauthProj ? ' · OAuth 專案 ' + oauthProj : ''}`;
   }
-  if (!storageOK) {
-    $('#storageWarn').style.display = 'block';
-    $('#storageWarn').innerHTML =
-      '⚠️ 目前環境不支援瀏覽器儲存，資料只暫存於此分頁。請下載此檔或部署到 GitHub Pages / Netlify 後使用即可永久保存。';
-  }
+  renderDataHealth();
   const nextColor = () => CAT_COLORS[Object.keys(catColors).length % CAT_COLORS.length];
   const renderCatBox = (box, list, key, label) => {
     box.innerHTML =
@@ -342,13 +338,22 @@ $('#importFile').onchange = (e) => {
     try {
       const d = JSON.parse(fr.result);
       if (!Array.isArray(d.records)) throw 0;
+
+      // 匯入的檔案可能來自舊版、別的裝置，或被手動編輯過。
+      // 先過驗證器：能用的留下、壞掉的剔除，不讓壞資料直接寫進帳本。
+      const { records: incoming, dropped } = salvageRecords(d.records);
+      const skipNote = dropped.length ? `\n（有 ${dropped.length} 筆格式無法讀取，將略過）` : '';
+
       if (
         confirm(
-          '要匯入 ' + d.records.length + ' 筆嗎？會與現有資料合併，相同的帳目以匯入版本為準。',
+          '要匯入 ' +
+            incoming.length +
+            ' 筆嗎？會與現有資料合併，相同的帳目以匯入版本為準。' +
+            skipNote,
         )
       ) {
         const by = {};
-        [...records, ...d.records].forEach((r) => (by[r.id] = r));
+        [...records, ...incoming].forEach((r) => (by[r.id] = r));
         records = Object.values(by);
         if (Array.isArray(d.catsExpense))
           catsExpense = [...new Set([...catsExpense, ...d.catsExpense])];
@@ -357,7 +362,10 @@ $('#importFile').onchange = (e) => {
         if (Array.isArray(d.payments)) payments = [...new Set([...payments, ...d.payments])];
         if (Array.isArray(d.trips)) {
           const tb = {};
-          [...trips, ...d.trips].forEach((t) => (tb[t.id] = t));
+          // 只收有識別碼的物件，避免 null 或字串讓這裡拋錯。
+          [...trips, ...d.trips]
+            .filter((t) => t && typeof t === 'object' && t.id != null)
+            .forEach((t) => (tb[t.id] = t));
           trips = Object.values(tb);
         }
         if (d.subcats) subcats = Object.assign({}, subcats, d.subcats);
@@ -447,4 +455,55 @@ if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   window.addEventListener('load', () =>
     navigator.serviceWorker.register('./ledger-sw.js').catch(() => {}),
   );
+}
+
+/**
+ * 設定頁的資料健康狀態。
+ *
+ * 兩種需要讓使用者知道的情況：
+ *   1. 瀏覽器儲存不可用 —— 資料只留在這個分頁，關掉就沒了。
+ *   2. 載入時發現資料問題 —— 有值被隔離或修復過。
+ *
+ * 這些原本都是靜默處理的。資料出問題卻不告知使用者，
+ * 等他們發現時往往已經來不及了。
+ */
+function renderDataHealth() {
+  const box = $('#storageWarn');
+  if (!box) return;
+
+  const notes = [];
+
+  if (!storageOK) {
+    notes.push(
+      '⚠️ 目前環境不支援瀏覽器儲存，資料只暫存於此分頁，關閉後就會消失。' +
+        '請下載此檔或部署到 GitHub Pages / Netlify 後使用即可永久保存。',
+    );
+  }
+
+  for (const issue of store.getIntegrityIssues()) {
+    if (issue.kind === 'quarantined') {
+      notes.push(
+        `⚠️ 載入「${esc(issue.key)}」時發現資料格式不符，已改用預設值。` +
+          '原始資料已完整保留在隔離區，沒有被刪除 —— 需要救回請聯絡維護者。',
+      );
+    } else if (issue.kind === 'repaired') {
+      notes.push(
+        `ℹ️ 載入「${esc(issue.key)}」時剔除了 ${issue.count} 筆無法讀取的項目，其餘資料正常。` +
+          '被剔除的內容已保留在隔離區。',
+      );
+    } else if (issue.kind === 'migration-failed') {
+      notes.push(
+        `⚠️ 資料升級步驟「${esc(issue.key)}」執行失敗：${esc(issue.error)}。` +
+          '既有資料未被更動。',
+      );
+    }
+  }
+
+  if (!notes.length) {
+    box.style.display = 'none';
+    box.innerHTML = '';
+    return;
+  }
+  box.style.display = 'block';
+  box.innerHTML = notes.map((n) => `<div>${n}</div>`).join('');
 }

@@ -17,7 +17,9 @@
  *    `records = [...]` 會通知訂閱者；`records.push(x)` 不會。
  *    就地修改後請呼叫 touch('records')。P4b 會把這點納入渲染訂閱的設計。
  */
-import { K, load, save } from './storage.js';
+import { K, load, save, quarantine } from './storage.js';
+import { validateStateValue } from './schema.js';
+import { runMigrations } from './migrations.js';
 
 /**
  * 受管理的狀態：鍵 → { storageKey, default }。
@@ -60,13 +62,52 @@ const listeners = new Set();
 let initialized = false;
 
 /**
- * 從 localStorage 載入所有狀態。重複呼叫會重新載入（測試用）。
+ * 載入時發現的資料問題。由設定頁讀取後顯示給使用者。
+ * @type {Array<{key: string, kind: 'quarantined'|'repaired', count?: number, quarantineKey?: string}>}
+ */
+let integrityIssues = [];
+
+/**
+ * 從 localStorage 載入所有狀態，並驗證形狀。重複呼叫會重新載入（測試用）。
+ *
+ * 無法使用的值（例如 records 存成物件而非陣列）會被送進隔離區保存，
+ * 該鍵改用預設值 —— 這確保 app 一定能啟動，而不是整段腳本中止後變成空殼。
+ * 陣列中個別壞掉的項目會被剔除，其餘資料保留。
  */
 export function initStore() {
+  integrityIssues = [];
+
+  // 遷移必須先於驗證：舊格式資料在遷移前本來就不符合現行形狀，
+  // 先驗證會把遷移所需的線索抹掉（例如把 split: undefined 補成 null）。
+  const { failed } = runMigrations();
+  for (const f of failed) {
+    integrityIssues.push({ key: f.id, kind: 'migration-failed', error: f.error });
+  }
+
   for (const [key, { storageKey, default: mkDefault }] of Object.entries(SCHEMA)) {
-    state[key] = load(storageKey, mkDefault());
+    const fallback = mkDefault();
+    const raw = load(storageKey, fallback);
+    const { value, fatal, dropped } = validateStateValue(key, raw, fallback);
+
+    if (fatal) {
+      const quarantineKey = quarantine(storageKey, raw, `形狀不符：${key}`);
+      integrityIssues.push({ key, kind: 'quarantined', quarantineKey });
+    } else if (dropped.length) {
+      quarantine(storageKey, dropped, `剔除 ${dropped.length} 筆無法使用的項目：${key}`);
+      integrityIssues.push({ key, kind: 'repaired', count: dropped.length });
+    }
+    state[key] = value;
   }
   initialized = true;
+}
+
+/**
+ * 載入時發現的資料問題清單。空陣列代表資料完好。
+ * @returns {Array<object>}
+ */
+export function getIntegrityIssues() {
+  if (!initialized) initStore();
+  return integrityIssues.slice();
 }
 
 /** 取得一個狀態值。 */

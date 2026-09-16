@@ -72,26 +72,4 @@ let charts = { pie: null, bar: null, trip: null },
   storeAC = null,
   googleLoadPromise = null;
 
-/* 一次性正規化：舊 lending → split */
-(function () {
-  let changed = false;
-  records.forEach((r) => {
-    if (r.kind === 'expense' && r.split === undefined) {
-      if (r.lending) {
-        r.split = {
-          partner: r.counterpart || '',
-          payer: r.lending === 'advance' ? 'me' : 'other',
-          myShare: r.lending === 'advance' ? 0 : r.total,
-          preset: r.lending === 'advance' ? 'none' : 'all',
-          settled: !!r.settled,
-        };
-      } else r.split = null;
-      changed = true;
-    }
-    if (r.sub === undefined) {
-      r.sub = null;
-      changed = true;
-    }
-  });
-  if (changed) save(K.rec, records);
-})();
+// lending → split 正規化已移至 src/core/migrations.js。
