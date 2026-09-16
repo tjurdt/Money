@@ -63,10 +63,20 @@
   border-radius:18px;
   box-shadow:0 18px 48px rgba(20,32,29,.28);
   opacity:0;
-  transition:transform .2s cubic-bezier(.32,.72,0,1),opacity .18s ease;
+  /* 關鍵：其他 sheet 靠 translateY(100%) 移出畫面來隱藏，本面板改為置中淡入，
+     若只設 opacity:0，它仍會以一個看不見的 420px 區塊壓在畫面正中央，
+     吃掉底下清單與表單的點擊與滾動。必須同時關閉命中測試與可見性。 */
+  visibility:hidden;
+  pointer-events:none;
+  transition:transform .2s cubic-bezier(.32,.72,0,1),opacity .18s ease,visibility .18s;
   padding-bottom:18px;
 }
-.mrt-sheet.show{transform:translate(-50%,-50%) scale(1);opacity:1}
+.mrt-sheet.show{
+  transform:translate(-50%,-50%) scale(1);
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+}
 .mrt-sheet .sheet-hdr{
   position:sticky;top:0;z-index:1;
   background:var(--paper);
