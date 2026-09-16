@@ -7,7 +7,7 @@ const scopeLabel = (sc) => {
   if (sc && sc.type === 'all') return '🌐 全部';
   if (!sc || sc.type === 'daily') return '🏠 日常';
   const t = tripById(sc.trip);
-  return t ? (sc.type === 'overseas' ? '✈️ ' : '🚆 ') + t.name : '🧳 已刪除行程';
+  return scopeEntryLabel(t);
 };
 const tripDates = (t) =>
   t && (t.start || t.end) ? md(t.start) + (t.end ? '–' + md(t.end) : '') : '';
@@ -83,7 +83,7 @@ function toast(m) {
   clearTimeout(t._t);
   t._t = setTimeout(() => t.classList.remove('show'), 2200);
 }
-const isTripScope = () => currentScope && ['domestic', 'overseas'].includes(currentScope.type);
+const isTripScope = () => isScopedToEntry(currentScope);
 const inCurrentScope = (r) =>
   currentScope.type === 'all'
     ? true

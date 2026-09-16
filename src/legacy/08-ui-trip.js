@@ -1,27 +1,38 @@
 /* ===== 行程編輯 ===== */
 let tripEditingId = null,
-  tKind = 'domestic';
+  tKind = DEFAULT_SCOPE_KIND;
+
+/** 依選定的類型調整標題、欄位提示與說明文字。 */
+function syncTripKindUI() {
+  const meta = scopeKindMeta(tKind);
+  $('#tkindSeg')
+    .querySelectorAll('.tk')
+    .forEach((x) => x.classList.toggle('on', x.dataset.k === tKind));
+  $('#tripNameLabel').textContent = meta.isTrip ? '行程名稱' : '情境名稱';
+  $('#t-name').placeholder = meta.namePlaceholder;
+  $('#tripSheetTitle').textContent =
+    (tripEditingId ? '編輯' : '新增') + (meta.isTrip ? '行程' : meta.label);
+  $('#tripKindNote').textContent = meta.isTrip
+    ? '旅程有明確起訖，會出現在「各趟旅遊花費」的比較圖中。'
+    : '常設情境是長期持續的支出（孝親費、房貸、寵物…），不會跟日常消費混在一起，也不會進入旅遊比較圖。日期區間可留空。';
+}
+
 $('#tkindSeg')
   .querySelectorAll('.tk')
   .forEach(
     (b) =>
       (b.onclick = () => {
         tKind = b.dataset.k;
-        $('#tkindSeg')
-          .querySelectorAll('.tk')
-          .forEach((x) => x.classList.toggle('on', x === b));
+        syncTripKindUI();
       }),
   );
 function openTripSheet(id, kind) {
   tripEditingId = id;
   const t = id ? tripById(id) : null;
-  $('#tripSheetTitle').textContent = id ? '編輯行程' : '新增行程';
   $('#tripDelete').style.display = id ? 'block' : 'none';
   $('#t-name').value = t ? t.name : '';
-  tKind = t ? t.kind : kind || 'domestic';
-  $('#tkindSeg')
-    .querySelectorAll('.tk')
-    .forEach((x) => x.classList.toggle('on', x.dataset.k === tKind));
+  tKind = isScopeKind(t ? t.kind : kind) ? t?.kind || kind : DEFAULT_SCOPE_KIND;
+  syncTripKindUI();
   $('#t-start').value = t ? t.start || '' : '';
   $('#t-end').value = t ? t.end || '' : '';
   $('#tripBackdrop').classList.add('show');

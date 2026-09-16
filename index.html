@@ -243,9 +243,9 @@
 <div class="backdrop" id="tripBackdrop"></div>
 <div class="sheet" id="tripSheet"><div class="grab"></div><div class="sheet-hdr"><button id="tripCancel">取消</button><h2 id="tripSheetTitle">新增行程</h2><button id="tripSave">儲存</button></div>
   <div class="form">
-    <div class="field"><label>行程名稱</label><input type="text" id="t-name" placeholder="例如：四國 2026" /></div>
-    <div class="field"><label>類型</label><div class="miniseg" id="tkindSeg"><button type="button" class="tk on" data-k="domestic">🚆 國內</button><button type="button" class="tk" data-k="overseas">✈️ 出國</button></div></div>
-    <div class="row2"><div class="field"><label>開始日期<small> 選填</small></label><input type="date" id="t-start" /></div><div class="field"><label>結束日期<small> 選填</small></label><input type="date" id="t-end" /></div></div>
+    <div class="field"><label id="tripNameLabel">行程名稱</label><input type="text" id="t-name" placeholder="例如：四國 2026" /></div>
+    <div class="field"><label>類型</label><div class="miniseg" id="tkindSeg"><button type="button" class="tk on" data-k="domestic">🚆 國內</button><button type="button" class="tk" data-k="overseas">✈️ 出國</button><button type="button" class="tk" data-k="standing">📌 常設</button></div></div>
+    <div class="scope-kind-note" id="tripKindNote"></div><div class="row2"><div class="field"><label>開始日期<small> 選填</small></label><input type="date" id="t-start" /></div><div class="field"><label>結束日期<small> 選填</small></label><input type="date" id="t-end" /></div></div>
     <button class="save-btn" id="tripSaveBottom">儲存</button><button class="del-btn" id="tripDelete" style="display:none">刪除行程</button>
   </div>
 </div>

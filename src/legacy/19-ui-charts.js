@@ -39,7 +39,7 @@ function renderChartScopeChips() {
     ['all', '全部'],
     ['daily', '日常'],
     ['travel', '旅遊'],
-  ].concat(sortedTrips().map((t) => [t.id, (t.kind === 'overseas' ? '✈️' : '🚆') + t.name]));
+  ].concat(sortedTrips().map((t) => [t.id, scopeKindMeta(t.kind).emoji + t.name]));
   const c = $('#chartScopeChips');
   c.innerHTML = opts
     .map(([v, l]) => {
@@ -538,13 +538,16 @@ function renderBar() {
 }
 function renderTripCompare() {
   const card = $('#tripCompareCard');
-  if (!trips.length) {
+  // 只比較「一趟一趟」的旅程。常設情境（孝親費、房貸…）是長期持續的，
+  // 把累積數年的金額跟一趟旅行放在同一張橫向長條圖比較沒有意義。
+  const tripEntries = sortedTrips().filter((t) => isTripKind(t.kind || 'domestic'));
+  if (!tripEntries.length) {
     card.style.display = 'none';
     return;
   }
   card.style.display = '';
-  const totals = sortedTrips().map((t) => ({
-    name: (t.kind === 'overseas' ? '✈️' : '🚆') + t.name,
+  const totals = tripEntries.map((t) => ({
+    name: scopeKindMeta(t.kind).emoji + t.name,
     val: records
       .filter((r) => r.kind === 'expense' && r.scope && r.scope.trip === t.id && inRange(r.date))
       .reduce((s, r) => s + myShareOf(r), 0),
@@ -558,7 +561,7 @@ function renderTripCompare() {
       datasets: [
         {
           data: totals.map((t) => t.val),
-          backgroundColor: totals.map((t) => (t.kind === 'overseas' ? '#3269c0' : '#0d6e60')),
+          backgroundColor: totals.map((t) => scopeKindMeta(t.kind).color),
           borderRadius: 5,
           maxBarThickness: 38,
         },
