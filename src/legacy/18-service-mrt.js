@@ -341,6 +341,9 @@ function updateMrtFareResult() {
 }
 async function openMrtFare() {
   mrtCurrentFare = null;
+  // 每次開啟都重新計次：這份清單只反映「這次開著面板期間加了幾段」。
+  mrtAddedRoutes = [];
+  renderMrtAdded();
   renderMrtRecent();
   renderMrtStations();
   $('#mrtBackdrop').classList.add('show');
@@ -400,30 +403,94 @@ $('#mrtFareType')
         updateMrtFareResult();
       }),
   );
+/**
+ * 本次開啟票價面板後已加入的路程。用於顯示小計，關閉面板時清空。
+ * @type {Array<{from: string, to: string, price: number}>}
+ */
+let mrtAddedRoutes = [];
+
+/** 一段路程在品項中的名稱。 */
+const mrtRouteName = (r) => `捷運 ${r.from} → ${r.to}`;
+
+/** 重繪「本次已加入」清單。 */
+function renderMrtAdded() {
+  const box = $('#mrtAdded');
+  if (!box) return;
+  if (!mrtAddedRoutes.length) {
+    box.hidden = true;
+    box.innerHTML = '';
+    return;
+  }
+  const total = mrtAddedRoutes.reduce((s, r) => s + r.price, 0);
+  box.hidden = false;
+  box.innerHTML =
+    `<div class="hd"><span>本次已加入 ${mrtAddedRoutes.length} 段</span><b>${nf(total)}</b></div>` +
+    '<ul>' +
+    mrtAddedRoutes
+      .map(
+        (r) =>
+          `<li><span class="rt">${esc(r.from)} → ${esc(r.to)}</span><span class="pr">${nf(r.price)}</span></li>`,
+      )
+      .join('') +
+    '</ul>';
+}
+
+/**
+ * 把目前查到的票價加成一條品項。
+ *
+ * 刻意不關閉面板，也不覆寫總金額 —— 一趟出門常常包含好幾段捷運，
+ * 逐段加入品項後由 recomputeTotal() 自動加總，就能在同一筆帳裡記錄完整路線。
+ */
 $('#mrtApply').onclick = () => {
   if (!mrtCurrentFare) return;
-  $('#f-total').value = mrtCurrentFare.price;
-  if (typeof updateEntryTotalMirror === 'function') updateEntryTotalMirror();
-  storeMode = 'single';
-  setStoreMode('single', false);
-  $('#f-store').value = '臺北捷運';
-  selCat = catsExpense.find((c) => c.includes('交通')) || selCat;
-  if (selCat && subcats[selCat]?.some((x) => x.includes('大眾運輸')))
-    selSub = subcats[selCat].find((x) => x.includes('大眾運輸'));
-  const route = `捷運 ${mrtCurrentFare.from} → ${mrtCurrentFare.to}`,
-    $n = $('#f-note');
-  if (!$n.value.includes(route)) $n.value = ($n.value ? $n.value + '；' : '') + route;
-  settings.mrtRecentPairs = [
-    { from: mrtCurrentFare.from, to: mrtCurrentFare.to },
-    ...(settings.mrtRecentPairs || []).filter(
-      (x) => !(x.from === mrtCurrentFare.from && x.to === mrtCurrentFare.to),
-    ),
-  ].slice(0, 6);
+
+  // 票價是支出；若使用者正停在收入／投資，先切回支出再加品項。
+  if (getKind() !== 'expense') {
+    $('#k-expense').checked = true;
+    updateKindUI();
+  }
+
+  // 第一段路程時才設定店家與分類，避免覆蓋使用者後來的手動調整。
+  if (!mrtAddedRoutes.length) {
+    storeMode = 'single';
+    setStoreMode('single', false);
+    if (!$('#f-store').value.trim()) $('#f-store').value = '臺北捷運';
+    selCat = catsExpense.find((c) => c.includes('交通')) || selCat;
+    if (selCat && subcats[selCat]?.some((x) => x.includes('大眾運輸')))
+      selSub = subcats[selCat].find((x) => x.includes('大眾運輸'));
+    renderChipSelectors();
+    renderSubChips();
+    refreshStoreItems();
+  }
+
+  // 展開品項區（不自動補空白列，以免多出一條空品項）。
+  setItemDetailOpen(true, false);
+  addItemRow(mrtRouteName(mrtCurrentFare), mrtCurrentFare.price, selCat || '', selSub || '');
+  recomputeTotal();
+
+  mrtAddedRoutes = [...mrtAddedRoutes, { ...mrtCurrentFare }];
+  renderMrtAdded();
+
+  settings = {
+    ...settings,
+    mrtRecentPairs: [
+      { from: mrtCurrentFare.from, to: mrtCurrentFare.to },
+      ...(settings.mrtRecentPairs || []).filter(
+        (x) => !(x.from === mrtCurrentFare.from && x.to === mrtCurrentFare.to),
+      ),
+    ].slice(0, 6),
+  };
   save(K.set, settings);
   renderMrtRecent();
-  renderChipSelectors();
-  renderSubChips();
-  refreshStoreItems();
-  closeMrtFare();
-  toast(`已帶入捷運票價 ${nf(mrtCurrentFare.price)}`);
+
+  // 多段路程通常是接續的（A→B、B→C），所以把訖站帶成下一段的起站。
+  const lastTo = mrtCurrentFare.to;
+  $('#mrtFrom').value = lastTo;
+  $('#mrtTo').value = '';
+  $('#mrtTo').focus();
+  updateMrtFareResult();
+
+  toast(
+    `已加入 ${mrtRouteName(mrtAddedRoutes[mrtAddedRoutes.length - 1])} ${nf(mrtAddedRoutes[mrtAddedRoutes.length - 1].price)}`,
+  );
 };
