@@ -201,10 +201,10 @@ function renderSettings() {
     ? sortedTrips()
         .map(
           (t) =>
-            `<div class="brow" style="cursor:pointer" data-edit="${t.id}"><div><div class="who">${t.kind === 'overseas' ? '✈️' : '🚆'} ${esc(t.name)}</div>${tripDates(t) ? `<div class="dir">${tripDates(t)}</div>` : ''}</div><span style="color:var(--teal);font-size:13px;font-weight:600">編輯</span></div>`,
+            `<div class="brow" style="cursor:pointer" data-edit="${t.id}"><div><div class="who">${scopeKindMeta(t.kind).emoji} ${esc(t.name)}</div><div class="dir">${scopeKindMeta(t.kind).label}${tripDates(t) ? ' · ' + tripDates(t) : ''}</div></div><span style="color:var(--teal);font-size:13px;font-weight:600">編輯</span></div>`,
         )
         .join('')
-    : '<div class="empty" style="padding:10px;font-size:13px">尚無行程</div>';
+    : '<div class="empty" style="padding:10px;font-size:13px">尚無行程或常設情境</div>';
   $('#tripManage')
     .querySelectorAll('[data-edit]')
     .forEach((b) => (b.onclick = () => openTripSheet(b.dataset.edit)));

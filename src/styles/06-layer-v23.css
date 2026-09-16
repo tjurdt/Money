@@ -48,3 +48,6 @@
 .mrt-added li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 11px;font-size:13px;border-top:1px solid var(--line)}
 .mrt-added li .rt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mrt-added li .pr{font-family:var(--num);font-variant-numeric:tabular-nums;flex:0 0 auto}
+
+/* 情境類型說明（旅程 vs 常設） */
+.scope-kind-note{margin:-4px 0 12px;font-size:12px;line-height:1.5;color:var(--muted)}
