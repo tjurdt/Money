@@ -186,10 +186,6 @@ function itemsPreview(r) {
     .map((i) => i.name + ((+i.qty || 1) > 1 ? ` ×${i.qty}` : ''));
   return n.length ? n.slice(0, 3).join('、') + (n.length > 3 ? ` +${n.length - 3}` : '') : '';
 }
-function splitBalance(r) {
-  if (!r.split) return 0;
-  return r.split.payer === 'me' ? r.total - myShareOf(r) : -myShareOf(r);
-}
 function renderList() {
   const invEvents = derivedInvestmentEvents().filter((r) =>
       listQuery ? true : inCurrentScope(r) && inListPeriod(r.date),

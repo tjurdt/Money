@@ -12,14 +12,21 @@
   JS 拆成 27 個檔案（`src/legacy/`）。
 - **P1b 已完成**：JS 以 Prettier 格式化（990 行 → 8,186 行，每行上限 100 字元）。
 - **P2 已完成**：8 處版本疊加式 monkey-patch 已併回本體函式。
-  目前共 116 條測試。
+- **P3 已完成**：23 個純函式抽成真正的 ES Module（`src/domain/`、`src/core/`）。
+  目前共 122 條測試。
 
 ### 改程式碼要去哪裡
 
 `index.html` 只剩外殼，不要往裡面加 CSS 或 JS。
 
 - 樣式 → `src/styles/`，並在 `index.css` 註冊（順序即 cascade，不可調換）
-- 應用邏輯 → `src/legacy/` 對應的檔案，並在 `build/legacy-manifest.json` 註冊
+- **純計算 → `src/domain/` 或 `src/core/`**，並在 `src/domain/index.js` 匯出。
+  這是首選：真正的 ES Module，測試可直接 import，跑一次不到 1 秒。
+- 其餘（碰 DOM 或全域狀態）→ `src/legacy/` 對應檔案，
+  並在 `build/legacy-manifest.json` 註冊
+
+判斷標準：函式若不需要 `$()`、`document`、`localStorage`，也不讀 `records`、
+`selCat` 這類全域可變狀態，就該放進 domain 層。
 
 `src/legacy/` 的檔案在建置時**依序串接成單一 script**，所以彼此仍共用同一個
 全域作用域 —— 這是為了讓 P1 做到零行為變更的過渡設計，不是最終型態。

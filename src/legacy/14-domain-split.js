@@ -48,9 +48,6 @@ $('#splitCustomModeSeg')
       }),
   );
 $('#f-myshare').addEventListener('input', updateSplitPreview);
-function normalizedSplitPreset(p) {
-  return p === 'all' ? 'mine' : p === 'none' ? 'theirs' : p === 'custom' ? 'own' : p || 'even';
-}
 function currentMyShare(total) {
   if (splitPreset === 'even') return total / 2;
   if (splitPreset === 'mine') return total;

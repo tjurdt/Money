@@ -1,23 +1,7 @@
 /* ===== 工具 ===== */
 const $ = (s) => document.querySelector(s),
   $$ = (s) => document.querySelectorAll(s);
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-const nf = (n) => '$' + Math.round(n).toLocaleString('en-US');
-const esc = (s) =>
-  String(s == null ? '' : s).replace(
-    /[&<>"]/g,
-    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c],
-  );
-const ymKey = (d) => {
-  const t = new Date(d);
-  return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0');
-};
 const sameMonth = (d) => ymKey(d) === ymKey(viewMonth);
-const md = (d) => {
-  if (!d) return '';
-  const t = new Date(d);
-  return t.getMonth() + 1 + '/' + t.getDate();
-};
 const tripById = (id) => trips.find((t) => t.id === id);
 const scopeLabel = (sc) => {
   if (sc && sc.type === 'all') return '🌐 全部';
@@ -33,10 +17,6 @@ const lastRecDate = (id) => {
     if (r.scope && r.scope.trip === id && r.date > m) m = r.date;
   });
   return m;
-};
-const todayISO = () => {
-  const d = new Date();
-  return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
 };
 const sortedTrips = () => {
   const today = todayISO();
@@ -126,16 +106,6 @@ const viewRecords = () =>
 const globalSearchRecords = () => records.filter((r) => r.kind !== 'investment');
 
 /* 我的實際花費（分帳後） */
-function myShareOf(r) {
-  if (r.kind !== 'expense') return 0;
-  if (r.split) return Math.max(0, Math.min(r.split.myShare, r.total));
-  return r.total;
-}
-function splitRatio(r) {
-  if (r.kind !== 'expense') return 0;
-  if (!r.split) return 1;
-  return r.total > 0 ? myShareOf(r) / r.total : 0;
-}
 function paidOutOf(r) {
   if (r.kind !== 'expense') return 0;
   if (r.split && r.split.payer === 'other') return 0;
@@ -148,15 +118,3 @@ function recordCategories(r) {
   return r.category ? [r.category] : [];
 }
 /* 支出分類貢獻（含子分類、分帳比例） */
-function expenseContribs(r) {
-  if (r.kind !== 'expense') return [];
-  const ratio = splitRatio(r);
-  if (ratio <= 0) return [];
-  if (r.items && r.items.length)
-    return r.items.map((it) => ({
-      category: r.catMode === 'perItem' ? it.category || '未分類' : r.category || '未分類',
-      sub: r.catMode === 'perItem' ? it.sub || '' : r.sub || '',
-      amount: (+it.price || 0) * ratio,
-    }));
-  return [{ category: r.category || '未分類', sub: r.sub || '', amount: r.total * ratio }];
-}

@@ -1,4 +1,4 @@
-import { readLegacyBundle, legacyPaths, PLACEHOLDER } from './legacy-bundle.js';
+import { readAppBundle, legacyPaths, DOMAIN_ENTRY, PLACEHOLDER } from './legacy-bundle.js';
 
 /**
  * 把 src/legacy/ 串接後的內容注入 index.html 的佔位註解處。
@@ -18,16 +18,20 @@ export default function legacyBundlePlugin() {
         // $$、$&、$` 當成特殊樣式解讀，而 legacy 程式碼中就有
         // `const $$ = s => document.querySelectorAll(s)` —— 傳字串會讓它被
         // 改寫成 `const $ = ...`，造成重複宣告的 SyntaxError，整個 app 死掉。
-        const bundle = `<script>\n${readLegacyBundle()}\n</script>`;
+        const bundle = `<script>\n${readAppBundle()}\n</script>`;
         return html.replace(PLACEHOLDER, () => bundle);
       },
     },
 
-    // dev server：改動任一 legacy 檔案就整頁重載（單一作用域，無法熱替換）。
+    // dev server：改動 legacy 或 domain 檔案就整頁重載
+    // （legacy 是單一作用域，無法熱替換）。
     configureServer(server) {
-      for (const p of legacyPaths()) server.watcher.add(p);
+      const watched = () => [...legacyPaths(), DOMAIN_ENTRY];
+      for (const p of watched()) server.watcher.add(p);
       server.watcher.on('change', (file) => {
-        if (legacyPaths().includes(file)) server.ws.send({ type: 'full-reload' });
+        // Windows 的路徑分隔符正規化成 '/' 再比對。
+        const inDomain = file.split('\\').join('/').includes('/src/');
+        if (inDomain || legacyPaths().includes(file)) server.ws.send({ type: 'full-reload' });
       });
     },
   };
