@@ -156,12 +156,9 @@ $$('.nav button').forEach(
       $$('.view').forEach((v) => v.classList.remove('active'));
       $('#view-' + b.dataset.view).classList.add('active');
       $('#fab').classList.toggle('settings-hidden', b.dataset.view === 'settings');
-      if (b.dataset.view === 'chart') renderCharts();
-      if (b.dataset.view === 'invest') {
-        renderInvest();
-        maybeRefreshPrices();
-      }
-      if (b.dataset.view === 'settings') renderSettings();
+      // 切到哪個分頁就重繪哪個，不必在這裡列舉每個畫面的渲染函式。
+      activateView(b.dataset.view);
+      if (b.dataset.view === 'invest') maybeRefreshPrices();
       window.scrollTo(0, 0);
     }),
 );

@@ -70,7 +70,7 @@ function saveRepayment() {
       settlement: { partner, direction: repayDir },
     };
   if (repayEditingId) records = records.map((x) => (x.id === repayEditingId ? rec : x));
-  else records.push(rec);
+  else records = [...records, rec];
   save(K.rec, records);
   closeRepaySheet();
   renderAll();

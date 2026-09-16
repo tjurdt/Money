@@ -165,29 +165,32 @@ function ensureRecurringTransactions() {
       const date = recurringOccurrenceDate(y, m, rule.day),
         id = `recurring:${rule.id}:${date}`;
       if (date <= today && !existing.has(id) && !skipped.has(rule.id + '|' + date)) {
-        records.push({
-          id,
-          createdAt: new Date(date + 'T08:00:00').getTime(),
-          updatedAt: Date.now(),
-          date,
-          kind: 'expense',
-          scope: { type: 'daily', trip: null },
-          store: rule.store || '',
-          storeChain: null,
-          storeBranch: null,
-          payment: rule.payment || null,
-          hashtags: [],
-          note: rule.note || '',
-          items: null,
-          catMode: 'whole',
-          category: rule.category || null,
-          sub: rule.sub || null,
-          total: +rule.amount || 0,
-          split: null,
-          inv: null,
-          settlement: null,
-          recurring: { ruleId: rule.id, occurrenceDate: date },
-        });
+        records = [
+          ...records,
+          {
+            id,
+            createdAt: new Date(date + 'T08:00:00').getTime(),
+            updatedAt: Date.now(),
+            date,
+            kind: 'expense',
+            scope: { type: 'daily', trip: null },
+            store: rule.store || '',
+            storeChain: null,
+            storeBranch: null,
+            payment: rule.payment || null,
+            hashtags: [],
+            note: rule.note || '',
+            items: null,
+            catMode: 'whole',
+            category: rule.category || null,
+            sub: rule.sub || null,
+            total: +rule.amount || 0,
+            split: null,
+            inv: null,
+            settlement: null,
+            recurring: { ruleId: rule.id, occurrenceDate: date },
+          },
+        ];
         existing.add(id);
         added++;
       }

@@ -214,7 +214,7 @@ function addItemRow(
     if (catS.value === '__add__') {
       const v = (prompt('新增分類名稱') || '').trim();
       if (v && !catsExpense.includes(v)) {
-        catsExpense.push(v);
+        catsExpense = [...catsExpense, v];
         save(K.ce, catsExpense);
       }
       refreshItemCatSelects();

@@ -53,7 +53,7 @@ function saveTrip() {
     Object.assign(t, { name, kind: tKind, start, end });
   } else {
     t = { id: uid(), name, kind: tKind, start, end };
-    trips.push(t);
+    trips = [...trips, t];
   }
   save(K.trips, trips);
   closeTripSheet();

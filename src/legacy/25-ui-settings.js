@@ -125,7 +125,7 @@ function renderSettings() {
           if (b.dataset.add) {
             const n = (prompt('新增付款方式') || '').trim();
             if (n && !payments.includes(n)) {
-              payments.push(n);
+              payments = [...payments, n];
               save(K.pay, payments);
               renderSettings();
             }
@@ -423,14 +423,66 @@ function renderFirstRunBanner() {
     renderFirstRunBanner();
   };
 }
+/**
+ * 註冊各個畫面，宣告它們依賴哪些 store 狀態。
+ *
+ * 取代原本手動列舉的 renderAll()。新增畫面時在自己的檔案裡 registerView(...)
+ * 即可，不必回頭改這裡 —— 這是 P4b 的重點。
+ *
+ * deps 列出的狀態一旦變動，views.js 就會自動重繪對應畫面（只重繪啟用中的）。
+ */
+registerView({
+  id: 'appbar',
+  // 常駐於畫面頂端，不屬於任何分頁。
+  isActive: () => true,
+  deps: ['records', 'currentScope', 'trips'],
+  render: () => {
+    renderScopePill();
+    renderMonthBar();
+    renderSummary();
+  },
+});
+
+registerView({
+  id: 'list',
+  deps: ['records', 'currentScope', 'trips', 'catsExpense', 'catsIncome', 'payments', 'catColors'],
+  render: () => {
+    renderFilterChips();
+    renderList();
+    renderFirstRunBanner();
+  },
+});
+
+registerView({
+  id: 'chart',
+  deps: ['records', 'currentScope', 'trips', 'catsExpense', 'catColors', 'settings'],
+  render: renderCharts,
+});
+
+registerView({
+  id: 'invest',
+  deps: ['records', 'prices', 'twseCache'],
+  render: renderInvest,
+});
+
+registerView({
+  id: 'settings',
+  deps: ['catsExpense', 'catsIncome', 'payments', 'subcats', 'catColors', 'trips', 'settings'],
+  render: renderSettings,
+});
+
+// store 變動時自動重繪相關畫面（同一輪的多個變動會合併成一次重繪）。
+connectStore();
+
+/**
+ * 重繪所有啟用中的畫面。
+ *
+ * 保留這個名稱是為了讓既有的 22 處呼叫繼續運作。
+ * 資料改動若走 store（重新賦值或 touch），其實已經會自動重繪，
+ * 這裡主要用於「非狀態變動但畫面要更新」的情況，例如切換檢視月份。
+ */
 function renderAll() {
-  renderScopePill();
-  renderMonthBar();
-  renderSummary();
-  renderFilterChips();
-  renderList();
-  renderFirstRunBanner();
-  if ($('#view-chart').classList.contains('active')) renderCharts();
+  renderAllViews();
 }
 {
   const n = new Date();

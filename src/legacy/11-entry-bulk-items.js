@@ -78,7 +78,7 @@ $('#bulkItemApply').onclick = () => {
   if (hasCat) {
     p.items.forEach((x) => {
       if (x.category && !catsExpense.includes(x.category)) {
-        catsExpense.push(x.category);
+        catsExpense = [...catsExpense, x.category];
         if (!catColors[x.category])
           catColors[x.category] = CAT_COLORS[Object.keys(catColors).length % CAT_COLORS.length];
       }

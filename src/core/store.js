@@ -135,10 +135,22 @@ export function set(key, value) {
 /**
  * 宣告某個鍵被「就地修改」了（例如 records.push(...)），藉此通知訂閱者。
  * 存取器攔不到就地修改，因此需要明確呼叫。
+ *
+ * 一般情況請優先用重新賦值（`records = [...records, x]`），存取器會自動處理，
+ * 不必記得呼叫這個函式。只有在迴圈中累積大量變更、重新賦值會造成
+ * O(n²) 的場合，才改用就地修改 ＋ 事後 touch。
  */
 export function touch(key) {
   if (!(key in SCHEMA)) throw new Error(`store 沒有這個鍵：${key}`);
   notify(key);
+}
+
+/**
+ * 一次宣告多個鍵被就地修改。批次匯入這類情境用。
+ * @param {Iterable<string>} keys
+ */
+export function touchMany(keys) {
+  for (const key of keys) touch(key);
 }
 
 /** 把某個鍵的目前值寫入 localStorage。 */

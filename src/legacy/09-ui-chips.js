@@ -114,7 +114,7 @@ function addOption(type) {
     renderSubChips();
   } else {
     if (!payments.includes(v)) {
-      payments.push(v);
+      payments = [...payments, v];
       save(K.pay, payments);
     }
     selPay = v;
