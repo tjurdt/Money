@@ -25,5 +25,6 @@
   "24-service-csv.js",
   "25-ui-settings.js",
   "26-glue-v7-ux.js",
-  "27-glue-v23.js"
+  "27-glue-v23.js",
+  "28-ui-install.js"
 ]

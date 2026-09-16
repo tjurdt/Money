@@ -152,10 +152,11 @@ describe('新增畫面不必改動既有程式碼', () => {
 });
 
 describe('畫面註冊表', () => {
-  it('四個分頁與常駐列都已註冊', () => {
+  it('各分頁與常駐元件都已註冊', () => {
     expect(api.registeredViewIds().sort()).toEqual([
       'appbar',
       'chart',
+      'install',
       'invest',
       'list',
       'settings',

@@ -10,7 +10,8 @@
     "test:watch": "vitest",
     "check": "npm run format:check && npm run build && vitest run",
     "format": "prettier --write \"src/**/*.js\" \"tests/**/*.js\" \"build/**/*.js\" \"scripts/**/*.js\"",
-    "format:check": "prettier --check \"src/**/*.js\" \"tests/**/*.js\" \"build/**/*.js\" \"scripts/**/*.js\""
+    "format:check": "prettier --check \"src/**/*.js\" \"tests/**/*.js\" \"build/**/*.js\" \"scripts/**/*.js\"",
+    "icons": "node scripts/generate-icons.mjs"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,7 @@
     "esbuild": "^0.28.2",
     "jsdom": "^30.0.1",
     "prettier": "^3.9.6",
+    "sharp": "^0.35.4",
     "vite": "^8.3.0",
     "vitest": "^5.0.1"
   },

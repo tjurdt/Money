@@ -2,13 +2,17 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#0d6e60" />
 <meta name="application-name" content="記帳本" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<!-- black-translucent 讓狀態列融入 app 本體，配合 CSS 的 safe-area 內距使用。 -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="記帳本" />
+<meta name="format-detection" content="telephone=no" />
 <link rel="manifest" href="ledger-manifest.webmanifest" />
+<link rel="icon" type="image/png" sizes="32x32" href="ledger-icon-32.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="ledger-icon-192.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="ledger-icon-180.png" />
 <meta name="google-oauth-client-id" content="253312388327-crbnpnapqatie469tmgl657ksj60lc2i.apps.googleusercontent.com" />
@@ -96,6 +100,7 @@
 <section class="view" id="view-settings">
   <div class="warn" id="storageWarn" style="display:none"></div>
   <div class="settings-lead">把不常用的設定收起來，平常只需要碰「分類與付款」。</div>
+  <div class="install-card" id="installCard" hidden></div>
   <details class="setgroup" open><summary>Google 同步</summary><div class="setbody">
     <div class="setrow"><h3>跨裝置同步</h3><p id="settingsCloudText">登入自己的 Google 帳號後，資料只會同步到該帳號的 Google Drive App Data；不同使用者彼此獨立。</p><div class="acts"><button class="btn-outline" id="settingsCloudBtn">設定 / 登入 Google</button><button class="btn-outline" id="settingsSyncBtn" style="display:none">立即同步</button></div></div>
   </div></details>
@@ -307,7 +312,7 @@
 </div></div>
 
 <div class="backdrop" id="mrtBackdrop"></div>
-<div class="sheet mrt-sheet" id="mrtSheet"><div class="grab"></div><div class="sheet-hdr"><button id="mrtCancel">關閉</button><h2>臺北捷運票價</h2><button id="mrtApply" disabled>加入品項</button></div><div class="form"><div class="row2"><div class="field"><label>起站</label><input type="text" id="mrtFrom" list="mrtStationList" placeholder="例如：明德"></div><div class="field"><label>訖站</label><input type="text" id="mrtTo" list="mrtStationList" placeholder="例如：台北車站"></div></div><div class="field"><label>票種</label><div class="miniseg" id="mrtFareType"><button type="button" data-t="full" class="on">一般／儲值卡</button><button type="button" data-t="discount">敬老／愛心／雙北兒童</button></div></div><div class="short-suggest" id="mrtRecent" style="margin:2px 0 10px"></div><div class="mrt-result" id="mrtResult">選擇起訖站後會自動查官方票價。</div><div class="mrt-added" id="mrtAdded" hidden></div><div class="mrt-load-actions"><button class="tiny-btn" type="button" id="mrtRetry">重新載入票價</button></div><div class="csv-note">票價來源為臺北捷運／臺北市政府公開資料。一般儲值卡先扣全票；常客優惠屬次月回饋，因此此快捷記錄當次扣款金額。</div></div></div>
+<div class="sheet mrt-sheet" id="mrtSheet" role="dialog" aria-modal="true" aria-labelledby="mrtTitle"><div class="sheet-hdr"><h2 id="mrtTitle">臺北捷運票價</h2><button type="button" class="modal-close" id="mrtCancel" aria-label="關閉">✕</button></div><div class="form"><div class="row2"><div class="field"><label>起站</label><input type="text" id="mrtFrom" list="mrtStationList" placeholder="例如：明德"></div><div class="field"><label>訖站</label><input type="text" id="mrtTo" list="mrtStationList" placeholder="例如：台北車站"></div></div><div class="field"><label>票種</label><div class="miniseg" id="mrtFareType"><button type="button" data-t="full" class="on">一般／儲值卡</button><button type="button" data-t="discount">敬老／愛心／雙北兒童</button></div></div><div class="short-suggest" id="mrtRecent" style="margin:2px 0 10px"></div><div class="mrt-result" id="mrtResult">選擇起訖站後會自動查官方票價。</div><button class="save-btn mrt-add-btn" type="button" id="mrtApply" disabled>加入品項</button><div class="mrt-added" id="mrtAdded" hidden></div><div class="mrt-load-actions"><button class="tiny-btn" type="button" id="mrtRetry">重新載入票價</button></div><div class="csv-note">票價來源為臺北捷運／臺北市政府公開資料。一般儲值卡先扣全票；常客優惠屬次月回饋，因此此快捷記錄當次扣款金額。</div></div></div>
 
 <div class="ocr-overlay" id="ocrOverlay"><div class="ocr-card"><h3 id="ocrTitle">正在辨識發票</h3><img class="ocr-preview" id="ocrPreview" alt="發票預覽"><div class="progress"><i id="ocrProgress"></i></div><div class="ocr-status" id="ocrStatus">準備 OCR…</div><div class="ocr-review" id="ocrReview"><div class="ocr-review-grid"><div class="field"><label>日期</label><input type="date" id="ocrDate"></div><div class="field"><label>總額</label><input type="number" id="ocrTotal" inputmode="decimal"></div></div><div class="csv-note" style="margin-bottom:12px">這裡不再嘗試猜店家名稱，專注把「品項＋價格」拆正確。店家可回到記帳畫面再選填。</div><div class="field"><label>辨識品項 <small>依發票列與價格欄重建，可直接修正</small></label><div class="ocr-review-items" id="ocrReviewItems"></div><button class="additem" id="ocrAddItem" type="button" style="margin-top:7px">＋ 補一個品項</button></div><div class="ocr-check" id="ocrCheck"></div><div class="ocr-actions"><button class="btn-outline" id="ocrDiscard" type="button">放棄</button><button class="save-btn" id="ocrApply" type="button" style="margin-top:0;padding:11px">套用到記帳</button></div></div><button class="btn-outline" id="ocrCancel" style="width:100%;margin-top:10px">取消</button></div></div>
 

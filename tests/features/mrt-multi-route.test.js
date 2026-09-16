@@ -162,3 +162,44 @@ describe('票種切換', () => {
     expect(itemRows()[0].price).toBe('25');
   });
 });
+
+describe('置中懸浮窗的結構', () => {
+  beforeEach(() => api.eval('openMrtFare();'));
+
+  it('有右上角關閉鈕', () => {
+    const btn = doc.querySelector('#mrtSheet .modal-close');
+    expect(btn).not.toBeNull();
+    expect(btn.id).toBe('mrtCancel');
+    expect(btn.getAttribute('aria-label')).toBe('關閉');
+  });
+
+  it('關閉鈕可以關掉面板', () => {
+    doc.querySelector('#mrtCancel').click();
+    expect(doc.querySelector('#mrtSheet').classList.contains('show')).toBe(false);
+  });
+
+  it('主要動作按鈕存在且一開始是停用的', () => {
+    // 這顆按鈕曾在改版時被誤刪，導致整段初始化中斷、app 變成空殼。
+    const apply = doc.querySelector('#mrtApply');
+    expect(apply).not.toBeNull();
+    expect(apply.disabled).toBe(true);
+  });
+
+  it('標示為對話框，供輔助工具辨識', () => {
+    const sheet = doc.querySelector('#mrtSheet');
+    expect(sheet.getAttribute('role')).toBe('dialog');
+    expect(sheet.getAttribute('aria-modal')).toBe('true');
+  });
+});
+
+describe('不自動彈出鍵盤', () => {
+  it('加入路程後不會把焦點移到輸入框', () => {
+    // 手機上 focus() 會立刻彈出鍵盤蓋住剛加入的清單，
+    // 但使用者多半只是想確認加對了。
+    api.eval('openMrtFare();');
+    addRoute('台北車站', '淡水');
+    const active = doc.activeElement;
+    expect(active?.id).not.toBe('mrtTo');
+    expect(active?.id).not.toBe('mrtFrom');
+  });
+});
