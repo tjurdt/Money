@@ -144,10 +144,6 @@ $('#calendarNext')?.addEventListener('click', () => {
 function recurringRules() {
   return Array.isArray(settings.recurringRules) ? settings.recurringRules : [];
 }
-function recurringOccurrenceDate(y, m, day) {
-  const last = new Date(y, m + 1, 0).getDate();
-  return `${y}-${String(m + 1).padStart(2, '0')}-${String(Math.min(last, Math.max(1, +day || 1))).padStart(2, '0')}`;
-}
 function ensureRecurringTransactions() {
   const rules = recurringRules(),
     today = todayISO(),

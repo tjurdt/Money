@@ -37,7 +37,7 @@ tests/                  Vitest
 | **P1** | 機械搬運：CSS 拆 6 層、JS 拆 27 檔（只搬不改） | ✅ 完成 |
 | **P1b** | Prettier 格式化（每行上限 100 字元） | ✅ 完成 |
 | **P2** | 拆除 8 處 monkey-patch，合併回本體 | ✅ 完成 |
-| **P3** | 抽出純函式 domain 層，與 DOM 解耦 | ⬜ 待辦 |
+| **P3** | 抽出純函式 domain 層，與 DOM 解耦 | ✅ 完成 |
 | **P4** | 單向資料流：24 個全域 → store + subscribe | ⬜ 待辦 |
 | **P5** | 資料安全補強 | ⬜ 待辦 |
 | **P6** | 防退化：ESLint 規則、`npm run check` | ⬜ 待辦 |
@@ -203,6 +203,66 @@ DOM 快照亦確認畫面無變化。
 已實測：刻意加回一處 monkey-patch，兩條檢查立即失敗。
 
 測試數 102 → 116。
+
+## P3 產出（已完成）
+
+第一次產生**真正的 ES Module**。以工具客觀判定純度（檢查是否觸及 DOM／IO／全域可變狀態），
+把 23 個純函式搬進 `src/domain/` 與 `src/core/`。
+
+```
+src/core/format.js      uid nf esc
+src/core/date.js        todayISO ymKey md
+src/domain/split.js     myShareOf splitBalance splitRatio normalizedSplitPreset
+src/domain/stats.js     expenseContribs
+src/domain/discount.js  折扣引擎 13 個匯出（money2 … calculateDiscountPlan）
+src/domain/invest.js    estimateCathayStockCosts ＋ 三個費率常數
+src/domain/recurring.js recurringOccurrenceDate
+src/domain/index.js     匯出進入點
+```
+
+### 兩層如何共存
+
+`src/legacy/` 仍是單一作用域的 classic script，看不到模組匯入。
+過渡做法：`build/legacy-bundle.js` 用 esbuild 把 `src/domain/index.js` 打包成 IIFE，
+在 legacy 之前執行並 `Object.assign(globalThis, ...)`，讓 legacy 照原樣呼叫。
+
+只有「暴露給 legacy」這一步是過渡性的 —— domain 層本身是乾淨的真模組。
+P4 legacy 消失後改為一般 import，這段接線一併移除。
+
+`tests/domain-wiring.test.js` 守住這層接線：每個匯出都必須在全域取得、
+簽名一致、算出相同結果，且 legacy 內不得殘留同名的舊定義（否則會覆蓋掉模組版本）。
+
+### 測試的實質改善
+
+純函式測試不再需要 jsdom，直接 `import` 模組：
+
+| | 之前（jsdom harness） | 之後（直接 import） |
+|---|---|---|
+| 5 個測試檔、58 條 | 約 11 秒 | **0.53 秒** |
+
+失敗訊息也直接指向模組，不必再從 `window` 上撈函式。
+
+### 刻意改變的行為
+
+`splitBalance()` 在「對方請客」情境原本回傳 `-0`（P0 記錄的怪癖），
+抽成模組時正規化為 `+0`。特徵化測試如預期地擋下這個改動，
+確認是刻意後才更新期望值 —— 這正是 P0 建立安全網的目的。
+
+### 瘦身結果
+
+| 檔案 | 之前 | 之後 |
+|---|---|---|
+| `12-domain-discount.js` | 503 | **235** |
+| `16-entry-form-toggle.js` | 443 | 425 |
+| `04-core-utils.js` | 162 | 120 |
+
+`src/legacy/` 7,820 行；`src/domain/` + `src/core/` 519 行。
+測試 116 → 122 條。
+
+### 尚未抽出的部分
+
+`investStatsForRange`（持股成本與損益）讀取全域 `records` / `prices` / `inRange`，
+不是純函式。待 P4 狀態集中後再抽。
 
 ## 資料模型
 

@@ -17,6 +17,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import { buildSync } from 'esbuild';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -45,5 +46,46 @@ export function readLegacyBundle() {
   ).join('\n');
 }
 
-/** index.html 內的佔位註解，legacy bundle 會取代它。 */
+/** index.html 內的佔位註解，整段 app 程式碼會取代它。 */
 export const PLACEHOLDER = '<!-- LEGACY_BUNDLE -->';
+
+/** domain 層的匯出進入點。 */
+export const DOMAIN_ENTRY = resolve(ROOT, 'src/domain/index.js');
+
+/** 打包成 IIFE 時使用的暫時全域名稱。 */
+const DOMAIN_GLOBAL = '__ledgerDomain';
+
+/**
+ * 把 src/domain/ 打包成一段 IIFE，並將所有匯出掛上 globalThis。
+ *
+ * 為什麼要掛上全域：legacy 程式碼是 classic script（單一作用域），
+ * 看不到 ES Module 的匯入。在 P4 把 legacy 完全模組化之前，
+ * 這是讓兩者共存的最小代價 —— domain 層本身是乾淨的真模組，
+ * 可以直接 import 進測試；只有「暴露給 legacy」這一步是過渡性的。
+ *
+ * 用 buildSync 而非 build：測試的 harness 是同步的。
+ * @returns {string}
+ */
+export function readDomainBundle() {
+  const out = buildSync({
+    entryPoints: [DOMAIN_ENTRY],
+    bundle: true,
+    format: 'iife',
+    globalName: DOMAIN_GLOBAL,
+    target: 'es2020',
+    write: false,
+    logLevel: 'silent',
+  });
+  const code = out.outputFiles[0].text;
+  const header = '/* ===== domain 層（由 src/domain/ 打包，暫時掛上全域供 legacy 呼叫）===== */';
+  const expose = `Object.assign(globalThis, ${DOMAIN_GLOBAL});`;
+  return [header, code, expose].join('\n');
+}
+
+/**
+ * 要注入 index.html 的完整 app 程式碼：domain 層在前，legacy 在後。
+ * @returns {string}
+ */
+export function readAppBundle() {
+  return [readDomainBundle(), readLegacyBundle()].join('\n');
+}

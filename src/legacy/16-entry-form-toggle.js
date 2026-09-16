@@ -67,24 +67,6 @@ $('#sheet')
         updateInvUI();
       }),
   );
-const CATHAY_STOCK_FEE_RATE = 0.000399,
-  TW_STOCK_TAX_RATE = 0.003,
-  TW_DAYTRADE_TAX_RATE = 0.0015;
-function estimateCathayStockCosts(sh, pr, action, dayTrade = false) {
-  const value = Math.max(0, Math.floor((+sh || 0) * (+pr || 0))),
-    commission = value ? Math.round(value * CATHAY_STOCK_FEE_RATE) : 0,
-    tax =
-      action === 'sell' && value
-        ? Math.round(value * (dayTrade ? TW_DAYTRADE_TAX_RATE : TW_STOCK_TAX_RATE))
-        : 0;
-  return {
-    value,
-    commission,
-    tax,
-    total: commission + tax,
-    taxRate: action === 'sell' ? (dayTrade ? TW_DAYTRADE_TAX_RATE : TW_STOCK_TAX_RATE) : 0,
-  };
-}
 function syncInvestmentFee() {
   const auto = $('#f-auto-fee')?.checked !== false,
     sh = +$('#f-shares').value || 0,
