@@ -38,7 +38,8 @@ tests/                  Vitest
 | **P1b** | Prettier 格式化（每行上限 100 字元） | ✅ 完成 |
 | **P2** | 拆除 8 處 monkey-patch，合併回本體 | ✅ 完成 |
 | **P3** | 抽出純函式 domain 層，與 DOM 解耦 | ✅ 完成 |
-| **P4** | 單向資料流：24 個全域 → store + subscribe | ⬜ 待辦 |
+| **P4a** | store 收攏持久化狀態 | ✅ 完成 |
+| **P4b** | 渲染改為訂閱制，legacy 轉真模組 | ⬜ 待辦 |
 | **P5** | 資料安全補強 | ⬜ 待辦 |
 | **P6** | 防退化：ESLint 規則、`npm run check` | ⬜ 待辦 |
 
@@ -263,6 +264,59 @@ P4 legacy 消失後改為一般 import，這段接線一併移除。
 
 `investStatsForRange`（持股成本與損益）讀取全域 `records` / `prices` / `inRange`，
 不是純函式。待 P4 狀態集中後再抽。
+
+## P4a 產出（已完成）
+
+把 11 個「有持久化、跨模組共享」的狀態收攏進 `src/core/store.js`：
+
+```
+records  catsExpense  catsIncome  payments  subcats  prices
+twseCache  catColors  trips  currentScope  settings
+```
+
+儲存層也一併抽成真模組 `src/core/storage.js`（`K`、`load`、`save`、`storageOK`）。
+
+### 為什麼 legacy 幾乎沒有改動
+
+`store.installGlobals()` 會為每個狀態鍵在 `globalThis` 上定義 getter/setter，
+因此 `src/legacy/` 裡既有的 `records = x`、`settings.osm` 等寫法**原封不動**繼續運作，
+但讀寫都落到 store 上、並會通知訂閱者。
+
+這讓 P4a 不必改動數百處讀取點 —— 只刪掉了 11 個 `let` 宣告。
+P4b 把 UI 拆成模組後，那些模組改為明確 `import`，屆時移除全域存取器。
+
+### 已知限制
+
+存取器只攔得到**重新賦值**，攔不到**就地修改**：
+
+```js
+records = [...]      // 會通知訂閱者
+records.push(x)      // 不會
+catColors[c] = '#f00' // 不會
+```
+
+就地修改後需呼叫 `store.touch('records')`。P4b 設計渲染訂閱時必須把這點納入，
+否則會出現「資料變了但畫面沒更新」。
+
+### 刻意保留的行為
+
+`store.set()` **不會**自動寫入 localStorage。持久化仍由呼叫端明確執行
+（legacy 目前是 `save(K.rec, records)`），以免每次暫時性變動都打到儲存層。
+統一持久化時機是 P4b／P5 的工作。
+
+### 守住接線
+
+這層接線最危險的失敗方式是**靜默失效**：legacy 若不小心又宣告了 `let records`，
+就會在自己的作用域產生一份影子副本 —— app 表面照常運作，
+但 store 與畫面看到的是兩份不同的資料。
+
+`tests/store-wiring.test.js` 擋下這種情況：
+每個狀態鍵在全域上必須是存取器、legacy 讀到的必須與 store 是**同一個物件**、
+雙向賦值都要生效、且 `src/legacy/` 不得有任何狀態鍵的頂層宣告。
+
+已實測：刻意加回一行 `let records = []`，9 條測試中 5 條立即失敗。
+
+測試 122 → 146 條（store 單元測試 15、接線測試 9）。
 
 ## 資料模型
 
