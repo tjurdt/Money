@@ -48,11 +48,14 @@ function renderChartScopeChips() {
     })
     .join('');
   const names = opts.filter(([v]) => v !== 'all' && selectedScopes.has(v)).map(([, l]) => l);
-  $('#chartScopeSummary').textContent = selectedScopes.size
+  const picked = selectedScopes.size
     ? names.length <= 2
-      ? '情境：' + names.join('、')
-      : `情境：已選 ${selectedScopes.size} 項`
-    : '情境：全部';
+      ? names.join('、')
+      : `已選 ${selectedScopes.size} 項`
+    : '全部';
+  $('#chartScopeSummary').textContent = chartScopeManual
+    ? `情境：${picked}（已手動調整）`
+    : `情境：${picked}（跟隨上方）`;
   c.querySelectorAll('.chip').forEach(
     (b) =>
       (b.onclick = () => {
@@ -61,6 +64,8 @@ function renderChartScopeChips() {
         else {
           selectedScopes.has(v) ? selectedScopes.delete(v) : selectedScopes.add(v);
         }
+        // 使用者自行調整後就不再跟著右上角情境，直到下次切換情境。
+        chartScopeManual = true;
         renderChartScopeChips();
         renderStatKpis();
         renderPie();
@@ -101,12 +106,82 @@ function renderCharts() {
   updateChartMergeToggle();
   renderChartCalendar();
 }
+/* ===== 圖表跟隨右上角情境 ===== */
+
+/**
+ * 圖表的情境篩選是否已被手動調整過。
+ *
+ * 預設情況下圖表跟著右上角的情境走；但使用者仍可在圖表頁自行勾選
+ * 別的組合（例如同時比較兩趟旅行）。此時標記為手動模式，
+ * 直到下次切換右上角情境才重新同步。
+ */
+let chartScopeManual = false;
+
+/** 目前的時間區間是否由情境自動帶入（而非使用者手選）。 */
+let chartRangeFromScope = false;
+
+/** 把 currentScope 轉成圖表用的情境篩選集合。 */
+function chartScopesForCurrent() {
+  if (!currentScope || currentScope.type === 'all') return new Set();
+  if (currentScope.type === 'daily') return new Set(['daily']);
+  return currentScope.trip ? new Set([currentScope.trip]) : new Set();
+}
+
+/**
+ * 讓圖表對齊右上角的情境。
+ *
+ * 除了篩選範圍，若該情境設有時間區間（例如一趟旅行 4/8–4/15），
+ * 也會把圖表的時間範圍對齊過去 —— 看某趟旅行的統計時，
+ * 時間軸自然應該落在那段期間，而不是停在「本月」。
+ *
+ * 常設情境（孝親費這類）通常不設區間，此時不動時間範圍。
+ */
+function syncChartToCurrentScope() {
+  chartScopeManual = false;
+  selectedScopes = chartScopesForCurrent();
+
+  const entry = currentScope && currentScope.trip ? tripById(currentScope.trip) : null;
+  const range = entry ? scopeDateRange(entry) : null;
+
+  if (range) {
+    chartRange = 'custom';
+    customFrom = range.from || '';
+    customTo = range.to || '';
+    chartRangeFromScope = true;
+  } else if (chartRangeFromScope) {
+    // 先前的區間是跟著情境自動帶入的，離開該情境就還原成預設，
+    // 以免停在一段與目前情境無關的日期上。
+    // 使用者自己手選的範圍則不動。
+    chartRange = 'month';
+    customFrom = '';
+    customTo = '';
+    chartRangeFromScope = false;
+  }
+
+  const fromEl = $('#chartFrom');
+  const toEl = $('#chartTo');
+  if (fromEl) fromEl.value = customFrom || '';
+  if (toEl) toEl.value = customTo || '';
+}
+
+// 右上角情境一變動就重新對齊圖表。
+// 用 store 訂閱而不是直接改 selectScope()，這樣不論從哪裡改動情境都會生效。
+store.subscribe((key) => {
+  if (key !== 'currentScope') return;
+  syncChartToCurrentScope();
+});
+
+// 初始對齊一次，讓重新載入頁面時圖表與情境一致。
+syncChartToCurrentScope();
+
 $('#rangeSeg')
   .querySelectorAll('button')
   .forEach(
     (b) =>
       (b.onclick = () => {
         chartRange = b.dataset.r;
+        // 使用者自己選了時間範圍，之後切換情境就不再覆寫它。
+        chartRangeFromScope = false;
         if (chartRange === 'custom' && !customFrom) {
           const n = new Date();
           customFrom = new Date(n.getFullYear(), n.getMonth(), 1).toISOString().slice(0, 10);
