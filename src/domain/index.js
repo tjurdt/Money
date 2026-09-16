@@ -20,6 +20,7 @@ export * from './stats.js';
 export * from './discount.js';
 export * from './invest.js';
 export * from './recurring.js';
+export * from '../core/views.js';
 
 import * as store from '../core/store.js';
 

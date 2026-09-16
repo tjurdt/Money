@@ -379,7 +379,7 @@ function saveRecord(cont) {
     inv,
   };
   if (editingId) records = records.map((x) => (x.id === editingId ? rec : x));
-  else records.push(rec);
+  else records = [...records, rec];
   const wasEditing = !!editingId;
   save(K.rec, records);
   if (k === 'expense' && storeMode === 'chain' && $('#f-chain').value.trim()) {

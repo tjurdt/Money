@@ -39,7 +39,8 @@ tests/                  Vitest
 | **P2** | 拆除 8 處 monkey-patch，合併回本體 | ✅ 完成 |
 | **P3** | 抽出純函式 domain 層，與 DOM 解耦 | ✅ 完成 |
 | **P4a** | store 收攏持久化狀態 | ✅ 完成 |
-| **P4b** | 渲染改為訂閱制，legacy 轉真模組 | ⬜ 待辦 |
+| **P4b** | 渲染改為訂閱制（畫面註冊表） | ✅ 完成 |
+| **P4c** | legacy 轉真模組，移除全域存取器與串接機制 | ⬜ 待辦 |
 | **P5** | 資料安全補強（核心） | ✅ 完成 |
 | **P5b** | 快照回復、Drive 衝突合併 | ⬜ 待辦 |
 | **P6** | 防退化：ESLint 規則、`npm run check` | ⬜ 待辦 |
@@ -382,6 +383,66 @@ P0 記錄、列為第一優先的嚴重缺陷已修復。
   但還沒有「回到昨天的版本」這種回復能力。
 - **Drive 同步衝突合併** —— 目前接近後寫覆蓋，需改為依 `updatedAt` 逐筆合併。
   這牽涉 `22-service-drive.js`（747 行），改動面大，單獨處理較安全。
+
+## P4b 產出（已完成）
+
+把渲染從「中央列舉」改成「各自訂閱」。
+
+### 原本的問題
+
+```js
+function renderAll() {
+  renderScopePill(); renderMonthBar(); renderSummary();
+  renderFilterChips(); renderList(); renderFirstRunBanner();
+  if (圖表頁是開的) renderCharts();
+}
+```
+
+再加上 22 處手動呼叫 `renderAll()`，以及分頁切換處的
+`if (view === 'chart') renderCharts();`。兩個後果：
+
+1. 新增一個畫面，得回頭改 `renderAll()`、改分頁切換 —— 漏改就是畫面不同步。
+2. 改了資料卻忘記呼叫 `renderAll()`，畫面就停在舊資料上。
+
+### 現在
+
+`src/core/views.js` 提供註冊表。畫面自己宣告依賴哪些狀態：
+
+```js
+registerView({
+  id: 'list',
+  deps: ['records', 'currentScope', 'trips', 'catsExpense', ...],
+  render: () => { renderFilterChips(); renderList(); renderFirstRunBanner(); },
+});
+```
+
+store 一變動就自動重繪相關且啟用中的畫面。分頁切換改用 `activateView(id)`，
+不再列舉每個畫面的渲染函式。
+
+**新增畫面只要在自己的檔案裡 `registerView(...)`，不必動任何既有程式碼。**
+這點由 `tests/reactive-render.test.js` 實際驗證：註冊一個新畫面後，
+它會跟著狀態變動自動重繪。
+
+### 設計細節
+
+- **合併重繪**：同一輪的多個狀態變動在微任務中合併，只觸發一次重繪。
+- **只重繪啟用中的畫面**：隱藏的分頁不做無謂的 DOM 操作。
+- **錯誤隔離**：單一畫面拋錯不影響其他畫面 —— 一個畫面壞掉不該讓整個介面停止更新。
+- **防無限迴圈**：重繪過程中若改到狀態，不會再觸發新一輪重繪。
+
+### 補上 P4a 的缺口
+
+P4a 的全域存取器只攔得到重新賦值，攔不到就地修改 ——
+訂閱制若建立在這個缺口上，會出現「資料變了但畫面沒更新」。
+
+因此把 8 處 `X.push(v)` 改成 `X = [...X, v]`，讓存取器自然捕捉到。
+CSV 批次匯入是唯一例外：迴圈中逐筆重新賦值會是 O(n²)，
+維持就地修改並在迴圈後以 `store.touchMany([...])` 一次通知。
+
+**規則**：一般情況用重新賦值（自動生效，不必記得任何事）；
+只有批次迴圈才用就地修改 ＋ 事後 `touch`。
+
+測試 198 → 221 條。
 
 ## 資料模型
 

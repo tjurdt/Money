@@ -229,6 +229,9 @@ $('#csvImportDo').onclick = () => {
   save(K.pay, payments);
   save(K.sub, subcats);
   save(K.cc, catColors);
+  // 上面的迴圈刻意用就地修改（逐筆重新賦值會是 O(n²)），
+  // 存取器攔不到，因此在這裡一次通知 store 的訂閱者。
+  store.touchMany(['records', 'catsExpense', 'catsIncome', 'payments', 'subcats', 'catColors']);
   closeCsvSheet();
   renderAll();
   renderSettings();
