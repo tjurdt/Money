@@ -487,7 +487,8 @@ $('#mrtApply').onclick = () => {
   const lastTo = mrtCurrentFare.to;
   $('#mrtFrom').value = lastTo;
   $('#mrtTo').value = '';
-  $('#mrtTo').focus();
+  // 刻意不 focus()：手機上會立刻彈出鍵盤蓋住剛加入的清單，
+  // 使用者往往只是想確認加對了，而不是馬上輸入下一段。
   updateMrtFareResult();
 
   toast(

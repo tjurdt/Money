@@ -2,7 +2,16 @@
 // 開發時維持原樣，快取名稱固定，不影響行為。
 const BUILD_ID = '__BUILD_ID__';
 const CACHE = 'ledger-shell-' + BUILD_ID;
-const SHELL = ['./', './ledger-manifest.webmanifest', './ledger-icon-180.png', './ledger-icon-192.png', './ledger-icon-512.png'];
+const SHELL = [
+  './',
+  './ledger-manifest.webmanifest',
+  './ledger-icon-32.png',
+  './ledger-icon-180.png',
+  './ledger-icon-192.png',
+  './ledger-icon-512.png',
+  './ledger-icon-maskable-192.png',
+  './ledger-icon-maskable-512.png',
+];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).catch(() => {}));

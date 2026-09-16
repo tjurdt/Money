@@ -27,6 +27,7 @@ function renderSettings() {
     fd.textContent = `股票名稱：${n > 500 ? '本機已有 ' + n.toLocaleString() + ' 筆代號快取' : '可自動下載台股代號表'}。價格：${access ? (settings.financeSheetId ? 'Google Finance 行情橋接已建立' : '白名單已登入；若 Google Finance 尚未建立會自動退回 TWSE／TPEx') : '目前使用 TWSE／TPEx／手動現價；Google Finance 僅限白名單登入後使用'}${oauthProj ? ' · OAuth 專案 ' + oauthProj : ''}`;
   }
   renderDataHealth();
+  if (typeof renderInstallCard === 'function') renderInstallCard();
   const nextColor = () => CAT_COLORS[Object.keys(catColors).length % CAT_COLORS.length];
   const renderCatBox = (box, list, key, label) => {
     box.innerHTML =

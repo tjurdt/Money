@@ -42,8 +42,13 @@ let rendering = false;
  * 找不到該區塊時視為啟用（例如 appbar 這類常駐元素）。
  */
 function defaultIsActive(id) {
-  const el = typeof document !== 'undefined' && document.querySelector(`#view-${id}`);
-  return el ? el.classList.contains('active') : true;
+  try {
+    const el = typeof document !== 'undefined' && document?.querySelector(`#view-${id}`);
+    return el ? el.classList.contains('active') : true;
+  } catch {
+    // 頁面正在卸載時 document 可能已失效。
+    return false;
+  }
 }
 
 /**
@@ -152,7 +157,13 @@ export function connectStore() {
     queueMicrotask(() => {
       const keys = pendingKeys;
       pendingKeys = null;
-      renderViewsFor(keys);
+      // 排程與執行之間頁面可能已經關閉（分頁卸載、測試環境拆掉 jsdom），
+      // 此時連判斷「畫面是否啟用」都會拋錯。這裡兜住，避免變成未捕捉例外。
+      try {
+        renderViewsFor(keys);
+      } catch (e) {
+        console.error('[views] 批次重繪失敗', e);
+      }
     });
   });
 }
