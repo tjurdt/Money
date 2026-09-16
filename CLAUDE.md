@@ -13,7 +13,8 @@
 - **P1b 已完成**：JS 以 Prettier 格式化（990 行 → 8,186 行，每行上限 100 字元）。
 - **P2 已完成**：8 處版本疊加式 monkey-patch 已併回本體函式。
 - **P3 已完成**：23 個純函式抽成真正的 ES Module（`src/domain/`、`src/core/`）。
-  目前共 122 條測試。
+- **P4a 已完成**：11 個持久化狀態收攏進 `src/core/store.js`。
+  目前共 146 條測試。
 
 ### 改程式碼要去哪裡
 
@@ -24,6 +25,16 @@
   這是首選：真正的 ES Module，測試可直接 import，跑一次不到 1 秒。
 - 其餘（碰 DOM 或全域狀態）→ `src/legacy/` 對應檔案，
   並在 `build/legacy-manifest.json` 註冊
+
+### 狀態
+
+`records`、`settings`、`trips` 等 11 個持久化狀態由 `src/core/store.js` 管理。
+`src/legacy/` 仍可直接寫 `records = x`（全域存取器會轉發到 store），
+但**絕對不可以**在 legacy 裡宣告 `let records` —— 那會產生影子副本，
+app 看似正常但 store 與畫面資料不一致。這點由 `tests/store-wiring.test.js` 自動擋下。
+
+存取器只攔得到重新賦值。`records.push(x)` 這類就地修改不會通知訂閱者，
+需要自己呼叫 `store.touch('records')`。
 
 判斷標準：函式若不需要 `$()`、`document`、`localStorage`，也不讀 `records`、
 `selCat` 這類全域可變狀態，就該放進 domain 層。

@@ -9,8 +9,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "npm run format:check && npm run build && vitest run",
-    "format": "prettier --write \"src/legacy/**/*.js\" \"tests/**/*.js\" \"build/**/*.js\" \"scripts/**/*.js\"",
-    "format:check": "prettier --check \"src/legacy/**/*.js\" \"tests/**/*.js\" \"build/**/*.js\" \"scripts/**/*.js\""
+    "format": "prettier --write \"src/**/*.js\" \"tests/**/*.js\" \"build/**/*.js\" \"scripts/**/*.js\"",
+    "format:check": "prettier --check \"src/**/*.js\" \"tests/**/*.js\" \"build/**/*.js\" \"scripts/**/*.js\""
   },
   "repository": {
     "type": "git",

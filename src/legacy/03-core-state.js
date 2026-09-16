@@ -1,22 +1,8 @@
 /* ===== 狀態 ===== */
-let records = load(K.rec, []),
-  catsExpense = load(K.ce, []),
-  catsIncome = load(K.ci, []),
-  payments = load(K.pay, []);
-let subcats = load(K.sub, {}),
-  prices = load(K.prices, {}),
-  twseCache = load(K.twse, null),
-  catColors = load(K.cc, {});
-let trips = load(K.trips, []),
-  currentScope = load(K.scope, { type: 'daily', trip: null }),
-  settings = load(K.set, {
-    osm: false,
-    gmapsKey: '',
-    visionKey: '',
-    financeSheetId: '',
-    storeChains: [],
-    mrtRecentPairs: [],
-  });
+// records / catsExpense / catsIncome / payments / subcats / prices / twseCache /
+// catColors / trips / currentScope / settings 由 src/core/store.js 管理，
+// 並透過 store.installGlobals() 以存取器的形式提供給此處的 legacy 程式碼。
+// 下方的種子資料與正規化邏輯透過那些存取器讀寫，寫入會經過 store。
 const _seeded = (() => {
   try {
     return localStorage.getItem('ledger.v23.seeded');
