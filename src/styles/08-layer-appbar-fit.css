@@ -23,6 +23,12 @@
   justify-content:space-between;align-items:center}
 .top-actions .scopepill span{
   flex:1 1 0;min-width:0;max-height:32px;white-space:normal;overflow:hidden;
-  overflow-wrap:anywhere;text-align:left;line-height:1.05;font-size:13px}
+  overflow-wrap:anywhere;text-align:left;line-height:1.05;font-size:16px}
 .top-actions .scopepill span.clip{
   display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3}
+
+/* 旅行／常設情境：日期框縮到約原本的 3/5，空間讓給情境框（名稱較長，字才不必縮太小）。
+ * 原本寬度 ≈ 100vw − 144px（固定元素） − 情境框寬，乘以 0.6。 */
+.top-actions.trip-scope .monthbar.monthbar-inline{
+  flex:0 0 calc((100vw - 144px - clamp(84px,27vw,116px)) * .6);max-width:none;min-width:0}
+.top-actions.trip-scope .scopepill{flex:1 1 0;width:auto;max-width:none}
