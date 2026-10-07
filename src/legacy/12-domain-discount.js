@@ -63,7 +63,7 @@ function syncDiscountAmountLock() {
   if (lock) lock.classList.toggle('show', locked);
   if (inp) inp.readOnly = locked;
   const lbl = $('#amountLabel');
-  if (lbl && getKind() === 'expense')
+  if (lbl && getKind() === 'expense' && !fxCur)
     lbl.textContent = locked ? '優惠後金額 (NT$)' : '支出金額 (NT$)';
 }
 function discountItemOptions(selected = '') {

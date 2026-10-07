@@ -1,10 +1,9 @@
 /* ===== 記帳表單：支付幣別與匯率 ===== */
 // 帳目的 total 永遠是台幣；外幣金額與匯率另存在 record.fx（見 src/domain/fx.js）。
-// 表單順序是「幣別 → 外幣金額 → 匯率」，台幣金額由此自動換算，仍可手動修改。
-let fxCur = null, // null ＝ 台幣直接付款（沒有外幣資訊）
-  fxRateKey = null, // 匯率 id，或 'card'（刷卡，台幣金額自己輸入）
-  fxExtraRate = null, // 編輯舊帳目時，保留已被刪除的匯率快照
-  fxTotalManual = false;
+// 選了外幣之後，金額欄、品項、優惠、分帳全部以外幣計算；
+// 台幣金額是另一欄（依匯率自動換算，或刷卡時照帳單輸入），儲存時才把整筆換成台幣。
+// 狀態（fxCur、fxRateKey、fxExtraRate、fxTotalManual）宣告在 03-core-state.js，
+// 因為更早載入的檔案（優惠、表單切換）也要讀它，放這裡會踩到暫時性死區。
 
 /** 表單目前情境的行程（只有支出、且行程有設定外幣時才有）。 */
 function fxTrip() {
@@ -29,7 +28,7 @@ function initFxState(r) {
   fxRateKey = null;
   fxExtraRate = null;
   fxTotalManual = false;
-  $('#f-fxamt').value = '';
+  $('#f-fxtwd').value = '';
   $('#f-fxfloat').value = '';
   const t = fxTrip();
   if (!t) return;
@@ -42,7 +41,7 @@ function initFxState(r) {
         cur: fx.cur,
         rate: { id: fx.rateId, type: fx.rateType, rate: fx.rate, label: fx.rateLabel },
       };
-    $('#f-fxamt').value = fx.amount;
+    $('#f-fxtwd').value = fx.twd ?? '';
     if (fx.rateType === 'float') $('#f-fxfloat').value = fx.rate;
     fxTotalManual = true;
   } else if (!r) {
@@ -92,9 +91,11 @@ function renderFxCurSeg(t) {
           fxCur = b.dataset.cur || null;
           fxRateKey = fxCur ? (fxMemory(t).cur === fxCur ? fxMemory(t).rateKey : null) : null;
           fxTotalManual = false;
+          $('#f-fxtwd').value = '';
           normalizeFxRateKey(t);
           updateFxUI();
-          recalcFxTotal();
+          recalcFxTwd();
+          refreshStoreItems();
         }),
     );
 }
@@ -106,6 +107,12 @@ function renderFxRateSelect(t) {
       .map((r) => `<option value="${esc(r.id)}">${esc(rateOptionText(r, fxCur))}</option>`)
       .join('') + `<option value="card">💳 信用卡刷卡（輸入帳單台幣）</option>`;
   $('#f-fxrate').value = fxRateKey;
+}
+
+/** 金額欄的標籤：選了外幣就明確標示幣別，避免把外幣金額當成台幣。 */
+function applyFxAmountLabel() {
+  if (!fxCur) return;
+  $('#amountLabel').textContent = `外幣金額 (${currencyMeta(fxCur).symbol} ${fxCur})`;
 }
 
 /** 依目前狀態顯示／隱藏、重繪外幣區塊。 */
@@ -126,13 +133,9 @@ function updateFxUI() {
     const float = currentFxRateType(t) === 'float';
     $('#fxFloatRow').style.display = float ? 'block' : 'none';
     if (float && !$('#f-fxfloat').value) $('#f-fxfloat').value = defaultFloatRate(t);
-    $('#fxAmtLabel').textContent = `${currencyMeta(fxCur).symbol} 外幣金額`;
-  }
-  $('#amountLabel').textContent = fxCur
-    ? fxRateKey === 'card'
-      ? '帳單台幣金額 (NT$)'
-      : '台幣金額 (NT$)・自動換算'
-    : '支出金額 (NT$)';
+    $('#f-fxtwd').placeholder = fxRateKey === 'card' ? '帳單上的台幣' : '自動換算';
+    applyFxAmountLabel();
+  } else $('#amountLabel').textContent = '支出金額 (NT$)';
   updateFxPreview(t);
 }
 
@@ -148,17 +151,14 @@ function defaultFloatRate(t) {
   return r && rateValue(r) ? +rateValue(r).toFixed(4) : '';
 }
 
-/** 外幣金額或匯率改變時，重算台幣金額（有明細或優惠時不覆蓋，那由它們決定）。 */
-function recalcFxTotal() {
+/** 外幣總額或匯率改變時重算台幣金額；刷卡或使用者手動改過台幣就不覆蓋。 */
+function recalcFxTwd() {
   const t = fxTrip();
   if (!t || !fxCur) return;
   const rate = currentFxRate(t),
-    amt = +$('#f-fxamt').value;
-  const locked = itemDetailOpen || discountDraft.length || discountOverrideTotal !== null;
-  if (rate && amt > 0 && !fxTotalManual && !locked) {
-    $('#f-total').value = toTwd(amt, rateValue(rate));
-    if (typeof updateSplitPreview === 'function') updateSplitPreview();
-  }
+    amt = +$('#f-total').value;
+  if (rate && amt > 0 && !fxTotalManual) $('#f-fxtwd').value = toTwd(amt, rateValue(rate));
+  else if (!(amt > 0) && !fxTotalManual) $('#f-fxtwd').value = '';
   updateFxPreview(t);
 }
 
@@ -168,17 +168,16 @@ function updateFxPreview(t) {
     el.innerHTML = '';
     return;
   }
-  const amt = +$('#f-fxamt').value,
-    total = +$('#f-total').value,
+  const amt = +$('#f-total').value,
+    twd = +$('#f-fxtwd').value,
     rate = currentFxRate(t),
     parts = [];
-  if (amt > 0 && total > 0) {
-    const eff = impliedRate(total, amt);
+  if (amt > 0 && twd > 0) {
     parts.push(
-      `${formatMoney(fxCur, amt)} ≈ <b>NT$ ${Math.round(total).toLocaleString('en-US')}</b>` +
-        `（1 ${fxCur} = NT$ ${formatRate(eff)}）`,
+      `${formatMoney(fxCur, amt)} ≈ <b>NT$ ${Math.round(twd).toLocaleString('en-US')}</b>` +
+        `（1 ${fxCur} = NT$ ${formatRate(impliedRate(twd, amt))}）`,
     );
-  } else if (!rate) parts.push('請輸入外幣金額與帳單上的台幣金額，匯率會自動反推。');
+  } else if (!rate) parts.push('品項與優惠都以外幣計算；請在右邊填入帳單上的台幣總額。');
   const warn = exchangeShortfall(t, rate, amt);
   if (warn) parts.push(warn);
   el.innerHTML = parts.join('<br>');
@@ -199,23 +198,28 @@ function exchangeShortfall(t, rate, amt) {
 
 /**
  * 儲存時取出 fx。台幣付款回傳 null；資料不完整回傳 false（已提示使用者）。
- * @param {number} total 台幣金額
+ * @param {number} total 外幣總額（此時表單上的 total 是外幣）
  */
 function readFxForSave(total) {
   const t = fxTrip();
   if (!t || !fxCur) return null;
-  const amt = +$('#f-fxamt').value;
-  if (!(amt > 0)) {
-    toast(`請輸入${fxCur}外幣金額`);
-    return false;
-  }
-  const rate = currentFxRate(t);
+  const rate = currentFxRate(t),
+    twd = +$('#f-fxtwd').value;
   if (rate && !rateValue(rate)) {
     toast('請輸入匯率');
     return false;
   }
-  const fx = buildFx({ code: fxCur, amount: amt, rate, twdTotal: total });
-  if (!fx) toast('無法算出匯率，請確認台幣金額');
+  if (!rate && !(twd > 0)) {
+    toast('請輸入帳單上的台幣總額');
+    return false;
+  }
+  const fx = buildFx({
+    code: fxCur,
+    amount: total,
+    rate,
+    twdTotal: twd > 0 ? twd : toTwd(total, rateValue(rate)),
+  });
+  if (!fx) toast('無法算出匯率，請確認金額');
   return fx || false;
 }
 
@@ -239,31 +243,31 @@ function fxAfterTemplate(r) {
   updateFxUI();
 }
 
-$('#f-fxamt').addEventListener('input', () => {
+$('#f-total').addEventListener('input', () => {
   fxTotalManual = false;
-  recalcFxTotal();
+  recalcFxTwd();
+});
+$('#f-fxtwd').addEventListener('input', () => {
+  fxTotalManual = true;
+  const t = fxTrip();
+  if (t && fxCur) updateFxPreview(t);
 });
 $('#f-fxfloat').addEventListener('input', () => {
   fxTotalManual = false;
-  recalcFxTotal();
+  recalcFxTwd();
 });
 $('#f-fxrate').addEventListener('change', (e) => {
   fxRateKey = e.target.value;
   fxTotalManual = false;
   $('#f-fxfloat').value = '';
   updateFxUI();
-  recalcFxTotal();
-});
-$('#f-total').addEventListener('input', () => {
-  fxTotalManual = true;
-  const t = fxTrip();
-  if (t && fxCur) updateFxPreview(t);
+  recalcFxTwd();
 });
 $('#fxLiveBtn').onclick = async () => {
   try {
     $('#f-fxfloat').value = +(await fetchLiveRate(fxCur)).toFixed(4);
     fxTotalManual = false;
-    recalcFxTotal();
+    recalcFxTwd();
   } catch (e) {
     toast('無法取得即時匯率，請手動輸入');
   }

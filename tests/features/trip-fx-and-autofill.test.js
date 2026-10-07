@@ -128,8 +128,8 @@ describe('外幣記帳', () => {
   it('輸入外幣金額自動換算台幣，儲存時 total 為台幣、fx 為匯率快照', () => {
     open();
     pickCurrency('JPY');
-    input('#f-fxamt', '3000');
-    expect(doc.querySelector('#f-total').value).toBe('600');
+    input('#f-total', '3000');
+    expect(doc.querySelector('#f-fxtwd').value).toBe('600');
     doc.querySelector('#saveBtn').click();
     const r = stored('ledger.v2.records').find((x) => x.scope.trip === 't-jp');
     expect(r.total).toBe(600);
@@ -139,21 +139,21 @@ describe('外幣記帳', () => {
   it('換成換匯批次後金額依該批匯率重算', () => {
     open();
     pickCurrency('JPY');
-    input('#f-fxamt', '5000');
+    input('#f-total', '5000');
     const sel = doc.querySelector('#f-fxrate');
     sel.value = 'ex1';
     sel.dispatchEvent(new api.Event('change', { bubbles: true }));
-    expect(doc.querySelector('#f-total').value).toBe('1000');
+    expect(doc.querySelector('#f-fxtwd').value).toBe('1000');
   });
 
   it('刷卡：台幣金額自己輸入，匯率由帳單反推', () => {
     open();
     pickCurrency('JPY');
-    input('#f-fxamt', '3000');
+    input('#f-total', '3000');
     const sel = doc.querySelector('#f-fxrate');
     sel.value = 'card';
     sel.dispatchEvent(new api.Event('change', { bubbles: true }));
-    input('#f-total', '690');
+    input('#f-fxtwd', '690');
     doc.querySelector('#saveBtn').click();
     const r = stored('ledger.v2.records').find((x) => x.scope.trip === 't-jp');
     expect(r.total).toBe(690);
@@ -170,18 +170,94 @@ describe('外幣記帳', () => {
     expect(r.fx).toBeUndefined();
   });
 
-  it('選了外幣卻沒填金額不能儲存', () => {
+  it('刷卡卻沒填帳單台幣不能儲存', () => {
     open();
     pickCurrency('JPY');
-    doc.querySelector('#f-total').value = '100';
+    const sel = doc.querySelector('#f-fxrate');
+    sel.value = 'card';
+    sel.dispatchEvent(new api.Event('change', { bubbles: true }));
+    input('#f-total', '3000');
     doc.querySelector('#saveBtn').click();
     expect(stored('ledger.v2.records').some((x) => x.scope.trip === 't-jp')).toBe(false);
+  });
+
+  describe('品項以外幣輸入（超商刷卡）', () => {
+    const addItems = () =>
+      api.eval(
+        "setItemDetailOpen(true); addItemRow('飯糰', 200, ''); addItemRow('飲料', 130, ''); recomputeTotal();",
+      );
+    const useCard = () => {
+      const sel = doc.querySelector('#f-fxrate');
+      sel.value = 'card';
+      sel.dispatchEvent(new api.Event('change', { bubbles: true }));
+    };
+    const saved = () => stored('ledger.v2.records').find((x) => x.scope.trip === 't-jp');
+
+    it('品項加總成為外幣總額，台幣總額照信用卡帳單', () => {
+      open();
+      pickCurrency('JPY');
+      useCard();
+      addItems();
+      expect(doc.querySelector('#f-total').value).toBe('330');
+      input('#f-fxtwd', '75');
+      doc.querySelector('#saveBtn').click();
+      const r = saved();
+      expect(r.total).toBe(75);
+      expect(r.items.reduce((n, i) => n + i.price, 0)).toBeCloseTo(75, 2);
+      expect(r.fx).toMatchObject({ cur: 'JPY', amount: 330, twd: 75, rateType: 'card' });
+      expect(r.fx.orig.items.map((i) => i.price)).toEqual([200, 130]);
+    });
+
+    it('用固定匯率時品項也以外幣輸入，台幣自動換算', () => {
+      open();
+      pickCurrency('JPY');
+      addItems();
+      expect(doc.querySelector('#f-fxtwd').value).toBe('66');
+      doc.querySelector('#saveBtn').click();
+      expect(saved().total).toBe(66);
+    });
+
+    it('再編輯時品項、總額、台幣都還原成當初的外幣輸入', () => {
+      open();
+      pickCurrency('JPY');
+      useCard();
+      addItems();
+      input('#f-fxtwd', '75');
+      doc.querySelector('#saveBtn').click();
+      api.eval(`openSheet('${saved().id}');`);
+      const prices = [...doc.querySelectorAll('#itemRows .i-price')].map((e) => e.value);
+      expect(prices).toEqual(['200', '130']);
+      expect(doc.querySelector('#f-total').value).toBe('330');
+      expect(doc.querySelector('#f-fxtwd').value).toBe('75');
+    });
+
+    it('重新儲存不會讓金額漂移', () => {
+      open();
+      pickCurrency('JPY');
+      useCard();
+      addItems();
+      input('#f-fxtwd', '75');
+      doc.querySelector('#saveBtn').click();
+      const id = saved().id;
+      api.eval(`openSheet('${id}');`);
+      doc.querySelector('#saveBtn').click();
+      expect(saved()).toMatchObject({ total: 75, fx: { amount: 330, twd: 75 } });
+    });
+
+    it('清單上顯示外幣金額標籤', () => {
+      open();
+      pickCurrency('JPY');
+      input('#f-total', '3000');
+      doc.querySelector('#saveBtn').click();
+      api.eval("currentScope = { type: 'overseas', trip: 't-jp' }; renderAll();");
+      expect(doc.querySelector('#recordList').textContent).toContain('¥3,000');
+    });
   });
 
   it('記住這趟旅行上次的幣別與匯率', () => {
     open();
     pickCurrency('JPY');
-    input('#f-fxamt', '1000');
+    input('#f-total', '1000');
     doc.querySelector('#saveBtn').click();
     open();
     expect(doc.querySelector('#fxFields').style.display).toBe('block');
@@ -191,18 +267,18 @@ describe('外幣記帳', () => {
   it('編輯舊的外幣帳目會還原幣別、金額與匯率', () => {
     open();
     pickCurrency('JPY');
-    input('#f-fxamt', '3000');
+    input('#f-total', '3000');
     doc.querySelector('#saveBtn').click();
     const id = stored('ledger.v2.records').find((x) => x.scope.trip === 't-jp').id;
     api.eval(`openSheet('${id}');`);
-    expect(doc.querySelector('#f-fxamt').value).toBe('3000');
-    expect(doc.querySelector('#f-total').value).toBe('600');
+    expect(doc.querySelector('#f-total').value).toBe('3000');
+    expect(doc.querySelector('#f-fxtwd').value).toBe('600');
   });
 
   it('結算卡：台幣總計、各幣別、換匯餘額', () => {
     open();
     pickCurrency('JPY');
-    input('#f-fxamt', '5000');
+    input('#f-total', '5000');
     const sel = doc.querySelector('#f-fxrate');
     sel.value = 'ex1';
     sel.dispatchEvent(new api.Event('change', { bubbles: true }));

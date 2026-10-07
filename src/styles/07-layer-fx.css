@@ -42,3 +42,11 @@
 .fx-detail.show{display:block}
 .fx-detail div{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);padding:3px 0}
 .fx-detail .bal{color:var(--ink)}
+
+/* 設定頁：版本與更新 */
+.ver-entry{padding:9px 0;border-top:1px solid var(--line)}
+.ver-entry:first-child{border-top:0;padding-top:2px}
+.ver-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;color:var(--faint)}
+.ver-head b{font-size:14px;color:var(--ink)}
+.ver-entry.current .ver-head b{color:var(--teal)}
+.ver-entry ul{margin:6px 0 0;padding-left:18px;font-size:13px;color:var(--muted);line-height:1.6}

@@ -192,9 +192,12 @@ function storeItemCatalog(store, chain) {
   const useChain = !!chain;
   records.forEach((r) => {
     if (!r.items) return;
+    // 外幣帳目的品項價格是外幣：台幣表單不參考，外幣表單只參考同幣別，且取當初輸入的外幣原價。
+    if (fxCur ? !r.fx || r.fx.cur !== fxCur : r.fx) return;
+    const items = r.fx && r.fx.orig ? r.fx.orig.items || [] : r.items;
     const match = useChain ? chainNameOfRecord(r) === chain : r.store === store;
     if (!match) return;
-    r.items.forEach((it) => {
+    items.forEach((it) => {
       if (it.name) {
         freq[it.name] = (freq[it.name] || 0) + 1;
         const gp = it.grossPrice != null ? it.grossPrice : it.price;

@@ -29,5 +29,6 @@
   "28-ui-install.js",
   "29-ui-trip-currency.js",
   "30-entry-fx.js",
-  "31-ui-trip-fx-summary.js"
+  "31-ui-trip-fx-summary.js",
+  "32-ui-version.js"
 ]

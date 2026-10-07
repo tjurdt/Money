@@ -264,7 +264,7 @@ function renderList() {
         <div class="top"><span class="store">${esc(r.store || (r.kind === 'income' ? '（收入）' : '（未填店家）'))}</span><span class="amt ${pos ? 'pos' : ''}">${pos ? '+' : ''}${nf(shownAmt)}</span></div>
         ${r.kind === 'expense' && r.split && Math.abs(r.total - shownAmt) > 0.5 ? `<div class="secondary">本筆總額 ${nf(r.total)} · ${r.split.payer === 'me' ? '我先付款' : '對方先付款'}</div>` : ''}
         ${sub ? `<div class="item">${esc(sub)}</div>` : ''}
-        <div class="meta">${r.investmentDerived ? `<span class="tag invtag">${r.invEvent?.type === 'dividend' ? '投資股利' : '投資損益'} · 不列生活收支</span>` : ''}${r.recurring ? `<span class="tag scope">↻ 每月固定</span>` : ''}${catTag}${r.payment ? `<span class="tag">${esc(r.payment)}</span>` : ''}${r.kind === 'expense' && (+r.discountTotal || 0) > 0 ? `<span class="tag">優惠 −${nf(r.discountTotal)}</span>` : ''}${splitTags}${scopeTag}</div>
+        <div class="meta">${r.investmentDerived ? `<span class="tag invtag">${r.invEvent?.type === 'dividend' ? '投資股利' : '投資損益'} · 不列生活收支</span>` : ''}${r.recurring ? `<span class="tag scope">↻ 每月固定</span>` : ''}${catTag}${hasFx(r) ? `<span class="tag">${formatMoney(r.fx.cur, r.fx.amount)}</span>` : ''}${r.payment ? `<span class="tag">${esc(r.payment)}</span>` : ''}${r.kind === 'expense' && (+r.discountTotal || 0) > 0 ? `<span class="tag">優惠 −${nf(r.discountTotal)}</span>` : ''}${splitTags}${scopeTag}</div>
       </div></div>`;
       });
       html += '</div>';

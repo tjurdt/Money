@@ -35,6 +35,8 @@ function updateRepeatButton() {
 }
 function applyRecordTemplate(r) {
   if (!r) return;
+  // 同一趟旅行的外幣帳目：品項與金額用外幣原貌帶入，否則維持台幣內容。
+  if (r.fx && formScope && r.scope && r.scope.trip === formScope.trip) r = fxSourceRecord(r);
   storeMode = r.storeChain ? 'chain' : 'single';
   $('#f-store').value = r.store || '';
   refreshChainSelect(r.storeChain || '');
