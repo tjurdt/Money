@@ -14,7 +14,7 @@ function fitText(el, max, min, axis) {
   if (over()) el.classList.add('clip');
 }
 function refitAppbarText() {
-  fitText($('#scopePillText'), 13, 9, 'y');
+  fitText($('#scopePillText'), 16, 9, 'y');
   fitText($('#monthLabel'), 14, 9, 'x');
 }
 window.addEventListener('resize', refitAppbarText);
@@ -59,6 +59,7 @@ function setListPeriod(mode, from = '', to = '') {
 }
 function renderMonthBar() {
   const lbl = $('#monthLabel');
+  $('.top-actions').classList.toggle('trip-scope', isTripScope());
   if (isTripScope()) {
     // 行程名稱已經顯示在旁邊的情境框，這裡只放日期。
     const dt = tripDates(tripById(currentScope.trip));

@@ -14,6 +14,14 @@
 /** @type {ReadonlyArray<{version: string, date: string, items: ReadonlyArray<string>}>} */
 export const CHANGELOG = Object.freeze([
   {
+    version: '1.1.3',
+    date: '2026-10-08',
+    items: [
+      '頂端列：情境框的字很少時會放大顯示（最大 16px），字多才逐步縮小',
+      '切到旅行或常設情境時，日期框縮窄為原本的 3/5，空間讓給情境框，名稱不必縮那麼小',
+    ],
+  },
+  {
     version: '1.1.2',
     date: '2026-10-08',
     items: [
