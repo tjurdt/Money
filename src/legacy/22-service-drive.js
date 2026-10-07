@@ -82,17 +82,28 @@ function packLedger() {
 }
 function normalizeLedger(d) {
   d = d && typeof d === 'object' ? d : {};
+  const cleanSettings = safeUserSettings(
+    d.settings && typeof d.settings === 'object' ? d.settings : {},
+  );
+  // 已刪除的行程以墓碑記錄；每次正規化都套用，才不會被另一份副本補回來。
+  const live = applyTripTombstones(
+    {
+      trips: Array.isArray(d.trips) ? d.trips : [],
+      records: Array.isArray(d.records) ? d.records : [],
+    },
+    cleanSettings.deletedTripIds,
+  );
   return {
     schema: 'ledger-v4',
-    records: Array.isArray(d.records) ? d.records : [],
+    records: live.records,
     catsExpense: Array.isArray(d.catsExpense) ? d.catsExpense : [],
     catsIncome: Array.isArray(d.catsIncome) ? d.catsIncome : [],
     payments: Array.isArray(d.payments) ? d.payments : [],
-    trips: Array.isArray(d.trips) ? d.trips : [],
+    trips: live.trips,
     subcats: d.subcats && typeof d.subcats === 'object' ? d.subcats : {},
     catColors: d.catColors && typeof d.catColors === 'object' ? d.catColors : {},
     prices: d.prices && typeof d.prices === 'object' ? d.prices : {},
-    settings: safeUserSettings(d.settings && typeof d.settings === 'object' ? d.settings : {}),
+    settings: cleanSettings,
     savedAt: +d.savedAt || 0,
   };
 }
@@ -190,6 +201,10 @@ function mergeGlobals(local, cloud) {
     cloud.settings?.recurringSkipped,
     local.settings?.recurringSkipped,
   );
+  out.settings.deletedTripIds = unionUnique(
+    cloud.settings?.deletedTripIds,
+    local.settings?.deletedTripIds,
+  );
   out.savedAt = Math.max(+cloud.savedAt || 0, +local.savedAt || 0, Date.now());
   return out;
 }
@@ -220,7 +235,13 @@ function mergeLedgerThreeWay(local, cloud, base) {
     } else if (l || c) out.push(l || c);
   });
   const globals = mergeGlobals(local, cloud);
-  globals.records = out;
+  // 兩邊各自的刪除墓碑合併後，要再套用一次：另一台裝置可能還留著剛被刪掉的行程。
+  const live = applyTripTombstones(
+    { trips: globals.trips, records: out },
+    globals.settings.deletedTripIds,
+  );
+  globals.trips = live.trips;
+  globals.records = live.records;
   return { data: globals, conflicts };
 }
 function tokenUsable() {

@@ -136,3 +136,79 @@ export function withinScopeRange(entry, date) {
   if (range.to && date > range.to) return false;
   return true;
 }
+
+const DAILY_SCOPE = Object.freeze({ type: 'daily', trip: null });
+
+/**
+ * 把屬於某些行程的帳目改回「日常」。
+ *
+ * 刪除行程時帳目不能留在一個不存在的情境裡 —— 那會顯示成「已刪除情境」、
+ * 也不會出現在日常的統計中，等於帳目憑空消失。只改有受影響的帳目，
+ * 其餘維持原物件（參考不變），讓下游的比對與同步不會誤判成「全部都改過」。
+ *
+ * @param {object[]} records
+ * @param {Iterable<string>} tripIds
+ * @returns {object[]}
+ */
+export function detachRecordsFromTrips(records, tripIds) {
+  const ids = new Set(tripIds);
+  if (!ids.size) return records;
+  return records.map((r) =>
+    r && r.scope && r.scope.trip && ids.has(r.scope.trip) ? { ...r, scope: { ...DAILY_SCOPE } } : r,
+  );
+}
+
+/**
+ * 套用「已刪除行程」的墓碑清單：移除行程、把它們的帳目改回日常。
+ *
+ * 為什麼需要墓碑：雲端同步合併行程時是取聯集，
+ * 單純從本機陣列移除一筆，下次同步就會被雲端（或另一台裝置）的副本補回來 ——
+ * 使用者看到的就是「刪了又跑出來」。墓碑讓「刪除」成為一個可以被同步的事實。
+ *
+ * @param {{trips: object[], records: object[]}} data
+ * @param {Iterable<string>} deletedIds
+ * @returns {{trips: object[], records: object[]}}
+ */
+export function applyTripTombstones(data, deletedIds) {
+  const ids = new Set(deletedIds || []);
+  if (!ids.size) return data;
+  return {
+    trips: (data.trips || []).filter((t) => !(t && ids.has(t.id))),
+    records: detachRecordsFromTrips(data.records || [], ids),
+  };
+}
+
+/**
+ * 新增行程時，找出落在它日期區間內、目前屬於「日常」的帳目，
+ * 讓使用者決定要不要一併納入。
+ *
+ * 只看支出與收入；投資不屬於任何情境，還款記錄是人與人之間的帳，都不該被帶進旅行。
+ * 沒有起訖日期（含只填一端）的情境不做這件事 —— 沒有區間就無從判斷「那段時間」。
+ *
+ * @param {object[]} records
+ * @param {{start?: string, end?: string}} trip
+ * @returns {object[]}
+ */
+export function dailyRecordsInTripRange(records, trip) {
+  if (!trip || !trip.start || !trip.end) return [];
+  return records.filter(
+    (r) =>
+      (r.kind === 'expense' || r.kind === 'income') &&
+      (!r.scope || r.scope.type === 'daily') &&
+      r.date >= trip.start &&
+      r.date <= trip.end,
+  );
+}
+
+/**
+ * 把指定的帳目移進某個行程。
+ * @param {object[]} records
+ * @param {Iterable<string>} recordIds
+ * @param {{id: string, kind: string}} trip
+ */
+export function moveRecordsToTrip(records, recordIds, trip) {
+  const ids = new Set(recordIds);
+  return records.map((r) =>
+    ids.has(r.id) ? { ...r, scope: { type: trip.kind, trip: trip.id } } : r,
+  );
+}

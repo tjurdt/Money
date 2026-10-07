@@ -368,6 +368,13 @@ $('#importFile').onchange = (e) => {
             .filter((t) => t && typeof t === 'object' && t.id != null)
             .forEach((t) => (tb[t.id] = t));
           trips = Object.values(tb);
+          // 使用者主動匯入的行程視為要還原，不能再被舊的刪除墓碑擋掉。
+          const back = new Set(d.trips.map((t) => t && t.id));
+          settings = {
+            ...settings,
+            deletedTripIds: (settings.deletedTripIds || []).filter((id) => !back.has(id)),
+          };
+          save(K.set, settings);
         }
         if (d.subcats) subcats = Object.assign({}, subcats, d.subcats);
         if (d.catColors) catColors = Object.assign({}, catColors, d.catColors);
@@ -450,6 +457,7 @@ registerView({
   render: () => {
     renderFilterChips();
     renderList();
+    renderTripFxCard();
     renderFirstRunBanner();
   },
 });

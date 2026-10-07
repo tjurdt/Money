@@ -48,6 +48,7 @@ function closeChoiceSheet() {
 }
 function chooseAndClose(mode, value) {
   if (mode === 'cat') {
+    userPicked.cat = true;
     selCat = value || null;
     selSub = null;
     renderChipSelectors();
@@ -56,6 +57,7 @@ function chooseAndClose(mode, value) {
     selSub = value || null;
     renderSubChips();
   } else if (mode === 'pay') {
+    userPicked.pay = true;
     selPay = value || null;
     renderChipSelectors();
   }

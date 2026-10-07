@@ -48,6 +48,7 @@ function applyRecordTemplate(r) {
   selCat = r.category || null;
   selSub = r.sub || null;
   selPay = r.payment || null;
+  userPicked = { cat: true, pay: true };
   catMode = r.catMode || 'whole';
   const hasDetails = !!(r.items || []).some((i) => i.name) || catMode === 'perItem';
   $('#itemRows').innerHTML = '';
@@ -70,36 +71,44 @@ function applyRecordTemplate(r) {
   recomputeTotal();
   renderDiscountSummary();
   updateSplitPreview();
+  fxAfterTemplate(r);
   toast('已套用上一筆；日期與情境維持本次設定');
 }
 $('#repeatLastBtn').onclick = () => applyRecordTemplate(lastExpense());
+/**
+ * 輸入店名後，帶入該店「上一筆」消費的分類與付款方式。
+ * 使用者在這張表單裡親自選過的欄位不會被覆蓋；編輯舊帳目時完全不介入。
+ */
 function smartFillFromStore() {
-  if (getKind() !== 'expense') return;
-  const store = composedStore();
-  if (!store) return;
-  const hist = records.filter((r) => r.kind === 'expense' && r.store === store);
-  if (!hist.length) return;
-  const count = (arr) =>
-    Object.entries(arr.reduce((m, x) => (x && (m[x] = (m[x] || 0) + 1), m), {})).sort(
-      (a, b) => b[1] - a[1],
-    )[0]?.[0];
-  if (!selCat) {
-    const c = count(hist.flatMap((r) => recordCategories(r)));
-    if (c) {
-      selCat = c;
-      selSub = null;
+  if (getKind() !== 'expense' || editingId) return;
+  const store = composedStore(),
+    d = lastStoreDefaults(records, store);
+  if (!d) return;
+  let changed = false;
+  if (!userPicked.cat && catMode === 'whole' && d.category && catsExpense.includes(d.category)) {
+    if (d.category !== selCat) {
+      selCat = d.category;
+      selSub = d.sub && (subcats[d.category] || []).includes(d.sub) ? d.sub : null;
+      changed = true;
     }
   }
-  if (!selPay) {
-    const p = count(hist.map((r) => r.payment));
-    if (p) selPay = p;
+  if (!userPicked.pay && d.payment && payments.includes(d.payment) && d.payment !== selPay) {
+    selPay = d.payment;
+    changed = true;
   }
+  if (!changed) return;
   renderChipSelectors();
   renderSubChips();
+  toast(`已帶入「${store}」上次的分類與付款方式`);
 }
-$('#f-store').addEventListener('blur', smartFillFromStore);
-$('#f-chain').addEventListener('blur', smartFillFromStore);
-$('#f-branch').addEventListener('blur', smartFillFromStore);
+['#f-store', '#f-chain', '#f-branch'].forEach((id) => {
+  $(id).addEventListener('blur', smartFillFromStore);
+  $(id).addEventListener('change', smartFillFromStore);
+});
+// 從下拉建議清單挑選時只會觸發 input（沒有 blur），inputType 為空或 insertReplacementText。
+$('#f-store').addEventListener('input', (e) => {
+  if (!e.inputType || e.inputType === 'insertReplacementText') smartFillFromStore();
+});
 $('#openRepayFromEntry').onclick = () => {
   closeSheet();
   openRepaySheet(null, '');
