@@ -1,0 +1,44 @@
+/* 外幣與匯率：行程編輯的幣別設定、記帳表單的支付幣別、行程結算卡。 */
+.fx-box{margin-top:6px}
+.fx-note{font-size:12px;color:var(--muted);line-height:1.5;margin:0 0 9px}
+.fx-cur{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:9px;background:var(--surface)}
+.fx-cur-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:14px}
+.fx-cur-head small{color:var(--muted);font-weight:500}
+.fx-x{border:0;background:transparent;color:var(--faint);font-size:13px;padding:4px 6px}
+.fx-rate{background:var(--surface-2);border-radius:10px;padding:9px;margin-bottom:7px}
+.fx-rate-top{display:grid;grid-template-columns:104px minmax(0,1fr) auto;gap:6px;margin-bottom:7px}
+.fx-rate select,.fx-rate input,.fx-add select,.fx-entry select,.fx-entry input{min-width:0;padding:9px 8px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font-size:16px}
+.fx-eq{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.fx-eq input{flex:1;min-width:84px}
+.fx-sub{font-size:11px;color:var(--faint);margin-top:5px;line-height:1.5}
+.fx-add,.fx-add-rate{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+.fx-add select{flex:1}
+
+/* 記帳表單 */
+.fx-entry{margin:8px 0 0;padding:10px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.7)}
+.fx-entry-head{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:7px}
+.fx-curseg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.fx-curseg button{padding:7px 11px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:13px;color:var(--muted)}
+.fx-curseg button.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:600}
+.fx-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.fx-grid label{display:block;font-size:11px;color:var(--muted);margin-bottom:3px}
+.fx-grid input,.fx-grid select{width:100%}
+.fx-preview{margin-top:8px;font-size:13px;color:var(--ink);line-height:1.5}
+.fx-preview b{font-family:var(--num)}
+.fx-warn{color:#8a6427}
+
+/* 行程結算卡 */
+.fx-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin:0 0 12px}
+.fx-card h3{font-size:14px;margin:0 0 2px}
+.fx-hero{font-family:var(--num);font-size:26px;font-weight:700;margin:2px 0 2px}
+.fx-hero small{font-size:12px;color:var(--muted);font-weight:500;margin-left:6px;font-family:inherit}
+.fx-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer}
+.fx-row .nm{font-size:13px;font-weight:600}
+.fx-row .nt{font-family:var(--num);font-size:14px;font-weight:600;text-align:right}
+.fx-row .sb{font-size:11px;color:var(--faint);grid-column:1/3}
+.fx-bar{height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden;grid-column:1/3;margin-top:3px}
+.fx-bar i{display:block;height:100%;background:var(--teal)}
+.fx-detail{display:none;padding:2px 0 8px 10px;border-left:2px solid var(--line);margin-left:2px}
+.fx-detail.show{display:block}
+.fx-detail div{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);padding:3px 0}
+.fx-detail .bal{color:var(--ink)}

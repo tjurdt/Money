@@ -52,6 +52,7 @@ function updateKindUI() {
   if (k === 'investment') updateInvUI();
   updateRepeatButton();
   updateSplitPreview();
+  updateFxUI();
 
   syncEntryBlocks();
 }
@@ -222,6 +223,8 @@ function openSheet(id) {
     : settings.lastPayment && payments.includes(settings.lastPayment)
       ? settings.lastPayment
       : null;
+  userPicked = { cat: false, pay: false };
+  initFxState(r);
   setCatMode(catMode);
   setItemDetailOpen(itemDetailOpen);
   updateKindUI();
@@ -332,6 +335,8 @@ function saveRecord(cont) {
       };
     }
   }
+  const fx = k === 'expense' ? readFxForSave(total) : null;
+  if (fx === false) return;
   const rec = {
     id: editingId || uid(),
     createdAt: editingId
@@ -377,6 +382,7 @@ function saveRecord(cont) {
     total,
     split,
     inv,
+    ...(fx ? { fx } : {}),
   };
   if (editingId) records = records.map((x) => (x.id === editingId ? rec : x));
   else records = [...records, rec];
@@ -386,6 +392,7 @@ function saveRecord(cont) {
     settings.storeChains = unionUnique(settings.storeChains, [$('#f-chain').value.trim()]);
   }
   if (k !== 'investment' && selPay) settings.lastPayment = selPay;
+  if (k === 'expense') rememberFx(fx);
   save(K.set, settings);
   if (cont && !wasEditing) {
     renderAll();

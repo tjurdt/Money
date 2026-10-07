@@ -26,5 +26,8 @@
   "25-ui-settings.js",
   "26-glue-v7-ux.js",
   "27-glue-v23.js",
-  "28-ui-install.js"
+  "28-ui-install.js",
+  "29-ui-trip-currency.js",
+  "30-entry-fx.js",
+  "31-ui-trip-fx-summary.js"
 ]

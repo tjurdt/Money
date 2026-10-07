@@ -75,6 +75,7 @@ function selectScope(sc) {
   } else {
     formScope = sc;
     $('#formScopeText').textContent = scopeLabel(sc);
+    updateFxUI();
   }
   closeScopePicker();
 }

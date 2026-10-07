@@ -53,11 +53,13 @@ if (listPeriod.mode === 'month' && /^\d{4}-\d{2}/.test(listPeriod.from || '')) {
   if (y && m) viewMonth = new Date(y, m - 1, 1);
 }
 let selectedScopes = new Set();
+let fxCardOpen = new Set(); // 行程結算卡中已展開的列
 let editingId = null,
   formScope = null,
   selCat = null,
   selSub = null,
   selPay = null,
+  userPicked = { cat: false, pay: false }, // 使用者親自選過的欄位，店家預設值不覆蓋
   catMode = 'whole',
   invAct = 'buy',
   storeMode = 'single';

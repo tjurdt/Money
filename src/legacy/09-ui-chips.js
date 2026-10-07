@@ -36,6 +36,7 @@ function renderChipSelectors() {
       (b) =>
         (b.onclick = () => {
           if (b.dataset.add) return addOption('cat');
+          userPicked.cat = true;
           selCat = selCat === b.dataset.v ? null : b.dataset.v;
           selSub = null;
           renderChipSelectors();
@@ -48,6 +49,7 @@ function renderChipSelectors() {
       (b) =>
         (b.onclick = () => {
           if (b.dataset.add) return addOption('pay');
+          userPicked.pay = true;
           selPay = selPay === b.dataset.v ? null : b.dataset.v;
           renderChipSelectors();
         }),
@@ -109,6 +111,7 @@ function addOption(type) {
       save(getKind() === 'income' ? K.ci : K.ce, list);
       save(K.cc, catColors);
     }
+    userPicked.cat = true;
     selCat = v;
     refreshItemCatSelects();
     renderSubChips();
@@ -117,6 +120,7 @@ function addOption(type) {
       payments = [...payments, v];
       save(K.pay, payments);
     }
+    userPicked.pay = true;
     selPay = v;
   }
   renderChipSelectors();
