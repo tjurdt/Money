@@ -14,6 +14,13 @@
 /** @type {ReadonlyArray<{version: string, date: string, items: ReadonlyArray<string>}>} */
 export const CHANGELOG = Object.freeze([
   {
+    version: '1.1.1',
+    date: '2026-10-08',
+    items: [
+      '修正：旅行或情境名稱很長時，頂端列會互相重疊；現在會先縮小字級、再換行，最後才用「…」截斷',
+    ],
+  },
+  {
     version: '1.1.0',
     date: '2026-10-08',
     items: [

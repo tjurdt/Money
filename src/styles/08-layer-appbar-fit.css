@@ -1,0 +1,16 @@
+/* 頂列自適應：名稱很長時（例如「福岡對馬釜山 2026」）不再互相疊到。
+ * 優先順序：先縮小字級 → 再換行（最多兩行）→ 最後才用「…」截斷。
+ * 空間不夠時，情境按鈕會整個換到第二行，而不是把「記帳本」擠掉。 */
+.appbar .top{flex-wrap:wrap;row-gap:8px}
+.top-actions{flex-wrap:wrap;min-width:0}
+.top-actions .monthbar.monthbar-inline{flex:1 1 150px;min-width:0;max-width:none}
+.top-actions .monthbar.monthbar-inline .m{
+  flex:1 1 auto;min-width:0;max-width:none;white-space:normal;overflow:hidden;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;
+  overflow-wrap:anywhere;line-height:1.15;font-size:clamp(11px,3.5vw,14px)}
+.top-actions .monthbar.monthbar-inline .m .sub{white-space:normal;font-size:clamp(9px,2.8vw,10px)}
+.top-actions .scopepill{flex:1 1 140px;min-width:0;max-width:100%;justify-content:space-between}
+.top-actions .scopepill span{
+  flex:1 1 auto;min-width:0;white-space:normal;overflow:hidden;text-align:left;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;
+  overflow-wrap:anywhere;line-height:1.2;font-size:clamp(11px,3.4vw,13px)}
