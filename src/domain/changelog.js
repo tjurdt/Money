@@ -14,6 +14,14 @@
 /** @type {ReadonlyArray<{version: string, date: string, items: ReadonlyArray<string>}>} */
 export const CHANGELOG = Object.freeze([
   {
+    version: '1.1.2',
+    date: '2026-10-08',
+    items: [
+      '頂端列：圓角框的大小與位置固定，名稱再長也不會動到排版；文字只在框內縮小、換行，最後才用「…」截斷',
+      '切換到旅行時，上方日期框只顯示日期，旅行名稱由旁邊的情境框顯示',
+    ],
+  },
+  {
     version: '1.1.1',
     date: '2026-10-08',
     items: [

@@ -1,16 +1,28 @@
-/* 頂列自適應：名稱很長時（例如「福岡對馬釜山 2026」）不再互相疊到。
- * 優先順序：先縮小字級 → 再換行（最多兩行）→ 最後才用「…」截斷。
- * 空間不夠時，情境按鈕會整個換到第二行，而不是把「記帳本」擠掉。 */
-.appbar .top{flex-wrap:wrap;row-gap:8px}
-.top-actions{flex-wrap:wrap;min-width:0}
-.top-actions .monthbar.monthbar-inline{flex:1 1 150px;min-width:0;max-width:none}
+/* 頂列：圓角框的大小與位置固定，不隨文字長短改變。
+ * 文字太長時只在框內處理：先縮小字級、框內換行並壓縮行距（見 05-ui-appbar.js 的 fitText），
+ * 縮到最小仍放不下，才在框內用「…」截斷。整個頂列的排版不會被文字撐動。 */
+.appbar .top{flex-wrap:nowrap;gap:6px}
+.appbar h1{flex:0 0 auto}
+.top-actions{flex:1 1 0;min-width:0;flex-wrap:nowrap;gap:6px}
+.top-actions .cloudpill{flex:0 0 auto}
+
+/* 日期／月份框：吃掉剩下的寬度，高度固定 */
+.top-actions .monthbar.monthbar-inline{flex:1 1 0;min-width:0;max-width:190px;gap:4px}
 .top-actions .monthbar.monthbar-inline .m{
-  flex:1 1 auto;min-width:0;max-width:none;white-space:normal;overflow:hidden;
-  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;
-  overflow-wrap:anywhere;line-height:1.15;font-size:clamp(11px,3.5vw,14px)}
-.top-actions .monthbar.monthbar-inline .m .sub{white-space:normal;font-size:clamp(9px,2.8vw,10px)}
-.top-actions .scopepill{flex:1 1 140px;min-width:0;max-width:100%;justify-content:space-between}
+  flex:1 1 0;min-width:0;max-width:none;height:38px;min-height:38px;padding:0 4px;
+  overflow:hidden;white-space:nowrap;line-height:1.1;
+  display:flex;flex-direction:column;justify-content:center;align-items:center}
+.top-actions .monthbar.monthbar-inline .m .sub{margin-top:1px;line-height:1.1}
+@media(max-width:400px){
+  .top-actions .monthbar.monthbar-inline button:not(.m){width:24px;flex-basis:24px}}
+
+/* 情境框：寬高都固定，文字在框內換行 */
+.top-actions .scopepill{
+  flex:0 0 clamp(84px,27vw,116px);width:clamp(84px,27vw,116px);min-width:0;max-width:none;
+  height:40px;min-height:40px;padding:0 8px 0 10px;gap:4px;overflow:hidden;
+  justify-content:space-between;align-items:center}
 .top-actions .scopepill span{
-  flex:1 1 auto;min-width:0;white-space:normal;overflow:hidden;text-align:left;
-  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;
-  overflow-wrap:anywhere;line-height:1.2;font-size:clamp(11px,3.4vw,13px)}
+  flex:1 1 0;min-width:0;max-height:32px;white-space:normal;overflow:hidden;
+  overflow-wrap:anywhere;text-align:left;line-height:1.05;font-size:13px}
+.top-actions .scopepill span.clip{
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3}
