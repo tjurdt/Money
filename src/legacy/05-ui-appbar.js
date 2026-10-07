@@ -1,6 +1,27 @@
 /* ===== App bar ===== */
+/**
+ * 把文字縮到剛好放進固定大小的框內：從 max 開始逐步縮小，直到不溢出或到 min。
+ * 縮到最小還放不下就加上 clip，由 CSS 在框內用「…」截斷。
+ * axis 'y'：框高固定、文字可換行；'x'：單行、框寬固定。
+ */
+function fitText(el, max, min, axis) {
+  if (!el) return;
+  el.classList.remove('clip');
+  el.style.fontSize = max + 'px';
+  const over = () =>
+    axis === 'x' ? el.scrollWidth > el.clientWidth + 1 : el.scrollHeight > el.clientHeight + 1;
+  for (let s = max; s > min && over(); s -= 0.5) el.style.fontSize = s + 'px';
+  if (over()) el.classList.add('clip');
+}
+function refitAppbarText() {
+  fitText($('#scopePillText'), 13, 9, 'y');
+  fitText($('#monthLabel'), 14, 9, 'x');
+}
+window.addEventListener('resize', refitAppbarText);
+document.fonts?.ready?.then(refitAppbarText);
 function renderScopePill() {
   $('#scopePillText').textContent = scopeLabel(currentScope);
+  refitAppbarText();
 }
 function periodMonthBounds() {
   const y = viewMonth.getFullYear(),
@@ -39,13 +60,14 @@ function setListPeriod(mode, from = '', to = '') {
 function renderMonthBar() {
   const lbl = $('#monthLabel');
   if (isTripScope()) {
-    const t = tripById(currentScope.trip),
-      dt = tripDates(t);
-    lbl.innerHTML = (t ? esc(t.name) : '行程') + (dt ? `<span class="sub">${dt}</span>` : '');
+    // 行程名稱已經顯示在旁邊的情境框，這裡只放日期。
+    const dt = tripDates(tripById(currentScope.trip));
+    lbl.textContent = dt || '不限期間';
     lbl.classList.add('trip');
     $('#prevMonth').classList.add('hide');
     $('#nextMonth').classList.add('hide');
     lbl.disabled = true;
+    refitAppbarText();
     return;
   }
   lbl.disabled = false;
@@ -64,6 +86,7 @@ function renderMonthBar() {
   const arrows = listPeriod.mode === 'month';
   $('#prevMonth').classList.toggle('hide', !arrows);
   $('#nextMonth').classList.toggle('hide', !arrows);
+  refitAppbarText();
 }
 $('#prevMonth').onclick = () => {
   if (listPeriod.mode !== 'month') return;
