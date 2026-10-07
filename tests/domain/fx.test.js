@@ -11,6 +11,8 @@ import {
   rateLabel,
   formatRate,
   rateUsageCount,
+  toTwdRecord,
+  fxSourceRecord,
 } from '../../src/domain/fx.js';
 import { CURRENCY_LIST, currencyMeta, formatMoney } from '../../src/domain/currencies.js';
 
@@ -273,5 +275,66 @@ describe('summarizeTripFx 結算', () => {
   it('rateUsageCount 計算匯率被幾筆帳目使用', () => {
     expect(rateUsageCount(recs, 't1', 'JPY', 'fx1')).toBe(1);
     expect(rateUsageCount(recs, 't1', 'JPY', 'nope')).toBe(0);
+  });
+});
+
+describe('外幣整筆換成台幣', () => {
+  const form = () => ({
+    id: 'x',
+    kind: 'expense',
+    total: 330,
+    grossTotal: 400,
+    discountTotal: 70,
+    discountOverrideTotal: null,
+    items: [
+      { lineId: 'a', name: '飯糰', price: 200, grossPrice: 250, unitPrice: 200, qty: 1 },
+      { lineId: 'b', name: '飲料', price: 130, grossPrice: 150, unitPrice: 130, qty: 1 },
+    ],
+    split: { payer: 'me', partner: 'x', preset: 'own', myShare: 165, settled: false },
+    scope: { type: 'overseas', trip: 't1' },
+  });
+  const fx = buildFx({ code: 'JPY', amount: 330, rate: null, twdTotal: 75 });
+
+  it('頂層全部換成台幣，品項加總等於總額', () => {
+    const r = toTwdRecord(form(), fx);
+    expect(r.total).toBe(75);
+    expect(r.items.reduce((n, i) => n + i.price, 0)).toBeCloseTo(75, 2);
+    expect(r.grossTotal).toBeCloseTo(90.91, 2);
+    expect(r.split.myShare).toBeCloseTo(37.5, 2);
+  });
+
+  it('外幣原貌存進 fx.orig，不被換算汙染', () => {
+    const r = toTwdRecord(form(), fx);
+    expect(r.fx.orig).toMatchObject({ total: 330, grossTotal: 400, myShare: 165 });
+    expect(r.fx.orig.items.map((i) => i.price)).toEqual([200, 130]);
+  });
+
+  it('fxSourceRecord 還原後再換算一次結果相同（編輯不漂移）', () => {
+    const once = toTwdRecord(form(), fx);
+    const back = fxSourceRecord(once);
+    expect(back.total).toBe(330);
+    expect(back.items.map((i) => i.price)).toEqual([200, 130]);
+    expect(toTwdRecord(back, { ...back.fx, amount: back.total })).toMatchObject({ total: 75 });
+  });
+
+  it('沒有 orig 的早期外幣帳目依比例反推', () => {
+    const legacy = {
+      id: 'o',
+      kind: 'expense',
+      total: 75,
+      items: [{ price: 75 }],
+      split: null,
+      fx: { cur: 'JPY', amount: 330, rate: 0.2273, rateType: 'card' },
+    };
+    const back = fxSourceRecord(legacy);
+    expect(back.total).toBe(330);
+    expect(back.items[0].price).toBe(330);
+    expect(back.fx.twd).toBe(75);
+  });
+
+  it('非外幣帳目原樣回傳，空值不出錯', () => {
+    const r = { id: 'n', total: 5 };
+    expect(fxSourceRecord(r)).toBe(r);
+    expect(fxSourceRecord(null)).toBeNull();
   });
 });

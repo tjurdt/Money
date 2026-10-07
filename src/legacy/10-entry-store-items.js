@@ -279,6 +279,7 @@ function recomputeTotal() {
   if (typeof updateEntryTotalMirror === 'function') updateEntryTotalMirror();
   renderDiscountSummary();
   updateSplitPreview();
+  if (typeof recalcFxTwd === 'function') recalcFxTwd();
   return t;
 }
 function collectItems() {

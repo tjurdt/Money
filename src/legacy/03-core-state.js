@@ -53,6 +53,11 @@ if (listPeriod.mode === 'month' && /^\d{4}-\d{2}/.test(listPeriod.from || '')) {
   if (y && m) viewMonth = new Date(y, m - 1, 1);
 }
 let selectedScopes = new Set();
+// 記帳表單的外幣狀態（邏輯在 30-entry-fx.js；宣告放這裡是因為更早載入的檔案也會讀）。
+let fxCur = null, // null ＝ 台幣直接付款（沒有外幣資訊）
+  fxRateKey = null, // 匯率 id，或 'card'（刷卡，台幣金額照帳單輸入）
+  fxExtraRate = null, // 編輯舊帳目時，保留已被刪除的匯率快照
+  fxTotalManual = false; // 台幣金額是否被使用者手動改過
 let fxCardOpen = new Set(); // 行程結算卡中已展開的列
 let editingId = null,
   formScope = null,

@@ -132,7 +132,8 @@ function defaultDateFor(scope) {
 }
 function openSheet(id) {
   editingId = id || null;
-  const r = id ? records.find((x) => x.id === id) : null;
+  // 外幣帳目還原成當初以外幣輸入的樣子（品項、優惠、分帳都是外幣）。
+  const r = fxSourceRecord(id ? records.find((x) => x.id === id) : null);
   if (r && r.kind === 'settlement') {
     editingId = null;
     openRepaySheet(id);
@@ -337,7 +338,7 @@ function saveRecord(cont) {
   }
   const fx = k === 'expense' ? readFxForSave(total) : null;
   if (fx === false) return;
-  const rec = {
+  const rec0 = {
     id: editingId || uid(),
     createdAt: editingId
       ? records.find((x) => x.id === editingId)?.createdAt || Date.now()
@@ -382,8 +383,9 @@ function saveRecord(cont) {
     total,
     split,
     inv,
-    ...(fx ? { fx } : {}),
   };
+  // 外幣支出：表單上全是外幣，這裡整筆換成台幣（頂層永遠是台幣）。
+  const rec = fx ? toTwdRecord(rec0, fx) : rec0;
   if (editingId) records = records.map((x) => (x.id === editingId ? rec : x));
   else records = [...records, rec];
   const wasEditing = !!editingId;

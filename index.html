@@ -101,10 +101,10 @@
   <div class="warn" id="storageWarn" style="display:none"></div>
   <div class="settings-lead">把不常用的設定收起來，平常只需要碰「分類與付款」。</div>
   <div class="install-card" id="installCard" hidden></div>
-  <details class="setgroup" open><summary>Google 同步</summary><div class="setbody">
+  <details class="setgroup"><summary>Google 同步</summary><div class="setbody">
     <div class="setrow"><h3>跨裝置同步</h3><p id="settingsCloudText">登入自己的 Google 帳號後，資料只會同步到該帳號的 Google Drive App Data；不同使用者彼此獨立。</p><div class="acts"><button class="btn-outline" id="settingsCloudBtn">設定 / 登入 Google</button><button class="btn-outline" id="settingsSyncBtn" style="display:none">立即同步</button></div></div>
   </div></details>
-  <details class="setgroup" open><summary>分類與付款</summary><div class="setbody">
+  <details class="setgroup"><summary>分類與付款</summary><div class="setbody">
     <div class="setrow"><h3>支出分類與子分類</h3><p>分類可改名、選顏色；子分類選填。</p><div id="catExpManage"></div><div id="subManage" style="margin-top:12px"></div></div>
     <div class="setrow"><h3>收入分類</h3><div id="catIncManage"></div></div>
     <div class="setrow"><h3>付款方式</h3><div class="selectchips" id="payManage"></div></div>
@@ -123,6 +123,7 @@
     <div class="setrow"><h3>股票名稱與行情</h3><p>股票名稱直接使用台股代號資料，不依賴 Google Sheets。Google Finance 價格由網站的 Google Cloud 專案統一提供；若暫時不可用，就退回 TWSE／TPEx／手動現價。</p><div class="invpreview" id="financeDiag">尚未測試</div><div class="acts" style="margin-top:9px"><button class="btn-outline" id="testFinanceBtn">測試 2330 / 3017</button><button class="btn-outline" id="refreshTickerCatalogBtn">更新股票代號表</button></div></div>
     <div class="setrow"><h3>關於</h3><p>少量多人使用版。每位使用者登入自己的 Google 帳號後，帳本存入自己的 Google Drive App Data；共用的 Maps／OCR API 設定不會寫入個人帳本。目前共 <b id="countInfo">0</b> 筆。</p></div>
   </div></details>
+  <details class="setgroup" id="versionGroup"><summary id="versionSummary">版本與更新</summary><div class="setbody"><div class="setrow" id="versionBody"></div></div></details>
   <details class="setgroup" id="adminZone" style="display:none"><summary>管理者專區</summary><div class="setbody"><div class="setrow admin-zone"><h3>進階功能白名單</h3><p>此版本是純靜態 GitHub Pages，白名單固定寫在部署檔，避免另外建立後端造成維護與安全負擔。管理者可在這裡確認目前名單。</p><div id="adminAllowlist"></div><div class="access-lock">若未來需要頻繁新增／移除成員，再改成後端管理會比較合適。</div></div></div></details>
   <div class="settings-end-space" aria-hidden="true"></div>
 </section>
@@ -151,7 +152,7 @@
 
     <section class="entry-block entry-block-main" id="entryBlockMain">
       <div class="entry-block-head"><div><span class="entry-step">01</span><b id="entryBlock1Title">消費</b></div><button type="button" class="entry-head-action repeatbtn" id="repeatLastBtn">↻ 上一筆</button></div>
-      <div class="fx-entry" id="fxEntry" style="display:none"><div class="fx-entry-head">支付幣別</div><div class="fx-curseg" id="fxCurSeg"></div><div id="fxFields" style="display:none"><div class="fx-grid"><div><label id="fxAmtLabel">外幣金額</label><input type="number" id="f-fxamt" inputmode="decimal" placeholder="0" /></div><div><label>匯率</label><select id="f-fxrate"></select></div></div><div id="fxFloatRow" style="display:none;margin-top:8px"><div class="fx-grid"><div><label>浮動匯率：1 外幣 = NT$</label><input type="number" id="f-fxfloat" inputmode="decimal" step="any" /></div><div style="align-self:end"><button type="button" class="tiny-btn" id="fxLiveBtn">取得即時匯率</button></div></div></div><div class="fx-preview" id="fxPreview"></div></div></div>
+      <div class="fx-entry" id="fxEntry" style="display:none"><div class="fx-entry-head">支付幣別 <small>選外幣後，下方金額、品項、優惠都以外幣計算</small></div><div class="fx-curseg" id="fxCurSeg"></div><div id="fxFields" style="display:none"><div class="fx-grid"><div><label>匯率</label><select id="f-fxrate"></select></div><div><label>台幣總額 NT$</label><input type="number" id="f-fxtwd" inputmode="decimal" placeholder="自動換算" /></div></div><div id="fxFloatRow" style="display:none;margin-top:8px"><div class="fx-grid"><div><label>浮動匯率：1 外幣 = NT$</label><input type="number" id="f-fxfloat" inputmode="decimal" step="any" /></div><div style="align-self:end"><button type="button" class="tiny-btn" id="fxLiveBtn">取得即時匯率</button></div></div></div><div class="fx-preview" id="fxPreview"></div></div></div>
       <div class="field amount-hero" id="fld-amount"><label id="amountLabel">支出金額 (NT$)</label><input type="number" id="f-total" inputmode="decimal" placeholder="0" /></div>
       <div class="discount-amount-lock" id="discountAmountLock">目前金額由優惠規則自動計算；折扣前金額請到「優惠」中修改。</div>
       <div class="field" id="fld-store"><div class="field-head"><label id="storeLabel">店家名稱 <small>選填</small></label><button type="button" class="tiny-btn" id="storeModeBtn">連鎖店</button></div><div class="store-single-wrap" id="storeSingleWrap"><input type="text" id="f-store" list="storeList" placeholder="例如：全家、鼎泰豐" /></div><div class="store-chain-wrap" id="storeChainWrap"><div class="chain-picker"><select id="f-chain" aria-label="連鎖店"><option value="">選擇連鎖店</option></select><button type="button" class="tiny-btn" id="addChainQuick" aria-label="新增連鎖店">＋</button></div><input type="text" id="f-branch" list="branchList" placeholder="分店，例如：北投明德店"></div><div class="short-suggest" id="storeSuggest"></div><button class="nearbtn" id="nearBtn">📍 找附近店家</button><div class="selectchips nearchips" id="nearChips" style="margin-top:8px"></div></div>

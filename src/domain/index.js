@@ -19,6 +19,7 @@ export * from './scope.js';
 export * from './currencies.js';
 export * from './fx.js';
 export * from './store-defaults.js';
+export * from './changelog.js';
 export * from './split.js';
 export * from './stats.js';
 export * from './discount.js';

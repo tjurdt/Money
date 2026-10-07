@@ -1,6 +1,6 @@
 {
   "name": "money-ledger",
-  "version": "0.0.0",
+  "version": "1.1.0",
   "description": "記帳本 PWA — 個人記帳、分帳、投資與雲端同步",
   "scripts": {
     "dev": "vite",

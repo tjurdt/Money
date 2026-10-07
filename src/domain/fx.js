@@ -16,9 +16,14 @@
  *     type 'exchange' 換匯：用 twd 元台幣換到 foreign 外幣，匯率 = twd / foreign
  *
  * 帳目上的外幣資訊：
- *   record.fx = { cur, amount, rate, rateId, rateType, rateLabel }
- *     amount   外幣金額
+ *   record.fx = { cur, amount, twd, rate, rateId, rateType, rateLabel, orig }
+ *     amount   外幣總額
+ *     twd      換算後的台幣總額（＝ record.total）
  *     rateType 上述三種，或 'card'（刷卡，以帳單台幣金額反推匯率）
+ *     orig     記帳當下以外幣計的原始內容（品項、優惠、分帳），編輯時還原用
+ *
+ * 外幣支出的品項、優惠、分帳全部以外幣輸入；儲存時整筆依「台幣總額 ÷ 外幣總額」
+ * 等比換成台幣，record 頂層（total、items…）因此永遠是台幣，既有統計不必改。
  *
  * 純函式：不碰 DOM、不讀全域狀態。
  */
@@ -109,12 +114,14 @@ export function findRate(trip, code, rateId) {
  */
 export function buildFx({ code, amount, rate, twdTotal }) {
   if (!isPos(amount)) return null;
+  const twd = isPos(twdTotal) ? round2(+twdTotal) : 0;
   if (!rate) {
-    const r = impliedRate(twdTotal, amount);
+    const r = impliedRate(twd, amount);
     return r
       ? {
           cur: code,
           amount: +amount,
+          twd,
           rate: r,
           rateId: null,
           rateType: 'card',
@@ -127,10 +134,98 @@ export function buildFx({ code, amount, rate, twdTotal }) {
   return {
     cur: code,
     amount: +amount,
+    twd: twd || toTwd(amount, value),
     rate: value,
     rateId: rate.id,
     rateType: rate.type,
     rateLabel: rateLabel(rate, code),
+  };
+}
+
+const ITEM_MONEY = ['price', 'grossPrice', 'unitPrice'];
+const scaleNum = (v, k) => (v == null || !Number.isFinite(+v) ? v : round2(+v * k));
+
+/** 品項的金額欄位等比縮放。 */
+function scaleItems(items, k) {
+  return (items || []).map((it) => {
+    const out = { ...it };
+    for (const f of ITEM_MONEY) if (f in out) out[f] = scaleNum(out[f], k);
+    return out;
+  });
+}
+
+/**
+ * 把「以外幣輸入」的整筆帳目換成台幣。
+ *
+ * 換算比例 k ＝ 台幣總額 ÷ 外幣總額，全部品項與優惠金額等比乘上去，
+ * 品項加總與總額之間的尾差補在最後一個有金額的品項上，確保「品項加總 ＝ 總額」。
+ * 這同時處理了「品項是日圓、信用卡帳單是台幣」的情境：k 就是刷卡實際的匯率。
+ *
+ * @param {object} rec 表單算出的帳目（total、items… 都是外幣）
+ * @param {object} fx buildFx 的結果（amount 是外幣總額、twd 是台幣總額）
+ * @returns {object} 新帳目，頂層為台幣，fx.orig 保留外幣原貌
+ */
+export function toTwdRecord(rec, fx) {
+  const k = fx.twd / fx.amount;
+  let items = rec.items ? scaleItems(rec.items, k) : rec.items;
+  if (items && items.length) {
+    const priced = items.filter((i) => +i.price > 0);
+    const last = priced[priced.length - 1];
+    const sum = items.reduce((s, i) => s + (+i.price || 0), 0);
+    if (last && Math.abs(sum - fx.twd) < 1) last.price = round2(last.price + (fx.twd - sum));
+  }
+  const orig = {
+    total: rec.total,
+    items: rec.items,
+    grossTotal: rec.grossTotal ?? null,
+    discountTotal: rec.discountTotal ?? 0,
+    discountOverrideTotal: rec.discountOverrideTotal ?? null,
+    myShare: rec.split ? rec.split.myShare : null,
+  };
+  return {
+    ...rec,
+    total: fx.twd,
+    items,
+    grossTotal: scaleNum(rec.grossTotal, k) ?? null,
+    discountTotal: scaleNum(rec.discountTotal, k) ?? 0,
+    discountOverrideTotal: scaleNum(rec.discountOverrideTotal, k) ?? null,
+    split: rec.split
+      ? { ...rec.split, myShare: Math.min(fx.twd, scaleNum(rec.split.myShare, k)) }
+      : null,
+    fx: { ...fx, orig },
+  };
+}
+
+/**
+ * 編輯外幣帳目時，還原成「當初以外幣輸入的樣子」，表單才能原樣顯示。
+ * 沒有 orig 的舊外幣帳目（早期版本只存了台幣品項）則用 外幣總額 ÷ 台幣總額 反推。
+ * 非外幣帳目原樣回傳。
+ */
+export function fxSourceRecord(rec) {
+  if (!rec || !hasFx(rec)) return rec;
+  const fx = rec.fx;
+  const o = fx.orig;
+  if (o)
+    return {
+      ...rec,
+      total: o.total,
+      items: o.items,
+      grossTotal: o.grossTotal,
+      discountTotal: o.discountTotal,
+      discountOverrideTotal: o.discountOverrideTotal,
+      split: rec.split ? { ...rec.split, myShare: o.myShare } : null,
+      fx: { ...fx, twd: fx.twd ?? rec.total },
+    };
+  const k = rec.total > 0 ? fx.amount / rec.total : 1;
+  return {
+    ...rec,
+    total: fx.amount,
+    items: rec.items ? scaleItems(rec.items, k) : rec.items,
+    grossTotal: scaleNum(rec.grossTotal, k) ?? null,
+    discountTotal: scaleNum(rec.discountTotal, k) ?? 0,
+    discountOverrideTotal: scaleNum(rec.discountOverrideTotal, k) ?? null,
+    split: rec.split ? { ...rec.split, myShare: scaleNum(rec.split.myShare, k) } : null,
+    fx: { ...fx, twd: fx.twd ?? rec.total },
   };
 }
 
