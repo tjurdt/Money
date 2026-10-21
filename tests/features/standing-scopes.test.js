@@ -93,7 +93,7 @@ describe('常設情境與日常分開', () => {
 
 describe('不進入旅遊比較圖', () => {
   it('旅遊花費比較只列出旅程', () => {
-    api.eval("chartRange = 'all'; renderTripCompare();");
+    api.eval("listPeriod = { mode: 'all', from: '', to: '' }; renderTripCompare();");
     const labels = api.eval('charts.trip.config.data.labels');
     expect(labels.some((l) => l.includes('日本'))).toBe(true);
     expect(labels.some((l) => l.includes('孝親費'))).toBe(false);
@@ -107,7 +107,7 @@ describe('不進入旅遊比較圖', () => {
         'ledger.v2.records': [REC('r', 's-parents', 'standing', 5000)],
       },
     });
-    only.api.eval("chartRange = 'all'; renderTripCompare();");
+    only.api.eval("listPeriod = { mode: 'all', from: '', to: '' }; renderTripCompare();");
     expect(only.api.document.querySelector('#tripCompareCard').style.display).toBe('none');
     only.close();
   });

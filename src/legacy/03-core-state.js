@@ -37,14 +37,11 @@ try {
 let viewMonth = new Date(),
   activeFilter = 'all',
   barDim = 'month',
-  chartRange = 'month',
   pieMode = 'category';
 let listQuery = '',
   listCatFilter = '',
   listPayFilter = '',
-  itemDetailOpen = false,
-  customFrom = '',
-  customTo = '';
+  itemDetailOpen = false;
 let listPeriod = load('ledger.list.period.v1', { mode: 'month', from: '', to: '' });
 if (!listPeriod || !['month', 'day', 'all', 'custom'].includes(listPeriod.mode))
   listPeriod = { mode: 'month', from: '', to: '' };
@@ -52,7 +49,10 @@ if (listPeriod.mode === 'month' && /^\d{4}-\d{2}/.test(listPeriod.from || '')) {
   const [y, m] = (listPeriod.from || '').split('-').map(Number);
   if (y && m) viewMonth = new Date(y, m - 1, 1);
 }
-let selectedScopes = new Set();
+// 圖表頁的「快捷情境」模式：null ＝ 圖表跟隨上方情境與日期；
+// 否則 { kinds: Set<'daily'|'domestic'|'overseas'|'standing'>, saved: {scope, period, viewMonth} }，
+// saved 是點擊快捷鈕前的設定，離開圖表頁時還原。
+let chartOverride = null;
 // 記帳表單的外幣狀態（邏輯在 30-entry-fx.js；宣告放這裡是因為更早載入的檔案也會讀）。
 let fxCur = null, // null ＝ 台幣直接付款（沒有外幣資訊）
   fxRateKey = null, // 匯率 id，或 'card'（刷卡，台幣金額照帳單輸入）

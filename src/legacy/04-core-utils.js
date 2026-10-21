@@ -83,7 +83,8 @@ function toast(m) {
   clearTimeout(t._t);
   t._t = setTimeout(() => t.classList.remove('show'), 2200);
 }
-const isTripScope = () => isScopedToEntry(currentScope);
+// 圖表的快捷情境模式下，右上角顯示「自訂」，不再綁定單一行程。
+const isTripScope = () => !chartOverride && isScopedToEntry(currentScope);
 const inCurrentScope = (r) =>
   currentScope.type === 'all'
     ? true

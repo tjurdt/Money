@@ -67,6 +67,8 @@ function renderScopeList() {
 }
 function selectScope(sc) {
   if (scopePickerTarget === 'current') {
+    // 使用者明確選了情境，就結束圖表的快捷模式（不還原，以新選擇為準）。
+    chartOverride = null;
     currentScope = sc;
     save(K.scope, currentScope);
     renderScopePill();

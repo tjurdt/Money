@@ -1,25 +1,19 @@
 /* ===== 圖表 ===== */
+// 圖表沒有自己的時間與情境篩選：預設完全跟隨上方的日期與右上角情境。
+// 唯一例外是下方四顆「快捷」按鈕（見 chartOverride），讓使用者一次橫跨多種情境。
 function inRange(dateStr) {
-  if (chartRange === 'all') return true;
-  const d = new Date(dateStr + 'T00:00:00'),
-    now = new Date();
-  if (chartRange === 'custom') {
-    if (customFrom && dateStr < customFrom) return false;
-    if (customTo && dateStr > customTo) return false;
-    return true;
-  }
-  if (chartRange === 'month')
-    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-  if (chartRange === 'year') return d.getFullYear() === now.getFullYear();
-  const from = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-  return d >= from;
+  return inListPeriod(dateStr);
 }
+/** 快捷按鈕對應的情境類型；日常用 'daily'，其餘就是 SCOPE_KINDS 的 key。 */
+const CHART_QUICK = [
+  ['daily', '🏠 日常'],
+  ['domestic', '🚆 歷次國內旅行'],
+  ['overseas', '✈️ 歷次出國旅行'],
+  ['standing', '📌 所有常設情境'],
+];
 function scopeMatch(r) {
-  if (!selectedScopes.size) return true;
-  if (selectedScopes.has('daily') && r.scope && r.scope.type === 'daily') return true;
-  if (selectedScopes.has('travel') && r.scope && r.scope.type !== 'daily') return true;
-  if (r.scope && r.scope.trip && selectedScopes.has(r.scope.trip)) return true;
-  return false;
+  if (!chartOverride) return inCurrentScope(r);
+  return chartOverride.kinds.has((r.scope && r.scope.type) || 'daily');
 }
 function chartExp() {
   return records.filter((r) => r.kind === 'expense' && inRange(r.date) && scopeMatch(r));
@@ -29,50 +23,51 @@ function chartAll() {
     (r) => (r.kind === 'expense' || r.kind === 'income') && inRange(r.date) && scopeMatch(r),
   );
 }
-function renderRangeSeg() {
-  $('#rangeSeg')
-    .querySelectorAll('button')
-    .forEach((b) => b.classList.toggle('on', b.dataset.r === chartRange));
-}
 function renderChartScopeChips() {
-  const opts = [
-    ['all', '全部'],
-    ['daily', '日常'],
-    ['travel', '旅遊'],
-  ].concat(sortedTrips().map((t) => [t.id, scopeKindMeta(t.kind).emoji + t.name]));
   const c = $('#chartScopeChips');
-  c.innerHTML = opts
-    .map(([v, l]) => {
-      const on = v === 'all' ? selectedScopes.size === 0 : selectedScopes.has(v);
-      return `<button class="chip ${on ? 'on' : ''}" data-s="${v}">${esc(l)}</button>`;
-    })
-    .join('');
-  const names = opts.filter(([v]) => v !== 'all' && selectedScopes.has(v)).map(([, l]) => l);
-  const picked = selectedScopes.size
-    ? names.length <= 2
-      ? names.join('、')
-      : `已選 ${selectedScopes.size} 項`
-    : '全部';
-  $('#chartScopeSummary').textContent = chartScopeManual
-    ? `情境：${picked}（已手動調整）`
-    : `情境：${picked}（跟隨上方）`;
-  c.querySelectorAll('.chip').forEach(
-    (b) =>
-      (b.onclick = () => {
-        const v = b.dataset.s;
-        if (v === 'all') selectedScopes.clear();
-        else {
-          selectedScopes.has(v) ? selectedScopes.delete(v) : selectedScopes.add(v);
-        }
-        // 使用者自行調整後就不再跟著右上角情境，直到下次切換情境。
-        chartScopeManual = true;
-        renderChartScopeChips();
-        renderStatKpis();
-        renderPie();
-        renderBar();
-        renderChartCalendar();
-      }),
-  );
+  c.innerHTML = CHART_QUICK.map(([v, l]) => {
+    const on = !!chartOverride && chartOverride.kinds.has(v);
+    return `<button class="chip ${on ? 'on' : ''}" data-s="${v}">${esc(l)}</button>`;
+  }).join('');
+  $('#chartScopeSummary').textContent = chartOverride
+    ? '已自訂情境，時間預設為全部，可從上方調整；離開圖表頁會還原原本設定。'
+    : '目前跟隨上方的情境與日期；點下方按鈕可一次比較多種情境。';
+  c.querySelectorAll('.chip').forEach((b) => (b.onclick = () => toggleChartKind(b.dataset.s)));
+}
+/** 進入／離開快捷模式後，右上角與整個畫面都要跟著更新。 */
+function refreshAfterChartOverride() {
+  renderScopePill();
+  renderMonthBar();
+  renderAll();
+}
+function toggleChartKind(kind) {
+  if (!chartOverride) {
+    // 記下點擊前的情境與時間，離開圖表頁時還原。
+    chartOverride = {
+      kinds: new Set(),
+      saved: { scope: currentScope, period: { ...listPeriod }, viewMonth: new Date(viewMonth) },
+    };
+    listPeriod = { mode: 'all', from: '', to: '' };
+  }
+  const kinds = chartOverride.kinds;
+  kinds.has(kind) ? kinds.delete(kind) : kinds.add(kind);
+  if (!kinds.size) return exitChartOverride(true);
+  refreshAfterChartOverride();
+}
+/**
+ * 結束快捷模式。restore 為 true 時把情境與時間還原成進入前的樣子；
+ * 使用者自己改了右上角情境時則不還原（那是新的明確選擇）。
+ */
+function exitChartOverride(restore) {
+  if (!chartOverride) return;
+  const { saved } = chartOverride;
+  chartOverride = null;
+  if (restore) {
+    listPeriod = saved.period;
+    viewMonth = saved.viewMonth;
+    saveListPeriod();
+  } else saveListPeriod();
+  refreshAfterChartOverride();
 }
 function renderStatKpis() {
   const ex = chartExp(),
@@ -92,8 +87,6 @@ function renderStatKpis() {
   $('#statTopCat').textContent = top ? `最多：${top[0]} ${nf(top[1])}` : '尚無支出';
 }
 function renderCharts() {
-  renderRangeSeg();
-  $('#customRange').classList.toggle('show', chartRange === 'custom');
   $('#pieModeSelect').value = pieMode;
   $('#barDimSelect').value = barDim;
   renderChartScopeChips();
@@ -101,116 +94,10 @@ function renderCharts() {
   renderPie();
   renderBar();
   renderTripCompare();
-  renderBalance();
 
   updateChartMergeToggle();
   renderChartCalendar();
 }
-/* ===== 圖表跟隨右上角情境 ===== */
-
-/**
- * 圖表的情境篩選是否已被手動調整過。
- *
- * 預設情況下圖表跟著右上角的情境走；但使用者仍可在圖表頁自行勾選
- * 別的組合（例如同時比較兩趟旅行）。此時標記為手動模式，
- * 直到下次切換右上角情境才重新同步。
- */
-let chartScopeManual = false;
-
-/** 目前的時間區間是否由情境自動帶入（而非使用者手選）。 */
-let chartRangeFromScope = false;
-
-/** 把 currentScope 轉成圖表用的情境篩選集合。 */
-function chartScopesForCurrent() {
-  if (!currentScope || currentScope.type === 'all') return new Set();
-  if (currentScope.type === 'daily') return new Set(['daily']);
-  return currentScope.trip ? new Set([currentScope.trip]) : new Set();
-}
-
-/**
- * 讓圖表對齊右上角的情境。
- *
- * 除了篩選範圍，若該情境設有時間區間（例如一趟旅行 4/8–4/15），
- * 也會把圖表的時間範圍對齊過去 —— 看某趟旅行的統計時，
- * 時間軸自然應該落在那段期間，而不是停在「本月」。
- *
- * 常設情境（孝親費這類）通常不設區間，此時不動時間範圍。
- */
-function syncChartToCurrentScope() {
-  chartScopeManual = false;
-  selectedScopes = chartScopesForCurrent();
-
-  const entry = currentScope && currentScope.trip ? tripById(currentScope.trip) : null;
-  const range = entry ? scopeDateRange(entry) : null;
-
-  if (range) {
-    chartRange = 'custom';
-    customFrom = range.from || '';
-    customTo = range.to || '';
-    chartRangeFromScope = true;
-  } else if (chartRangeFromScope) {
-    // 先前的區間是跟著情境自動帶入的，離開該情境就還原成預設，
-    // 以免停在一段與目前情境無關的日期上。
-    // 使用者自己手選的範圍則不動。
-    chartRange = 'month';
-    customFrom = '';
-    customTo = '';
-    chartRangeFromScope = false;
-  }
-
-  const fromEl = $('#chartFrom');
-  const toEl = $('#chartTo');
-  if (fromEl) fromEl.value = customFrom || '';
-  if (toEl) toEl.value = customTo || '';
-}
-
-// 右上角情境一變動就重新對齊圖表。
-// 用 store 訂閱而不是直接改 selectScope()，這樣不論從哪裡改動情境都會生效。
-store.subscribe((key) => {
-  if (key !== 'currentScope') return;
-  syncChartToCurrentScope();
-});
-
-// 初始對齊一次，讓重新載入頁面時圖表與情境一致。
-syncChartToCurrentScope();
-
-$('#rangeSeg')
-  .querySelectorAll('button')
-  .forEach(
-    (b) =>
-      (b.onclick = () => {
-        chartRange = b.dataset.r;
-        // 使用者自己選了時間範圍，之後切換情境就不再覆寫它。
-        chartRangeFromScope = false;
-        if (chartRange === 'custom' && !customFrom) {
-          const n = new Date();
-          customFrom = new Date(n.getFullYear(), n.getMonth(), 1).toISOString().slice(0, 10);
-          customTo = todayISO();
-          $('#chartFrom').value = customFrom;
-          $('#chartTo').value = customTo;
-        }
-        renderRangeSeg();
-        $('#customRange').classList.toggle('show', chartRange === 'custom');
-        renderStatKpis();
-        renderPie();
-        renderBar();
-        renderTripCompare();
-      }),
-  );
-$('#chartFrom').onchange = (e) => {
-  customFrom = e.target.value;
-  renderStatKpis();
-  renderPie();
-  renderBar();
-  renderTripCompare();
-};
-$('#chartTo').onchange = (e) => {
-  customTo = e.target.value;
-  renderStatKpis();
-  renderPie();
-  renderBar();
-  renderTripCompare();
-};
 $('#pieModeSelect').onchange = (e) => {
   pieMode = e.target.value;
   renderPie();
@@ -398,10 +285,7 @@ function renderPie() {
 function investMonthly() {
   const real = {},
     div = {};
-  records
-    .filter((r) => r.kind === 'investment')
-    .sort((a, b) => a.date.localeCompare(b.date) || a.createdAt - b.createdAt);
-  // realized needs avg-cost pass in date order
+  // 已實現損益要依日期順序跑一次平均成本
   const bySym = {};
   records
     .filter((r) => r.kind === 'investment')
@@ -611,11 +495,26 @@ function renderBar() {
     },
   });
 }
+/** 行程的日期區間是否與目前的時間範圍重疊；缺一端視為不設限。 */
+function tripOverlapsPeriod(t) {
+  if (isTripScope() || listPeriod.mode === 'all') return true;
+  const b = listPeriod.mode === 'month' ? periodMonthBounds() : listPeriod;
+  const from = b.from || '';
+  const to = listPeriod.mode === 'day' ? from : b.to || '';
+  return (!to || !t.start || t.start <= to) && (!from || !t.end || t.end >= from);
+}
 function renderTripCompare() {
   const card = $('#tripCompareCard');
   // 只比較「一趟一趟」的旅程。常設情境（孝親費、房貸…）是長期持續的，
   // 把累積數年的金額跟一趟旅行放在同一張橫向長條圖比較沒有意義。
-  const tripEntries = sortedTrips().filter((t) => isTripKind(t.kind || 'domestic'));
+  // 且只列出日期與目前時間範圍有交集的旅程。
+  const tripEntries = sortedTrips().filter(
+    (t) =>
+      isTripKind(t.kind || 'domestic') &&
+      tripOverlapsPeriod(t) &&
+      (chartOverride ? chartOverride.kinds.has(t.kind || 'domestic') : true) &&
+      (!isTripScope() || currentScope.trip === t.id),
+  );
   if (!tripEntries.length) {
     card.style.display = 'none';
     return;
@@ -658,41 +557,4 @@ function renderTripCompare() {
       },
     },
   });
-}
-function balanceMap() {
-  const map = {};
-  records.forEach((r) => {
-    if (r.kind === 'expense' && r.split && !r.split.settled) {
-      const w = r.split.partner || '（未填對象）';
-      map[w] = (map[w] || 0) + splitBalance(r);
-    } else if (r.kind === 'settlement') {
-      const q = r.settlement || {},
-        w = q.partner || '（未填對象）',
-        amt = +r.total || 0;
-      map[w] = (map[w] || 0) + (q.direction === 'paid' ? amt : -amt);
-    }
-  });
-  return map;
-}
-function renderBalance() {
-  const map = balanceMap(),
-    ent = Object.entries(map)
-      .filter((e) => Math.round(e[1]) !== 0)
-      .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
-  const box = $('#balanceList');
-  if (!ent.length) {
-    box.innerHTML =
-      '<div class="empty" style="padding:16px">沒有未結清項目 🎉<br><button class="mini-action" id="addRepayEmpty" style="margin-top:10px">＋ 記錄還款</button></div>';
-    $('#addRepayEmpty').onclick = () => openRepaySheet(null, '');
-    return;
-  }
-  box.innerHTML = ent
-    .map(([w, v]) => {
-      const pos = v > 0;
-      return `<div class="brow"><div><div class="who">${esc(w)}</div><div class="dir">${pos ? '對方欠你' : '你欠對方'}</div></div><div style="display:flex;align-items:center;gap:8px"><div class="n ${pos ? 'pos' : 'neg'}">${pos ? '+' : '−'}${nf(Math.abs(v))}</div><button class="mini-action" data-repay="${esc(w)}" data-dir="${pos ? 'received' : 'paid'}">記錄還款</button></div></div>`;
-    })
-    .join('');
-  box
-    .querySelectorAll('[data-repay]')
-    .forEach((b) => (b.onclick = () => openRepaySheet(null, b.dataset.repay, b.dataset.dir)));
 }

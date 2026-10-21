@@ -1,11 +1,7 @@
 /**
- * 圖表跟隨右上角情境。
- *
- * 原本圖表頁有一組獨立的情境篩選器，與右上角的情境毫無關聯 ——
- * 切到某趟旅行後，圖表仍統計全部資料、時間軸仍停在「本月」。
- *
- * 現在圖表預設跟著右上角走，且情境若設有時間區間，
- * 圖表的時間範圍會自動對齊到那段期間。
+ * 圖表沒有自己的時間與情境篩選，完全跟隨上方的日期與右上角情境；
+ * 另有四顆快捷鈕（日常／歷次國內／歷次出國／所有常設）可一次橫跨多種情境，
+ * 點擊後時間預設為全部、右上角顯示「自訂」，離開圖表頁時還原。
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { bootLegacyApi } from '../harness.js';
@@ -58,124 +54,141 @@ beforeEach(() => {
 });
 afterEach(() => close());
 
-/** 切換右上角情境（走 store，與實際操作一致）。 */
 const setScope = (sc) => api.store.set('currentScope', sc);
+const ALL = { mode: 'all', from: '', to: '' };
+const stat = () => {
+  api.eval('renderCharts();');
+  return doc.querySelector('#statSpend').textContent;
+};
+const quick = (kind) =>
+  [...doc.querySelectorAll('#chartScopeChips .chip')].find((b) => b.dataset.s === kind).click();
+const goto = (view) => doc.querySelector(`.nav button[data-view="${view}"]`).click();
 
-describe('篩選範圍跟隨情境', () => {
-  it('切到某趟旅行時，圖表只統計該行程', () => {
+describe('跟隨上方情境與日期', () => {
+  beforeEach(() => api.eval(`listPeriod = ${JSON.stringify(ALL)};`));
+
+  it('切到某趟旅行時，只統計該行程', () => {
     setScope({ type: 'overseas', trip: 't-jp' });
-    expect([...api.eval('selectedScopes')]).toEqual(['t-jp']);
+    expect(stat()).toBe('$8,000');
   });
 
   it('切到日常時只統計日常', () => {
     setScope({ type: 'daily', trip: null });
-    expect([...api.eval('selectedScopes')]).toEqual(['daily']);
+    expect(stat()).toBe('$100');
   });
 
   it('切到「全部」時不設限', () => {
     setScope({ type: 'all', trip: null });
-    expect(api.eval('selectedScopes.size')).toBe(0);
+    expect(stat()).toBe('$16,100');
   });
 
   it('切到常設情境時只統計該情境', () => {
     setScope({ type: 'standing', trip: 's-parents' });
-    expect([...api.eval('selectedScopes')]).toEqual(['s-parents']);
+    expect(stat()).toBe('$5,000');
+  });
+
+  it('時間範圍跟上方日期走', () => {
+    setScope({ type: 'all', trip: null });
+    api.eval("setListPeriod('month', '2026-04-01');");
+    expect(stat()).toBe('$8,100');
+  });
+
+  it('圖表頁沒有自己的時間列與分帳結算', () => {
+    expect(doc.querySelector('#rangeSeg')).toBeNull();
+    expect(doc.querySelector('#balanceList')).toBeNull();
   });
 });
 
-describe('時間範圍對齊到情境區間', () => {
-  it('旅行有起訖時，圖表時間自動對齊', () => {
-    setScope({ type: 'overseas', trip: 't-jp' });
-    expect(api.eval('chartRange')).toBe('custom');
-    expect(api.eval('customFrom')).toBe('2026-04-08');
-    expect(api.eval('customTo')).toBe('2026-04-15');
-  });
-
-  it('自訂日期輸入框也跟著更新', () => {
-    setScope({ type: 'overseas', trip: 't-jp' });
-    expect(doc.querySelector('#chartFrom').value).toBe('2026-04-08');
-    expect(doc.querySelector('#chartTo').value).toBe('2026-04-15');
-  });
-
-  it('切到另一趟旅行會重新對齊', () => {
-    setScope({ type: 'overseas', trip: 't-jp' });
-    setScope({ type: 'domestic', trip: 't-hl' });
-    expect(api.eval('customFrom')).toBe('2026-06-01');
-    expect(api.eval('customTo')).toBe('2026-06-03');
-  });
-
-  it('常設情境沒有區間時不動時間範圍', () => {
-    // 孝親費是持續性的，硬套一段日期反而會篩掉大部分資料。
-    api.eval("chartRange = 'year'; chartRangeFromScope = false;");
-    setScope({ type: 'standing', trip: 's-parents' });
-    expect(api.eval('chartRange')).toBe('year');
-  });
-
-  it('從有區間的旅行切回日常時，還原成預設範圍', () => {
-    setScope({ type: 'overseas', trip: 't-jp' });
-    expect(api.eval('chartRange')).toBe('custom');
-    setScope({ type: 'daily', trip: null });
-    expect(api.eval('chartRange')).toBe('month');
-    expect(api.eval('customFrom')).toBe('');
-  });
-
-  it('使用者手選的時間範圍不會被情境覆寫', () => {
-    // 只有「由情境自動帶入」的範圍才會被還原，手選的要尊重。
-    api.eval("$('#rangeSeg').querySelectorAll('button')[2].click();"); // 今年
-    expect(api.eval('chartRange')).toBe('year');
-    setScope({ type: 'daily', trip: null });
-    expect(api.eval('chartRange')).toBe('year');
-  });
-});
-
-describe('統計結果確實改變', () => {
-  it('切到日本後，支出統計只算該行程', () => {
-    setScope({ type: 'overseas', trip: 't-jp' });
-    api.eval('renderCharts();');
-    expect(doc.querySelector('#statSpend').textContent).toBe('$8,000');
-  });
-
-  it('切到花蓮後換成花蓮的金額', () => {
-    setScope({ type: 'domestic', trip: 't-hl' });
-    api.eval('renderCharts();');
-    expect(doc.querySelector('#statSpend').textContent).toBe('$3,000');
-  });
-});
-
-describe('仍可手動覆寫', () => {
+describe('快捷情境按鈕', () => {
   beforeEach(() => {
-    setScope({ type: 'overseas', trip: 't-jp' });
-    api.eval('renderCharts();');
-  });
-
-  it('預設顯示「跟隨上方」', () => {
-    expect(doc.querySelector('#chartScopeSummary').textContent).toContain('跟隨上方');
-  });
-
-  it('手動勾選後標示「已手動調整」', () => {
-    const chip = [...doc.querySelectorAll('#chartScopeChips .chip')].find(
-      (b) => b.dataset.s === 't-hl',
-    );
-    chip.click();
-    expect(doc.querySelector('#chartScopeSummary').textContent).toContain('已手動調整');
-  });
-
-  it('手動加選後可同時比較兩趟旅行', () => {
-    const chip = [...doc.querySelectorAll('#chartScopeChips .chip')].find(
-      (b) => b.dataset.s === 't-hl',
-    );
-    chip.click();
-    expect([...api.eval('selectedScopes')].sort()).toEqual(['t-hl', 't-jp']);
-  });
-
-  it('再次切換右上角情境會重新同步，並解除手動標記', () => {
-    const chip = [...doc.querySelectorAll('#chartScopeChips .chip')].find(
-      (b) => b.dataset.s === 't-hl',
-    );
-    chip.click();
+    api.eval("setListPeriod('month', '2026-04-01');");
     setScope({ type: 'daily', trip: null });
     api.eval('renderCharts();');
-    expect([...api.eval('selectedScopes')]).toEqual(['daily']);
-    expect(doc.querySelector('#chartScopeSummary').textContent).toContain('跟隨上方');
+  });
+
+  it('只有四顆按鈕', () => {
+    expect([...doc.querySelectorAll('#chartScopeChips .chip')].map((b) => b.dataset.s)).toEqual([
+      'daily',
+      'domestic',
+      'overseas',
+      'standing',
+    ]);
+  });
+
+  it('點擊後時間變成全部、右上角顯示自訂', () => {
+    quick('overseas');
+    expect(api.eval('listPeriod.mode')).toBe('all');
+    expect(doc.querySelector('#scopePillText').textContent).toBe('自訂');
+    expect(stat()).toBe('$8,000');
+  });
+
+  it('可複選：歷次旅行不含常設情境', () => {
+    quick('domestic');
+    quick('overseas');
+    expect(stat()).toBe('$11,000');
+    quick('standing');
+    expect(stat()).toBe('$16,000');
+  });
+
+  it('時間範圍可再調整', () => {
+    quick('overseas');
+    quick('domestic');
+    api.eval("setListPeriod('month', '2026-06-01');");
+    expect(stat()).toBe('$3,000');
+    expect(api.eval('chartOverride !== null')).toBe(true);
+  });
+
+  it('切到清單時還原原本的情境與時間', () => {
+    quick('overseas');
+    goto('list');
+    expect(api.eval('chartOverride')).toBe(null);
+    expect(api.eval('currentScope.type')).toBe('daily');
+    expect(api.eval('listPeriod.mode')).toBe('month');
+    expect(api.eval('listPeriod.from')).toBe('2026-04-01');
+    expect(doc.querySelector('#scopePillText').textContent).toContain('日常');
+  });
+
+  it('取消所有按鈕也會還原', () => {
+    quick('overseas');
+    quick('overseas');
+    expect(api.eval('listPeriod.mode')).toBe('month');
+  });
+
+  it('快捷模式的暫時「全部」不會被存進儲存空間', () => {
+    quick('overseas');
+    expect(api.eval("JSON.parse(localStorage.getItem('ledger.list.period.v1')).mode")).toBe(
+      'month',
+    );
+  });
+
+  it('自己改右上角情境會結束快捷模式', () => {
+    quick('overseas');
+    api.eval("scopePickerTarget = 'current'; selectScope({ type: 'all', trip: null });");
+    expect(api.eval('chartOverride')).toBe(null);
+  });
+});
+
+describe('各趟旅遊花費只列出時間範圍涵蓋的旅程', () => {
+  const labels = () => {
+    api.eval('renderTripCompare();');
+    return api.eval('charts.trip.config.data.labels');
+  };
+  beforeEach(() => setScope({ type: 'all', trip: null }));
+
+  it('四月只有日本', () => {
+    api.eval("setListPeriod('month', '2026-04-01');");
+    expect(labels().join()).toContain('日本');
+    expect(labels().join()).not.toContain('花蓮');
+  });
+
+  it('全部時間兩趟都有', () => {
+    api.eval(`listPeriod = ${JSON.stringify(ALL)};`);
+    expect(labels()).toHaveLength(2);
+  });
+
+  it('範圍內沒有旅程時整張卡片隱藏', () => {
+    api.eval("setListPeriod('month', '2026-01-01');");
+    api.eval('renderTripCompare();');
+    expect(doc.querySelector('#tripCompareCard').style.display).toBe('none');
   });
 });

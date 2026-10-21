@@ -98,6 +98,8 @@ function renderSettings() {
           save(key, list);
           save(K.sub, subcats);
           save(K.cc, catColors);
+          // 就地修改攔不到，通知圖表與清單：分類少了一個，統計與選單都要跟著變。
+          store.touchMany(['catsExpense', 'catsIncome', 'subcats', 'catColors']);
           renderSettings();
         }),
     );
@@ -108,6 +110,7 @@ function renderSettings() {
         if (!catColors[n]) catColors[n] = nextColor();
         save(key, list);
         save(K.cc, catColors);
+        store.touchMany(['catsExpense', 'catsIncome', 'catColors']);
         renderSettings();
       }
     };
@@ -252,7 +255,7 @@ $('#exportBtn').onclick = () =>
       ],
       { type: 'application/json' },
     ),
-    '記帳備份_' + new Date().toISOString().slice(0, 10) + '.json',
+    '記帳備份_' + todayISO() + '.json',
   );
 $('#exportCsv').onclick = () => {
   const head = [
@@ -320,7 +323,7 @@ $('#exportCsv').onclick = () => {
   });
   dl(
     new Blob(['\uFEFF' + [head.join(','), ...rows].join('\n')], { type: 'text/csv;charset=utf-8' }),
-    '記帳_' + new Date().toISOString().slice(0, 10) + '.csv',
+    '記帳_' + todayISO() + '.csv',
   );
 };
 function dl(b, n) {
@@ -492,13 +495,6 @@ connectStore();
  */
 function renderAll() {
   renderAllViews();
-}
-{
-  const n = new Date();
-  customFrom = new Date(n.getFullYear(), n.getMonth(), 1).toISOString().slice(0, 10);
-  customTo = todayISO();
-  $('#chartFrom').value = customFrom;
-  $('#chartTo').value = customTo;
 }
 renderAll();
 

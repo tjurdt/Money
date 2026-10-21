@@ -77,6 +77,20 @@ function applyRecordTemplate(r) {
   toast('已套用上一筆；日期與情境維持本次設定');
 }
 $('#repeatLastBtn').onclick = () => applyRecordTemplate(lastExpense());
+/** 目前表單上的連鎖店名稱：連鎖店模式取所選連鎖，一般店名則看能否辨識成連鎖。 */
+function currentStoreChain() {
+  if (storeMode === 'chain') return $('#f-chain').value.trim();
+  const x = inferChainBranch($('#f-store').value.trim());
+  return x.recognized ? x.chain : '';
+}
+/** 這家店（或同一連鎖的任一分店）上一次消費的分類與付款方式；沒有歷史回傳 null。 */
+function storeHistoryDefaults() {
+  return lastStoreDefaults(records, composedStore(), {
+    excludeId: editingId || undefined,
+    chain: currentStoreChain(),
+    chainOf: chainNameOfRecord,
+  });
+}
 /**
  * 輸入店名後，帶入該店「上一筆」消費的分類與付款方式。
  * 使用者在這張表單裡親自選過的欄位不會被覆蓋；編輯舊帳目時完全不介入。
@@ -84,7 +98,7 @@ $('#repeatLastBtn').onclick = () => applyRecordTemplate(lastExpense());
 function smartFillFromStore() {
   if (getKind() !== 'expense' || editingId) return;
   const store = composedStore(),
-    d = lastStoreDefaults(records, store);
+    d = storeHistoryDefaults();
   if (!d) return;
   let changed = false;
   if (!userPicked.cat && catMode === 'whole' && d.category && catsExpense.includes(d.category)) {
@@ -111,6 +125,10 @@ function smartFillFromStore() {
 $('#f-store').addEventListener('input', (e) => {
   if (!e.inputType || e.inputType === 'insertReplacementText') smartFillFromStore();
 });
+// 邊打邊帶入：名稱一旦完整對上歷史店家（或辨識為已用過的連鎖）就帶入，不必等離開欄位。
+// 沒對上時 smartFillFromStore 什麼都不做，所以每個字都跑也不會誤改。
+$('#f-store').addEventListener('input', smartFillFromStore);
+$('#f-branch').addEventListener('input', smartFillFromStore);
 $('#openRepayFromEntry').onclick = () => {
   closeSheet();
   openRepaySheet(null, '');

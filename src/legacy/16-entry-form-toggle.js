@@ -343,7 +343,7 @@ function saveRecord(cont) {
     createdAt: editingId
       ? records.find((x) => x.id === editingId)?.createdAt || Date.now()
       : Date.now(),
-    date: $('#f-date').value || new Date().toISOString().slice(0, 10),
+    date: $('#f-date').value || todayISO(), // toISOString 是 UTC，台灣凌晨會差一天
     kind: k,
     scope:
       k === 'investment'
