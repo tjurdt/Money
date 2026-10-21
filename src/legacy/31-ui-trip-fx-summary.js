@@ -7,7 +7,8 @@ function fxCardTrip() {
   const t = tripById(currentScope.trip);
   if (!t) return null;
   const hasFxRecords = records.some((r) => r.scope && r.scope.trip === t.id && hasFx(r));
-  return tripCurrencies(t).length || hasFxRecords ? t : null;
+  // 出國旅行即使還沒設定幣別也要顯示，不然使用者找不到「新增換匯」的入口。
+  return tripCurrencies(t).length || hasFxRecords || t.kind === 'overseas' ? t : null;
 }
 
 const pct = (part, whole) => (whole > 0 ? Math.round((part / whole) * 100) : 0);
@@ -60,7 +61,7 @@ function leftoverCashTwd(balances) {
 function fxSummaryHtml(t, s) {
   const exchanged = s.balances.reduce((n, b) => n + b.twdCost, 0);
   const left = leftoverCashTwd(s.balances);
-  let h = `<h3>💱 ${esc(t.name)} 結算</h3><div class="fx-hero">${nf(s.totalTwd)}<small>${s.count} 筆 · 台幣總計</small></div>`;
+  let h = `<div class="fx-head"><h3>💱 ${esc(t.name)} 結算</h3><button type="button" class="mini-action" id="fxEditTrip">✏️ ${tripCurrencies(t).length ? '編輯換匯' : '設定換匯'}</button></div><div class="fx-hero">${nf(s.totalTwd)}<small>${s.count} 筆 · 台幣總計</small></div>`;
   if (s.twdOnly.count)
     h +=
       fxRowHtml(
@@ -86,6 +87,11 @@ function renderTripFxCard() {
   }
   const s = summarizeTripFx(records, t);
   box.innerHTML = `<div class="fx-card">${fxSummaryHtml(t, s)}</div>`;
+  // 直接打開行程編輯頁，並捲到幣別與換匯設定。
+  $('#fxEditTrip').onclick = () => {
+    openTripSheet(t.id);
+    $('#tripFxBox')?.scrollIntoView?.({ block: 'center' });
+  };
   box.querySelectorAll('.fx-row').forEach((row) => {
     row.onclick = () => {
       const key = row.dataset.fxkey;

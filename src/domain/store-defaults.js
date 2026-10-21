@@ -29,15 +29,25 @@ function categoryOf(r) {
 /**
  * @param {object[]} records 全部帳目
  * @param {string} store 店名（完整比對，不分大小寫、忽略前後空白）
- * @param {{excludeId?: string}} [opts] 編輯中的帳目要排除，避免拿自己當「上一筆」
+ * @param {{excludeId?: string, chain?: string, chainOf?: (r: object) => string}} [opts]
+ *   excludeId：編輯中的帳目要排除，避免拿自己當「上一筆」。
+ *   chain / chainOf：連鎖店名稱，以及判斷某筆帳目屬於哪個連鎖店的函式。
+ *   同一連鎖的任何分店都算「同一家」—— 在別間全家買過，這間全家也該帶入同樣的習慣。
  * @returns {{category: string|null, sub: string|null, payment: string|null}|null}
  *   沒有這家店的歷史時回傳 null
  */
 export function lastStoreDefaults(records, store, opts = {}) {
   const key = norm(store);
-  if (!key) return null;
+  const chain = norm(opts.chain);
+  if (!key && !chain) return null;
+  const sameChain = (r) => !!chain && !!opts.chainOf && norm(opts.chainOf(r)) === chain;
   const hist = records
-    .filter((r) => r.kind === 'expense' && norm(r.store) === key && r.id !== opts.excludeId)
+    .filter(
+      (r) =>
+        r.kind === 'expense' &&
+        r.id !== opts.excludeId &&
+        ((key && norm(r.store) === key) || sameChain(r)),
+    )
     .sort(newestFirst);
   if (!hist.length) return null;
   const cat = hist.map(categoryOf).find(Boolean) || null;
@@ -48,4 +58,41 @@ export function lastStoreDefaults(records, store, opts = {}) {
     sub: cat ? cat.sub : null,
     payment: pay ? pay.payment : null,
   };
+}
+
+/**
+ * 從歷史帳目找出名稱符合輸入的店家，供打字時立刻顯示（不必等網路）。
+ * 開頭相符的排前面，其次依消費次數、再依最近一次。
+ *
+ * @param {object[]} records
+ * @param {string} query 已輸入的文字（至少 1 個字）
+ * @param {number} [limit]
+ * @returns {string[]} 店家名稱（保留原本的大小寫）
+ */
+export function matchStores(records, query, limit = 5) {
+  const q = norm(query);
+  if (!q) return [];
+  const seen = new Map();
+  for (const r of records) {
+    if (r.kind !== 'expense' || !r.store) continue;
+    const name = String(r.store).trim();
+    const k = norm(name);
+    if (!k.includes(q)) continue;
+    const e = seen.get(k) || { name, n: 0, last: '' };
+    e.n++;
+    if (String(r.date || '') >= e.last) {
+      e.last = String(r.date || '');
+      e.name = name;
+    }
+    seen.set(k, e);
+  }
+  return [...seen.entries()]
+    .sort(
+      ([ka, a], [kb, b]) =>
+        Number(kb.startsWith(q)) - Number(ka.startsWith(q)) ||
+        b.n - a.n ||
+        b.last.localeCompare(a.last),
+    )
+    .slice(0, limit)
+    .map(([, e]) => e.name);
 }

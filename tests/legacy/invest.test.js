@@ -18,7 +18,7 @@ beforeAll(() => {
       'ledger.v23.seeded': '1',
     },
   }));
-  evalInApp("chartRange = 'all';"); // 讓 inRange() 涵蓋所有日期
+  evalInApp("listPeriod = { mode: 'all', from: '', to: '' };"); // 讓 inRange() 涵蓋所有日期
 });
 afterAll(() => close());
 
@@ -93,7 +93,7 @@ describe('investStatsForRange — 邊界情況', () => {
         'ledger.v23.seeded': '1',
       },
     });
-    e2("chartRange = 'all';");
+    e2("listPeriod = { mode: 'all', from: '', to: '' };");
     expect(a2.investStatsForRange().unrealized).toBeNull();
     c2();
   });
@@ -106,7 +106,7 @@ describe('investStatsForRange — 邊界情況', () => {
     } = bootLegacyApi({
       storage: { 'ledger.v2.records': [], 'ledger.v23.seeded': '1' },
     });
-    e3("chartRange = 'all';");
+    e3("listPeriod = { mode: 'all', from: '', to: '' };");
     expect(a3.investStatsForRange()).toEqual({ realized: 0, dividends: 0, unrealized: null });
     c3();
   });

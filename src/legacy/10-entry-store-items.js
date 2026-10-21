@@ -170,18 +170,29 @@ function addItemRow(
     del = row.querySelector('.i-del'),
     qtyBtn = row.querySelector('.i-qty-toggle');
   const rowUsesQty = () => row.classList.contains('qty');
-  nameI.addEventListener('change', () => {
-    const catalog = storeItemCatalog(composedStore()),
-      hit = catalog.find((x) => x.name === nameI.value.trim());
-    if (hit) {
-      if (rowUsesQty() && unitI.value === '') {
-        unitI.value = hit.unitPrice || hit.price || '';
-        syncItemRowTotal(row);
-      } else if (!rowUsesQty() && priceI.value === '') {
-        priceI.value = hit.price;
-        recomputeTotal();
-      }
+  // 打完／選好品項名稱就帶入上次的價格：先找這家店（含同連鎖），找不到再參考所有店家。
+  // 用 input + change 兩個事件：從建議清單挑選時有些瀏覽器只觸發其中之一。
+  const fillPriceFromHistory = () => {
+    const name = nameI.value.trim().toLowerCase();
+    if (!name) return;
+    const byName = (x) => x.name.toLowerCase() === name;
+    const hit =
+      storeItemCatalog(composedStore(), currentStoreChain()).find(byName) ||
+      storeItemCatalog('', '', true).find(byName);
+    if (!hit) return;
+    if (rowUsesQty() && unitI.value === '') {
+      unitI.value = hit.unitPrice || hit.price || '';
+      syncItemRowTotal(row);
+      recomputeTotal();
+    } else if (!rowUsesQty() && priceI.value === '') {
+      priceI.value = hit.price;
+      recomputeTotal();
     }
+  };
+  nameI.addEventListener('change', fillPriceFromHistory);
+  nameI.addEventListener('input', (e) => {
+    // 只在從清單挑選（沒有 inputType）或貼上時即時帶入，避免打到一半就亂填。
+    if (!e.inputType || e.inputType === 'insertReplacementText') fillPriceFromHistory();
   });
   priceI.addEventListener('input', recomputeTotal);
   qtyI.addEventListener('input', () => {
@@ -247,6 +258,7 @@ function addItemRow(
   };
   $('#itemRows').appendChild(row);
   if (useQty) syncItemRowTotal(row);
+  if (typeof applyFxItemHints === 'function') applyFxItemHints();
 }
 function syncItemRowTotal(row) {
   if (!row || !row.classList.contains('qty')) return;

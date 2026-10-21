@@ -118,6 +118,7 @@ function renderChartCalendar() {
         if ($('#listSearch')) $('#listSearch').value = '';
         if ($('#clearSearch')) $('#clearSearch').style.display = 'none';
         if ($('#searchScopeNote')) $('#searchScopeNote').classList.remove('show');
+        chartOverride = null; // 跳去清單看當日，不要在離開時被還原掉
         setListPeriod('day', b.dataset.calDate, b.dataset.calDate);
         document.querySelector('.nav button[data-view="list"]')?.click();
       }),

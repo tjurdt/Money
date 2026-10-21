@@ -185,30 +185,53 @@ function applyDiscountsToItems(items, baseAmount) {
   };
 }
 
-function storeItemCatalog(store, chain) {
-  const freq = {},
-    price = {},
-    unit = {};
-  const useChain = !!chain;
-  records.forEach((r) => {
+/**
+ * 這家店（或這個連鎖）買過的品項，最常買的排前面。
+ *
+ * 價格一律是「最近一次」買的單價（依日期由舊到新掃，後者覆蓋前者）。
+ * 排序：真的在這間店買過的優先，其次是同連鎖其他分店，再依次數、最近一次。
+ * 沒有店名也沒有連鎖時回傳空陣列 —— 不然會把所有沒填店名的帳目都當成同一家。
+ * anyStore 為 true 時改成參考所有店家（打品項名稱自動帶價格的備援）。
+ */
+function storeItemCatalog(store, chain, anyStore = false) {
+  const stat = new Map();
+  const key = (s) =>
+    String(s || '')
+      .trim()
+      .toLowerCase();
+  const here = key(store);
+  if (!anyStore && !here && !chain) return [];
+  const sorted = [...records].sort(
+    (a, b) =>
+      String(a.date || '').localeCompare(String(b.date || '')) ||
+      (+a.createdAt || 0) - (+b.createdAt || 0),
+  );
+  sorted.forEach((r) => {
     if (!r.items) return;
     // 外幣帳目的品項價格是外幣：台幣表單不參考，外幣表單只參考同幣別，且取當初輸入的外幣原價。
     if (fxCur ? !r.fx || r.fx.cur !== fxCur : r.fx) return;
+    const exact = !!here && key(r.store) === here;
+    const sameChain = !!chain && chainNameOfRecord(r) === chain;
+    if (!anyStore && !exact && !sameChain) return;
     const items = r.fx && r.fx.orig ? r.fx.orig.items || [] : r.items;
-    const match = useChain ? chainNameOfRecord(r) === chain : r.store === store;
-    if (!match) return;
     items.forEach((it) => {
-      if (it.name) {
-        freq[it.name] = (freq[it.name] || 0) + 1;
-        const gp = it.grossPrice != null ? it.grossPrice : it.price;
-        price[it.name] = gp;
-        unit[it.name] = it.unitPrice || ((+it.qty || 1) > 0 ? (+gp || 0) / (+it.qty || 1) : gp);
-      }
+      const name = String(it.name || '').trim();
+      if (!name) return;
+      const e = stat.get(name) || { name, n: 0, here: 0, last: '' };
+      const gp = it.grossPrice != null ? it.grossPrice : it.price;
+      const qty = +it.qty > 0 ? +it.qty : 1;
+      e.n++;
+      if (exact) e.here++;
+      e.last = String(r.date || '');
+      e.unitPrice = it.unitPrice || (+gp || 0) / qty;
+      // 這間店自己的最近價格優先；沒在這間買過才用同連鎖其他分店的。
+      if (exact || e.here === 0) e.price = e.unitPrice;
+      stat.set(name, e);
     });
   });
-  return Object.keys(freq)
-    .sort((a, b) => freq[b] - freq[a])
-    .map((n) => ({ name: n, price: price[n], unitPrice: unit[n] }));
+  return [...stat.values()]
+    .sort((a, b) => b.here - a.here || b.n - a.n || b.last.localeCompare(a.last))
+    .map((e) => ({ name: e.name, price: e.price, unitPrice: e.price }));
 }
 function refreshStoreItems() {
   if (getKind() !== 'expense') {
@@ -219,15 +242,11 @@ function refreshStoreItems() {
     return;
   }
   const store = composedStore();
-  let chain = '';
-  if (storeMode === 'chain') {
-    chain = $('#f-chain').value.trim();
-  } else {
-    const x = inferChainBranch(store);
-    if (x.recognized) chain = x.chain;
-  }
+  const chain = currentStoreChain();
+  // 品項名稱的建議清單：本店的排前面，其餘店家的接在後面，這樣沒填店名也能自動帶入。
   const cat = storeItemCatalog(store, chain);
-  $('#itemList').innerHTML = cat.map((x) => `<option value="${esc(x.name)}">`).join('');
+  const names = [...new Set([...cat, ...storeItemCatalog('', '', true)].map((x) => x.name))];
+  $('#itemList').innerHTML = names.map((n) => `<option value="${esc(n)}">`).join('');
   const fav = cat.slice(0, 10);
   $('#favTitle').style.display = fav.length ? 'block' : 'none';
   if (fav.length)
@@ -238,14 +257,14 @@ function refreshStoreItems() {
   box.innerHTML = fav
     .map(
       (x) =>
-        `<button data-n="${esc(x.name)}" data-p="${x.price}" data-u="${x.unitPrice || x.price}">${esc(x.name)} <small style="opacity:.6">${nf(x.unitPrice || x.price)}</small></button>`,
+        `<button data-n="${esc(x.name)}" data-p="${x.price}">${esc(x.name)} <small style="opacity:.6">${nf(x.price)}</small></button>`,
     )
     .join('');
   box
     .querySelectorAll('button')
-    .forEach((b) => (b.onclick = () => pickStoreFavItem(b.dataset.n, b.dataset.p, b.dataset.u)));
+    .forEach((b) => (b.onclick = () => pickStoreFavItem(b.dataset.n, b.dataset.p)));
 }
-function pickStoreFavItem(name, price, unit) {
+function pickStoreFavItem(name, price) {
   if (getKind() !== 'expense') return;
   if (!itemDetailOpen) setItemDetailOpen(true, false);
   const rows = [...$('#itemRows').querySelectorAll('.itemrow')];
@@ -256,13 +275,14 @@ function pickStoreFavItem(name, price, unit) {
     empty.querySelector('.i-name').value = name;
     empty.querySelector('.i-price').value = price;
     if (empty.classList.contains('qty')) {
+      // 這列已經開了數量：單價填上次價格，數量維持 1。
       const u = empty.querySelector('.i-unit');
       if (u) {
-        u.value = unit;
+        u.value = price;
         syncItemRowTotal(empty);
       }
     }
-  } else addItemRow(name, price, '', '', 1, unit);
+  } else addItemRow(name, price); // 不預設開啟 ×數量
   recomputeTotal();
 }
 function buildDatalists() {
@@ -285,5 +305,15 @@ function buildDatalists() {
   $('#partnerList').innerHTML = [...partners].map((x) => `<option value="${esc(x)}">`).join('');
 }
 $('#f-store').addEventListener('change', refreshStoreItems);
+// 打字時也更新「此店常買」（稍微延遲，避免每個字都掃一遍全部帳目）。
+{
+  let t = null;
+  ['#f-store', '#f-branch'].forEach((id) =>
+    $(id).addEventListener('input', () => {
+      clearTimeout(t);
+      t = setTimeout(refreshStoreItems, 200);
+    }),
+  );
+}
 $('#f-chain').addEventListener('change', refreshStoreItems);
 $('#f-branch').addEventListener('change', refreshStoreItems);

@@ -20,7 +20,7 @@ function refitAppbarText() {
 window.addEventListener('resize', refitAppbarText);
 document.fonts?.ready?.then(refitAppbarText);
 function renderScopePill() {
-  $('#scopePillText').textContent = scopeLabel(currentScope);
+  $('#scopePillText').textContent = chartOverride ? '自訂' : scopeLabel(currentScope);
   refitAppbarText();
 }
 function periodMonthBounds() {
@@ -32,7 +32,8 @@ function periodMonthBounds() {
   return { from, to };
 }
 function saveListPeriod() {
-  save('ledger.list.period.v1', listPeriod);
+  // 快捷模式下的「全部」只是暫時的，不寫進儲存，以免下次開啟還停在全部。
+  if (!chartOverride) save('ledger.list.period.v1', listPeriod);
 }
 function setListPeriod(mode, from = '', to = '') {
   listPeriod = { mode, from, to };
@@ -179,6 +180,7 @@ $$('.nav button').forEach(
       b.classList.add('on');
       $$('.view').forEach((v) => v.classList.remove('active'));
       $('#view-' + b.dataset.view).classList.add('active');
+      if (b.dataset.view !== 'chart') exitChartOverride(true);
       $('#fab').classList.toggle('settings-hidden', b.dataset.view === 'settings');
       // 切到哪個分頁就重繪哪個，不必在這裡列舉每個畫面的渲染函式。
       activateView(b.dataset.view);

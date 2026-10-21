@@ -185,73 +185,20 @@ function chainNameOfRecord(r) {
   const x = inferChainBranch(r?.store || '');
   return x.recognized ? x.chain : '';
 }
-function placeTypeToCategory(type) {
-  const t = String(type || '').toLowerCase();
-  if (!t) return '';
-  const inn = (arr) => arr.some((k) => t === k || t.includes(k));
-  if (
-    inn([
-      'convenience',
-      'restaurant',
-      'cafe',
-      'coffee',
-      'bakery',
-      'meal_takeaway',
-      'meal_delivery',
-      'fast_food',
-      'food_court',
-      'bar',
-      'pub',
-      'ice_cream',
-      'deli',
-      'food',
-    ])
-  )
-    return '餐食';
-  if (inn(['gas_station', 'fuel', 'parking', 'transit', 'bus_station', 'train_station', 'subway']))
-    return '交通';
-  if (inn(['pharmacy', 'drugstore', 'chemist', 'doctor', 'hospital', 'clinic', 'dentist']))
-    return '醫療';
-  if (
-    inn([
-      'movie',
-      'cinema',
-      'book',
-      'fitness',
-      'sports',
-      'gym',
-      'stadium',
-      'amusement',
-      'bowling',
-      'karaoke',
-    ])
-  )
-    return '娛樂';
-  if (inn(['home_goods', 'furniture', 'hardware', 'laundry', 'dry_cleaning', 'florist']))
-    return '居家';
-  if (
-    inn([
-      'supermarket',
-      'grocery',
-      'food_store',
-      'marketplace',
-      'discount_store',
-      'variety_store',
-      'department_store',
-      'shopping_mall',
-    ])
-  )
-    return '日用品';
-  return '';
-}
-function applyPlaceTypeCategory(type) {
-  if (getKind() !== 'expense' || selCat) return;
-  const c = placeTypeToCategory(type);
-  if (c && catsExpense.includes(c)) {
+/**
+ * 依地標類型帶入分類。優先順序：使用者親自選的 > 這家店的歷史紀錄 > 地標類型。
+ * types 可以是單一字串或 Google 的 types 陣列。
+ */
+function applyPlaceTypeCategory(types) {
+  if (getKind() !== 'expense' || editingId || userPicked.cat || catMode !== 'whole') return;
+  if (storeHistoryDefaults()) return;
+  const c = placeTypesToCategory(types);
+  if (c && catsExpense.includes(c) && c !== selCat) {
     selCat = c;
     selSub = null;
     renderChipSelectors();
     renderSubChips();
+    toast(`依店家類型帶入分類「${c}」`);
   }
 }
 function applyPlaceNameToStore(name, type = '') {
@@ -273,28 +220,50 @@ function applyPlaceNameToStore(name, type = '') {
   applyPlaceTypeCategory(type);
 }
 let storeSuggestTimer = null,
-  storeSuggestSeq = 0;
-function renderStoreSuggestions(names) {
+  storeSuggestSeq = 0,
+  storeSuggestLocal = [], // 歷史店家（打字當下立刻算出，不等網路）
+  storeSuggestShown = []; // 目前畫面上的建議，輸入完整店名時用來查地標類型
+/** items：[{ name, types }]，歷史店家排前面，同名只留第一個。 */
+function renderStoreSuggestions(items) {
   const box = $('#storeSuggest');
   if (!box) return;
-  const uniq = [...new Set((names || []).map(shortPlaceName).filter(Boolean))].slice(0, 6);
-  box.innerHTML = uniq
-    .map((n, i) => `<button type="button" data-si="${i}">${esc(n)}</button>`)
+  const seen = new Set();
+  const uniq = [];
+  for (const it of items || []) {
+    const name = shortPlaceName(it.name);
+    if (!name || seen.has(name.toLowerCase())) continue;
+    seen.add(name.toLowerCase());
+    uniq.push({ name, types: it.types || [], history: !!it.history });
+  }
+  storeSuggestShown = uniq.slice(0, 6);
+  box.innerHTML = storeSuggestShown
+    .map(
+      (n, i) =>
+        `<button type="button" data-si="${i}">${n.history ? '🕘 ' : ''}${esc(n.name)}</button>`,
+    )
     .join('');
   box.querySelectorAll('button').forEach(
     (b) =>
       (b.onclick = () => {
-        applyPlaceNameToStore(uniq[+b.dataset.si]);
+        const it = storeSuggestShown[+b.dataset.si];
+        applyPlaceNameToStore(it.name, it.types);
         box.innerHTML = '';
       }),
   );
 }
+/** 一打字就先用歷史店家回應；之後 Google 的結果回來再接在後面。 */
+function showLocalStoreSuggestions(q) {
+  storeSuggestSeq++; // 作廢還在路上的舊查詢
+  const text = q.trim();
+  storeSuggestLocal =
+    storeMode === 'single' && text
+      ? matchStores(records, text, 4).map((name) => ({ name, types: [], history: true }))
+      : [];
+  renderStoreSuggestions(storeSuggestLocal);
+}
 async function fetchShortStoreSuggestions(q) {
-  if (!hasAdvancedAccess() || storeMode !== 'single' || q.trim().length < 2) {
-    renderStoreSuggestions([]);
-    return;
-  }
   const seq = ++storeSuggestSeq;
+  if (!hasAdvancedAccess() || storeMode !== 'single' || q.trim().length < 1) return;
   try {
     const lib = await ensureGoogle();
     if (seq !== storeSuggestSeq) return;
@@ -306,20 +275,20 @@ async function fetchShortStoreSuggestions(q) {
       region: 'tw',
     });
     if (seq !== storeSuggestSeq) return;
-    const names = (suggestions || [])
+    const remote = (suggestions || [])
       .map((s) => {
         const p = s.placePrediction || {};
-        return (
+        const name =
           p.structuredFormat?.mainText?.text ||
           p.structuredFormat?.mainText?.toString?.() ||
           p.structuredFormatting?.main_text ||
           p.text?.text ||
           p.text?.toString?.() ||
-          ''
-        );
+          '';
+        return { name, types: p.types || [] };
       })
-      .filter(Boolean);
-    renderStoreSuggestions(names);
+      .filter((x) => x.name);
+    renderStoreSuggestions([...storeSuggestLocal, ...remote]);
   } catch (e) {
     console.warn('short autocomplete failed', e);
   }
@@ -327,12 +296,23 @@ async function fetchShortStoreSuggestions(q) {
 function attachAC() {
   if (storeAC) return;
   storeAC = { mode: 'short-custom' };
-  $('#f-store').addEventListener('input', () => {
-    clearTimeout(storeSuggestTimer);
-    const q = $('#f-store').value;
-    storeSuggestTimer = setTimeout(() => fetchShortStoreSuggestions(q), 450);
-  });
 }
+// 輸入監聽一開始就掛上（不必等 Google 載入完）：歷史店家立刻顯示，
+// Google 建議在停頓 250ms 後補上。
+$('#f-store').addEventListener('input', () => {
+  clearTimeout(storeSuggestTimer);
+  const q = $('#f-store').value;
+  showLocalStoreSuggestions(q);
+  storeSuggestTimer = setTimeout(() => fetchShortStoreSuggestions(q), 250);
+});
+// 直接打完整店名、沒點建議時，若剛好等於某個建議，也依它的地標類型帶入分類。
+['change', 'blur'].forEach((ev) =>
+  $('#f-store').addEventListener(ev, () => {
+    const typed = shortPlaceName($('#f-store').value).toLowerCase();
+    const hit = typed && storeSuggestShown.find((x) => x.name.toLowerCase() === typed);
+    if (hit) applyPlaceTypeCategory(hit.types);
+  }),
+);
 function currentCoords() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) return reject(new Error('此裝置不支援定位'));

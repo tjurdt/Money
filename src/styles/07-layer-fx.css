@@ -50,3 +50,7 @@
 .ver-head b{font-size:14px;color:var(--ink)}
 .ver-entry.current .ver-head b{color:var(--teal)}
 .ver-entry ul{margin:6px 0 0;padding-left:18px;font-size:13px;color:var(--muted);line-height:1.6}
+.fx-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px}
+.fx-head h3{margin:0}
+.i-twd{font-size:11px;color:var(--muted);margin:3px 2px 0}
+.i-twd:empty{display:none}

@@ -115,6 +115,32 @@ function applyFxAmountLabel() {
   $('#amountLabel').textContent = `外幣金額 (${currencyMeta(fxCur).symbol} ${fxCur})`;
 }
 
+/**
+ * 外幣記帳時，品項欄位的提示：價格欄標示幣別，並在每個品項下方顯示換成台幣大約多少。
+ * 台幣用「帳單台幣 ÷ 外幣總額」換算（刷卡時就是實際刷卡匯率），尚未輸入台幣時不顯示。
+ * 純顯示，不影響儲存：儲存時仍由 toTwdRecord 統一換算。
+ */
+function applyFxItemHints() {
+  const twd = +$('#f-fxtwd').value,
+    total = +$('#f-total').value,
+    k = fxCur && twd > 0 && total > 0 ? twd / total : 0;
+  $('#itemTotalLabel').textContent = fxCur ? `品項加總（${fxCur}）` : '品項加總';
+  $('#itemRows')
+    .querySelectorAll('.itemrow')
+    .forEach((row) => {
+      const priceI = row.querySelector('.i-price');
+      if (!priceI.readOnly) priceI.placeholder = fxCur ? `價格 ${fxCur}` : '價格';
+      let tag = row.querySelector('.i-twd');
+      if (!tag) {
+        tag = document.createElement('div');
+        tag.className = 'i-twd';
+        row.querySelector('.line1').after(tag);
+      }
+      const v = parseFloat(priceI.value) || 0;
+      tag.textContent = k && v > 0 ? `≈ NT$ ${nf(Math.round(v * k * 100) / 100)}` : '';
+    });
+}
+
 /** 依目前狀態顯示／隱藏、重繪外幣區塊。 */
 function updateFxUI() {
   const t = fxTrip(),
@@ -122,6 +148,7 @@ function updateFxUI() {
   box.style.display = t ? 'block' : 'none';
   if (!t) {
     fxCur = null;
+    applyFxItemHints();
     return;
   }
   if (fxCur && !tripCurrencies(t).some((c) => c.code === fxCur)) fxCur = null;
@@ -164,6 +191,7 @@ function recalcFxTwd() {
 
 function updateFxPreview(t) {
   const el = $('#fxPreview');
+  applyFxItemHints();
   if (!fxCur) {
     el.innerHTML = '';
     return;

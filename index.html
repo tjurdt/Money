@@ -56,9 +56,7 @@
 </section>
 
 <section class="view" id="view-chart">
-  <div class="seg" id="rangeSeg"><button data-r="month" class="on">本月</button><button data-r="3m">近3月</button><button data-r="year">今年</button><button data-r="all">全部</button><button data-r="custom">自訂</button></div>
-  <div class="custom-range" id="customRange"><input type="date" id="chartFrom"><span>–</span><input type="date" id="chartTo"></div>
-  <div class="chart-filterbox"><details class="chartfilters" id="chartScopeDetails"><summary id="chartScopeSummary">情境：全部</summary><div class="inside"><div class="chips" id="chartScopeChips"></div></div></details></div>
+  <div class="chart-filterbox"><div class="chips" id="chartScopeChips"></div><div class="sub" id="chartScopeSummary"></div></div>
   <div class="stat-kpis">
     <div class="stat-kpi"><div class="k">我的實際支出</div><div class="v" id="statSpend">$0</div><div class="hint">分帳後由你負擔</div></div>
     <div class="stat-kpi"><div class="k">我實際付款</div><div class="v" id="statPaid">$0</div><div class="hint">含替別人先墊</div></div>
@@ -81,7 +79,6 @@
     <div class="chartwrap"><canvas id="barChart"></canvas></div><div class="sub" id="barNote" style="margin:10px 0 0"></div>
   </div>
   <div class="card" id="tripCompareCard"><h2>各趟旅遊花費</h2><div class="sub">依行程時間排序；比較你實際負擔的旅費</div><div class="chartwrap"><canvas id="tripChart"></canvas></div></div>
-  <div class="card"><h2>分帳結算</h2><div class="sub">還款不算收入或支出，只用來抵銷彼此代墊</div><div id="balanceList"></div></div>
   <div class="chart-end-space" aria-hidden="true"></div>
 </section>
 
